@@ -123,10 +123,7 @@ class LifetimeMeasurement(Process):
                 waiting: np.ndarray = (data[2] > trigger_trigger)
                 data[1] -= self.r_series / self.r * data[0] * self.gain
                 not_switched: np.ndarray = (data[1, waiting] < self.trigger_voltage)
-                # fw.write_data(Path(r'd:\ttt\v(t)'), 'at', data)
                 if np.any(waiting):
-                    # fw.write_data(r'd:\ttt\voltage at 'f'{task_adc.timing.samp_clk_rate} Ss',
-                    #               'at', data[1, waiting])
                     if self.c.loadable and not self.c.loaded:
                         this_time_not_switched: int = np.count_nonzero(not_switched)
                         self.c.inc(this_time_not_switched)

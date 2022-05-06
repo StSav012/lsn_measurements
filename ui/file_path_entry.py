@@ -5,8 +5,7 @@ from typing import Optional
 
 import pathvalidate
 from PyQt5.QtCore import pyqtSignal
-
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyle, QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyle, QWidget
 
 __all__ = ['FilePathEntry']
 
@@ -19,23 +18,23 @@ class FilePathEntry(QWidget):
 
         self.path: Optional[Path] = None
 
-        self.setLayout(QHBoxLayout())
+        layout: QHBoxLayout = QHBoxLayout(self)
 
         self.text: QLineEdit = QLineEdit(self)
         self.text.setText(initial_file_path)
         self.text.textChanged.connect(self.on_text_changed)
-        self.layout().addWidget(self.text)
+        layout.addWidget(self.text)
 
         self.status: QLabel = QLabel(self)
-        self.layout().addWidget(self.status)
+        layout.addWidget(self.status)
 
         self.browse_button: QPushButton = QPushButton('Browse…', self)
         self.browse_button.clicked.connect(self.on_browse_button_clicked)
-        self.layout().addWidget(self.browse_button)
+        layout.addWidget(self.browse_button)
 
-        self.layout().setStretch(1, 0)
-        self.layout().setStretch(2, 0)
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        layout.setStretch(1, 0)
+        layout.setStretch(2, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         if initial_file_path:
             self.on_text_changed(initial_file_path, emit=False)

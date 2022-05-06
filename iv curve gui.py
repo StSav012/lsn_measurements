@@ -6,7 +6,7 @@ from typing import Dict, Optional, Union
 import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QSettings, QTimer, Qt
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QIcon
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QFormLayout, QGroupBox, QHBoxLayout, QMainWindow, QPushButton,
                              QRadioButton, QStatusBar, QVBoxLayout, QWidget)
 from numpy.typing import NDArray

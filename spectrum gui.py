@@ -6,12 +6,12 @@ from typing import Dict, Final, Optional, Tuple, Union
 import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QSettings, QTimer, Qt
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QIcon
 from PyQt5.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QMainWindow,
                              QPushButton, QVBoxLayout, QWidget)
 
 from backend.measurement.noise import NoiseMeasurement
-from backend.utils import *
+from backend.utils import max_sample_rate, welch
 
 _MAX_ADC_SAMPLE_RATE: Final[float] = max_sample_rate()
 

@@ -57,6 +57,7 @@ class GUI(QMainWindow):
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
+        self.button_pause: QPushButton = QPushButton(self.central_widget)
         self.button_stop: QPushButton = QPushButton(self.central_widget)
 
         self.setup_ui_appearance()
@@ -76,7 +77,6 @@ class GUI(QMainWindow):
         self.canvas_mean.ctrl.averageGroup.setChecked(False)
         self.canvas_mean.ctrl.xGridCheck.setChecked(True)
         self.canvas_mean.ctrl.yGridCheck.setChecked(True)
-        # y_axis.tickStrings = tick_strings
 
         x_axis = self.canvas_std.getAxis('bottom')
         x_axis.setLabel(text='Frequency', units='GHz')
@@ -87,7 +87,6 @@ class GUI(QMainWindow):
         self.canvas_std.ctrl.averageGroup.setChecked(False)
         self.canvas_std.ctrl.xGridCheck.setChecked(True)
         self.canvas_std.ctrl.yGridCheck.setChecked(True)
-        # y_axis.tickStrings = tick_strings
         self.canvas_std.setXLink(self.canvas_mean)
 
         self.label_loop_number.formatStr = '{value}'
@@ -136,9 +135,12 @@ class GUI(QMainWindow):
         self.stop_sings_box.layout().addWidget(self.stop_key_temperature)
 
         self.buttons_layout.addWidget(self.button_start)
+        self.buttons_layout.addWidget(self.button_pause)
         self.buttons_layout.addWidget(self.button_stop)
 
         self.button_start.setText('Start')
+        self.button_pause.setText('Pause')
+        self.button_pause.setCheckable(True)
         self.button_stop.setText('Stop')
         self.button_stop.setDisabled(True)
 
@@ -173,6 +175,7 @@ class GUI(QMainWindow):
 
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
+        self.button_pause.setChecked(False)
         self.button_stop.setEnabled(True)
 
     def on_button_stop_clicked(self) -> None:
@@ -182,7 +185,7 @@ class GUI(QMainWindow):
 
 class App(GUI):
     def __init__(self, flags=Qt.WindowFlags()) -> None:
-        super(App, self).__init__(flags=flags)
+        super().__init__(flags=flags)
 
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
@@ -268,6 +271,7 @@ class App(GUI):
         self.power_index: int = 0
 
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
+        self.temperature_just_set: bool = False
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.synthesizer.reset()
@@ -484,15 +488,22 @@ class App(GUI):
                 error(f'failed to change the heater range')
                 self.timer.stop()
                 self.measurement.terminate()
-        else:
+        elif self.temperature_just_set:
             td: timedelta = datetime.now() - self.bad_temperature_time
             if td > self.temperature_delay:
+                self.timer.setInterval(50)
                 self.good_to_measure.buf[0] = True
+                self.temperature_just_set = False
             else:
                 self.good_to_measure.buf[0] = False
                 print(f'temperature {actual_temperature} {temperature_unit} '
                       f'is close enough to {self.temperature:.3f} K, but not for long enough yet'
                       f': {self.temperature_delay - td} left')
+                self.timer.setInterval(1000)
+        else:
+            self.good_to_measure.buf[0] = True
+
+        self.good_to_measure.buf[0] &= not self.button_pause.isChecked()
 
         if not self.measurement.is_alive():
             self.timer.stop()

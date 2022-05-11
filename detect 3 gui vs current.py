@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from configparser import ConfigParser
-from datetime import date
+from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
@@ -56,6 +56,7 @@ class GUI(QMainWindow):
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
+        self.button_pause: QPushButton = QPushButton(self.central_widget)
         self.button_stop: QPushButton = QPushButton(self.central_widget)
 
         self.setup_ui_appearance()
@@ -123,9 +124,12 @@ class GUI(QMainWindow):
         self.stop_sings_box.layout().addWidget(self.stop_key_temperature)
 
         self.buttons_layout.addWidget(self.button_start)
+        self.buttons_layout.addWidget(self.button_pause)
         self.buttons_layout.addWidget(self.button_stop)
 
         self.button_start.setText('Start')
+        self.button_pause.setText('Pause')
+        self.button_pause.setCheckable(True)
         self.button_stop.setText('Stop')
         self.button_stop.setDisabled(True)
 
@@ -160,6 +164,7 @@ class GUI(QMainWindow):
 
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
+        self.button_pause.setChecked(False)
         self.button_stop.setEnabled(True)
 
     def on_button_stop_clicked(self) -> None:
@@ -235,6 +240,9 @@ class App(GUI):
         self.saving_location.mkdir(parents=True, exist_ok=True)
 
         self.temperature_values: SliceSequence = SliceSequence(self.config.get('measurement', 'temperature'))
+        self.temperature_delay: timedelta = \
+            timedelta(seconds=self.config.getfloat('measurement', 'time to wait for temperature [minutes]',
+                                                   fallback=0.0) * 60.)
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = abs(self.config.getfloat('measurement', 'temperature tolerance [%]',
                                                                             fallback=0.5))
@@ -249,6 +257,9 @@ class App(GUI):
         self.frequency_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
+
+        self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
+        self.temperature_just_set: bool = False
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.synthesizer.reset()
@@ -406,6 +417,7 @@ class App(GUI):
                 < actual_temperature
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
             self.good_to_measure.buf[0] = False
+            self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
             print(f'temperature {actual_temperature} {temperature_unit} '
                   f'is too far from {self.temperature:.3f} K')
@@ -422,8 +434,22 @@ class App(GUI):
                 error(f'failed to change the heater range')
                 self.timer.stop()
                 self.measurement.terminate()
+        elif self.temperature_just_set:
+            td: timedelta = datetime.now() - self.bad_temperature_time
+            if td > self.temperature_delay:
+                self.timer.setInterval(50)
+                self.good_to_measure.buf[0] = True
+                self.temperature_just_set = False
+            else:
+                self.good_to_measure.buf[0] = False
+                print(f'temperature {actual_temperature} {temperature_unit} '
+                      f'is close enough to {self.temperature:.3f} K, but not for long enough yet'
+                      f': {self.temperature_delay - td} left')
+                self.timer.setInterval(1000)
         else:
             self.good_to_measure.buf[0] = True
+
+        self.good_to_measure.buf[0] &= not self.button_pause.isChecked()
 
         if not self.measurement.is_alive():
             self.timer.stop()

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Dict
 
 import pyqtgraph as pg
 from PyQt5.QtCore import QSettings, Qt
@@ -28,6 +29,8 @@ class LifetimeGUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.PlotWidget = pg.PlotWidget(self.central_widget)
+        self.plot_lines: Dict[int, pg.PlotDataItem] = dict()
+        self.figure.addLegend(offset=(30, -30))
 
         self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_spent_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)

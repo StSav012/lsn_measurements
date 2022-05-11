@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Dict, Final, List, Optional, TextIO, Tuple
+from typing import Final, List, Optional, TextIO, Tuple
 
 import numpy as np
 import pyqtgraph as pg
@@ -102,9 +102,6 @@ class LifetimeBase(abc.ABC, LifetimeGUI):
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)
-
-        self.plot_lines: Dict[int, pg.PlotDataItem] = dict()
-        self.figure.addLegend(offset=(30, -30))
 
         self.temperature_index: int = 0
         self.frequency_index: int = 0

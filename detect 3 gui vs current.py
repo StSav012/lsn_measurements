@@ -128,7 +128,7 @@ class App(DetectBase):
                 self.on_button_stop_clicked()
                 return
             self.bias_current_index += 1
-            if self.bias_current_index >= len(self.bias_currents):
+            if self.bias_current_index >= len(self.bias_current_values):
                 self.bias_current_index = 0
                 if self.stop_key_power.isChecked():
                     self.on_button_stop_clicked()

@@ -36,7 +36,7 @@ class App(DetectBase):
     @property
     def _line_index(self) -> int:
         return (self.bias_current_index
-                + (self.frequency_index * len(self.bias_currents)
+                + (self.frequency_index * len(self.bias_current_values)
                    + self.temperature_index) * len(self.frequency_values))
 
     @property
@@ -51,7 +51,7 @@ class App(DetectBase):
 
     def _next_indices(self) -> bool:
         self.bias_current_index += 1
-        if self.bias_current_index >= len(self.bias_currents):
+        if self.bias_current_index >= len(self.bias_current_values):
             self.bias_current_index = 0
             self.frequency_index += 1
             if self.frequency_index >= len(self.frequency_values):
@@ -135,11 +135,11 @@ class App(DetectBase):
                     self.on_button_stop_clicked()
                     return
                 if self.check_exists:
-                    while self.bias_current_index < len(self.bias_currents) and self.stat_file.exists():
+                    while self.bias_current_index < len(self.bias_current_values) and self.stat_file.exists():
                         self.bias_current_index += 1
                 else:
                     self.bias_current_index += 1
-                if self.bias_current_index >= len(self.bias_currents):
+                if self.bias_current_index >= len(self.bias_current_values):
                     self.bias_current_index = 0
                     if self.stop_key_frequency.isChecked():
                         self.on_button_stop_clicked()

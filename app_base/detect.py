@@ -61,9 +61,9 @@ class DetectBase(abc.ABC, DetectGUI):
 
         self.setting_function: Final[str] = get_str(self.config, 'current', self.sample_name, 'function',
                                                     fallback='sine')
-        self.bias_currents: SliceSequence = SliceSequence(get_str(self.config, self.sample_name,
-                                                                  'current', 'bias current [nA]'))
-        self.stop_key_bias.setDisabled(len(self.bias_currents) <= 1)
+        self.bias_current_values: SliceSequence = SliceSequence(get_str(self.config, self.sample_name,
+                                                                        'current', 'bias current [nA]'))
+        self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
         self.initial_biases: Tuple[float] = get_float_tuple(self.config, self.sample_name,
                                                             'current', 'initial current [nA]')
 
@@ -120,7 +120,7 @@ class DetectBase(abc.ABC, DetectGUI):
 
     @property
     def bias_current(self) -> float:
-        return float(self.bias_currents[self.bias_current_index])
+        return float(self.bias_current_values[self.bias_current_index])
 
     @property
     def power_dbm(self) -> float:

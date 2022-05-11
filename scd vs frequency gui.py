@@ -15,8 +15,8 @@ from PyQt5.QtWidgets import (QApplication, QFormLayout, QGroupBox, QHBoxLayout, 
                              QVBoxLayout, QWidget)
 
 from backend.communication.anapico_communication import APUASYN20
-from backend.measurement.scd import SCDMeasurement
 from backend.communication.triton_communication import Triton
+from backend.measurement.scd import SCDMeasurement
 from backend.utils import SliceSequence, error, warning, zero_sources
 from backend.utils.config import *
 
@@ -542,6 +542,7 @@ class App(GUI):
 
 if __name__ == '__main__':
     app: QApplication = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

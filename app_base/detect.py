@@ -175,6 +175,7 @@ class DetectBase(abc.ABC, DetectGUI):
                                              frequency=self.frequency,
                                              waiting_after_pulse=self.waiting_after_pulse)
         self.measurement.start()
+        self.temperature_just_set = False
         print(f'saving to {self.stat_file}')
         self.timer.start(50)
 

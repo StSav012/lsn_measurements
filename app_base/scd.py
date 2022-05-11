@@ -201,6 +201,7 @@ class SwitchingCurrentDistributionBase(abc.ABC, SwitchingCurrentDistributionGUI)
                                           max_reasonable_bias_error=self.max_reasonable_bias_error,
                                           delay_between_cycles=self.delay_between_cycles)
         self.measurement.start()
+        self.temperature_just_set = False
         print(f'\nsaving to {self.stat_file}')
         self.timer.start(50)
 

@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
+from numpy.typing import NDArray
 
 from app_base.detect import DetectBase
 from backend.utils import error, zero_sources
@@ -75,11 +76,15 @@ class App(DetectBase):
         prob: float = np.inf
         err: float
         while not self.results_queue.empty():
-            old_x_data: np.ndarray = np.empty(0) if self.plot_line.xData is None else self.plot_line.xData
-            old_y_data: np.ndarray = np.empty(0) if self.plot_line.yData is None else self.plot_line.yData
+            old_x_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
+                                               if self.plot_line.xData is None
+                                               else self.plot_line.xData)
+            old_y_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
+                                               if self.plot_line.yData is None
+                                               else self.plot_line.yData)
             prob, err = self.results_queue.get(block=True)
-            x_data: np.ndarray = np.concatenate((old_x_data, [self.power_dbm]))
-            y_data: np.ndarray = np.concatenate((old_y_data, [prob]))
+            x_data: NDArray[np.float64] = np.concatenate((old_x_data, [self.power_dbm]))
+            y_data: NDArray[np.float64] = np.concatenate((old_y_data, [prob]))
             self.plot_line.setData(x_data, y_data)
 
         actual_temperature: float

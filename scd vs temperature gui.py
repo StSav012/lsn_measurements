@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
+from numpy.typing import NDArray
 
 from app_base.scd import SwitchingCurrentDistributionBase
 from backend.utils import error, zero_sources
@@ -82,13 +83,19 @@ class App(SwitchingCurrentDistributionBase):
         mean: float
         std: float
         while not self.results_queue.empty():
-            old_x_data: np.ndarray = np.empty(0) if self.plot_line_mean.xData is None else self.plot_line_mean.xData
-            old_mean_data: np.ndarray = np.empty(0) if self.plot_line_mean.yData is None else self.plot_line_mean.yData
-            old_std_data: np.ndarray = np.empty(0) if self.plot_line_std.yData is None else self.plot_line_std.yData
+            old_x_data: NDArray[np.float64] = (np.empty(0)
+                                               if self.plot_line_mean.xData is None
+                                               else self.plot_line_mean.xData)
+            old_mean_data: NDArray[np.float64] = (np.empty(0)
+                                                  if self.plot_line_mean.yData is None
+                                                  else self.plot_line_mean.yData)
+            old_std_data: NDArray[np.float64] = (np.empty(0)
+                                                 if self.plot_line_std.yData is None
+                                                 else self.plot_line_std.yData)
             mean, std = self.results_queue.get(block=True)
-            x_data: np.ndarray = np.concatenate((old_x_data, [self.temperature * 1000]))
-            mean_data: np.ndarray = np.concatenate((old_mean_data, [mean]))
-            std_data: np.ndarray = np.concatenate((old_std_data, [std]))
+            x_data: NDArray[np.float64] = np.concatenate((old_x_data, [self.temperature * 1000]))
+            mean_data: NDArray[np.float64] = np.concatenate((old_mean_data, [mean]))
+            std_data: NDArray[np.float64] = np.concatenate((old_std_data, [std]))
             self.plot_line_mean.setData(x_data, mean_data)
             self.plot_line_std.setData(x_data, std_data)
 

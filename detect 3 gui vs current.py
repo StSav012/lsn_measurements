@@ -73,7 +73,6 @@ class GUI(QMainWindow):
         self.figure.plotItem.ctrl.logYCheck.setChecked(True)
         self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
         self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
-        # y_axis.tickStrings = tick_strings
 
         self.label_loop_count.formatStr = '{value}'
         self.label_loop_number.formatStr = '{value}'
@@ -244,7 +243,7 @@ class App(GUI):
                                                                             fallback=True)
 
         self.plot_lines: Dict[int, pg.PlotDataItem] = dict()
-        self.figure.addLegend()
+        self.figure.addLegend(offset=(-30, -30))
 
         self.temperature_index: int = 0
         self.frequency_index: int = 0

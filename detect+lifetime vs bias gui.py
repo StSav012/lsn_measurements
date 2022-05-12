@@ -84,11 +84,11 @@ class App(DetectLifetimeBase):
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
     def _next_indices(self) -> bool:
-        self.power_index += 1
-        if self.mode == 'lifetime' or self.power_index >= len(self.power_dbm_values):
-            self.power_index = 0
+        self.bias_current_index += 1
+        if self.bias_current_index >= len(self.bias_current_values):
+            self.bias_current_index = 0
             self.frequency_index += 1
-            if self.mode == 'lifetime' or self.frequency_index >= len(self.frequency_values):
+            if self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
                 self.temperature_index += 1
                 if self.temperature_index >= len(self.temperature_values):

@@ -187,6 +187,7 @@ class DetectBase(DetectGUI):
         self.label_bias.setValue(self.bias_current)
         self.synthesizer.power.level = self.power_dbm
         self.label_power.setValue(self.power_dbm)
+        self.label_pulse_duration.setValue(self.pulse_duration * 1000)
 
         actual_temperature: float
         temperature_unit: str

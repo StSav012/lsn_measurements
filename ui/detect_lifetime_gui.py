@@ -41,6 +41,7 @@ class DetectLifetimeGUI(QMainWindow):
         self.label_bias: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_power: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_frequency: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_pulse_duration: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
         self.stop_key_bias: QPushButton = QPushButton(self.stop_sings_box)
@@ -92,6 +93,8 @@ class DetectLifetimeGUI(QMainWindow):
         self.label_power.suffix = 'dBm'
         self.label_frequency.suffix = 'GHz'
         self.label_frequency.formatStr = '{value:0.4f} {suffix}'
+        self.label_pulse_duration.suffix = 'ms'
+        self.label_pulse_duration.formatStr = '{value:0.4f} {suffix}'
         self.label_bias.suffix = 'nA'
         self.label_bias.formatStr = '{value:0.2f} {suffix}'
         self.label_temperature.suffix = 'mK'
@@ -110,6 +113,7 @@ class DetectLifetimeGUI(QMainWindow):
         self.parameters_layout.addRow('Bias current:', self.label_bias)
         self.parameters_layout.addRow('Frequency:', self.label_frequency)
         self.parameters_layout.addRow('Power:', self.label_power)
+        self.parameters_layout.addRow('Pulse duration:', self.label_pulse_duration)
         self.parameters_layout.addRow('Temperature:', self.label_temperature)
         self.parameters_layout.addRow('Loop count:', self.label_loop_count)
         self.parameters_layout.addRow('Loop number:', self.label_loop_number)

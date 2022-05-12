@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
-from numpy.typing import NDArray
 
 from app_base.detect import DetectBase
-from backend.utils import error, zero_sources
+from backend.utils import zero_sources
 
 
 class App(DetectBase):
@@ -64,67 +62,15 @@ class App(DetectBase):
         return True
 
     def on_timeout(self) -> None:
-        cycle_index: int
-        estimated_cycles_count: int
-        switches_count: int
-        while not self.state_queue.empty():
-            cycle_index, estimated_cycles_count, switches_count = self.state_queue.get(block=True)
-            self.label_loop_number.setValue(cycle_index + 1)
-            self.label_loop_count.setValue(estimated_cycles_count)
-            self.label_probability.setValue(switches_count / (cycle_index + 1) * 100)
+        self._read_state_queue()
 
         prob: float = np.inf
         err: float
         while not self.results_queue.empty():
-            old_x_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
-                                               if self.plot_line.xData is None
-                                               else self.plot_line.xData)
-            old_y_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
-                                               if self.plot_line.yData is None
-                                               else self.plot_line.yData)
             prob, err = self.results_queue.get(block=True)
-            x_data: NDArray[np.float64] = np.concatenate((old_x_data, [self.power_dbm]))
-            y_data: NDArray[np.float64] = np.concatenate((old_y_data, [prob]))
-            self.plot_line.setData(x_data, y_data)
+            self._add_plot_point(self.power_dbm, prob, err)
 
-        actual_temperature: float
-        temperature_unit: str
-        actual_temperature, temperature_unit = self.triton.query_temperature(6)
-        if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                < actual_temperature
-                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
-            self.good_to_measure.buf[0] = False
-            self.bad_temperature_time = datetime.now()
-            self.timer.setInterval(1000)
-            print(f'temperature {actual_temperature} {temperature_unit} '
-                  f'is too far from {self.temperature:.3f} K')
-            if not self.triton.issue_temperature(6, self.temperature):
-                error(f'failed to set temperature to {self.temperature} K')
-                self.timer.stop()
-                self.measurement.terminate()
-            if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
-                    error(f'failed to change the state of filtered readings')
-                    self.timer.stop()
-                    self.measurement.terminate()
-            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
-                error(f'failed to change the heater range')
-                self.timer.stop()
-                self.measurement.terminate()
-        elif self.temperature_just_set:
-            td: timedelta = datetime.now() - self.bad_temperature_time
-            if td > self.temperature_delay:
-                self.timer.setInterval(50)
-                self.good_to_measure.buf[0] = True
-                self.temperature_just_set = False
-            else:
-                self.good_to_measure.buf[0] = False
-                print(f'temperature {actual_temperature} {temperature_unit} '
-                      f'is close enough to {self.temperature:.3f} K, but not for long enough yet'
-                      f': {self.temperature_delay - td} left')
-                self.timer.setInterval(1000)
-        else:
-            self.good_to_measure.buf[0] = True
+        self._watch_temperature()
 
         self.good_to_measure.buf[0] &= not self.button_pause.isChecked()
 

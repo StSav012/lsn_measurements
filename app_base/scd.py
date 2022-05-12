@@ -11,6 +11,7 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCloseEvent, QColor
+from numpy.typing import NDArray
 
 from backend.communication.anapico_communication import APUASYN20
 from backend.communication.triton_communication import Triton
@@ -243,6 +244,80 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.timer.stop()
         self.synthesizer.output = False
         super(SwitchingCurrentDistributionBase, self).on_button_stop_clicked()
+
+    def _read_state_queue(self) -> None:
+        cycle_index: int
+        remaining_time: timedelta
+        while not self.state_queue.empty():
+            cycle_index, remaining_time = self.state_queue.get(block=True)
+            self.label_loop_number.setValue(cycle_index)
+            self.label_remaining_time.setText(str(remaining_time)[:9])
+
+    def _read_switching_data_queue(self) -> None:
+        current: np.float64
+        voltage: np.float64
+        while not self.switching_data_queue.empty():
+            current, voltage = self.switching_data_queue.get(block=True)
+            self.switching_current.append(current)
+            self.switching_voltage.append(voltage)
+            self.label_mean_current.setValue(np.nanmean(self.switching_current) * 1e9)
+            self.label_std_current.setValue(np.nanstd(self.switching_current) * 1e9)
+
+    def _add_plot_point(self, x: float, mean: float, std: float) -> None:
+        old_x_data: NDArray[np.float64] = (np.empty(0)
+                                           if self.plot_line_mean.xData is None
+                                           else self.plot_line_mean.xData)
+        old_mean_data: NDArray[np.float64] = (np.empty(0)
+                                              if self.plot_line_mean.yData is None
+                                              else self.plot_line_mean.yData)
+        old_std_data: NDArray[np.float64] = (np.empty(0)
+                                             if self.plot_line_std.yData is None
+                                             else self.plot_line_std.yData)
+        x_data: NDArray[np.float64] = np.append(old_x_data, x)
+        mean_data: NDArray[np.float64] = np.append(old_mean_data, mean)
+        std_data: NDArray[np.float64] = np.append(old_std_data, std)
+        self.plot_line_mean.setData(x_data, mean_data)
+        self.plot_line_std.setData(x_data, std_data)
+
+    def _watch_temperature(self) -> None:
+        actual_temperature: float
+        temperature_unit: str
+        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                < actual_temperature
+                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+            self.good_to_measure.buf[0] = False
+            self.bad_temperature_time = datetime.now()
+            self.timer.setInterval(1000)
+            print(f'temperature {actual_temperature} {temperature_unit} '
+                  f'is too far from {self.temperature:.3f} K')
+            if not self.triton.issue_temperature(6, self.temperature):
+                error(f'failed to set temperature to {self.temperature} K')
+                self.timer.stop()
+                self.measurement.terminate()
+            if self.change_filtered_readings:
+                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
+                    error(f'failed to change the state of filtered readings')
+                    self.timer.stop()
+                    self.measurement.terminate()
+            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
+                error(f'failed to change the heater range')
+                self.timer.stop()
+                self.measurement.terminate()
+        elif self.temperature_just_set:
+            td: timedelta = datetime.now() - self.bad_temperature_time
+            if td > self.temperature_delay:
+                self.timer.setInterval(50)
+                self.good_to_measure.buf[0] = True
+                self.temperature_just_set = False
+            else:
+                self.good_to_measure.buf[0] = False
+                print(f'temperature {actual_temperature} {temperature_unit} '
+                      f'is close enough to {self.temperature:.3f} K, but not for long enough yet'
+                      f': {self.temperature_delay - td} left')
+                self.timer.setInterval(1000)
+        else:
+            self.good_to_measure.buf[0] = True
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...

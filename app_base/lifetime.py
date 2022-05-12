@@ -24,7 +24,7 @@ from ui.lifetime_gui import LifetimeGUI
 __all__ = ['LifetimeBase']
 
 
-class LifetimeBase(abc.ABC, LifetimeGUI):
+class LifetimeBase(LifetimeGUI):
     def __init__(self, flags=Qt.WindowFlags()) -> None:
         super(LifetimeBase, self).__init__(flags=flags)
 

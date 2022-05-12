@@ -24,7 +24,7 @@ from ui.detect_gui import DetectGUI
 __all__ = ['DetectBase']
 
 
-class DetectBase(abc.ABC, DetectGUI):
+class DetectBase(DetectGUI):
     def __init__(self, flags=Qt.WindowFlags()) -> None:
         super(DetectBase, self).__init__(flags=flags)
 

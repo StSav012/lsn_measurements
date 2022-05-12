@@ -24,7 +24,7 @@ from ui.scd_gui import SwitchingCurrentDistributionGUI
 __all__ = ['SwitchingCurrentDistributionBase']
 
 
-class SwitchingCurrentDistributionBase(abc.ABC, SwitchingCurrentDistributionGUI):
+class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def __init__(self, flags=Qt.WindowFlags()) -> None:
         super().__init__(flags=flags)
 

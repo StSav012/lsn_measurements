@@ -47,11 +47,12 @@ class App(DetectBase):
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():
             self.on_button_stop_clicked()
             return False
-        self.bias_current_index += 1
+        if make_step:
+            self.bias_current_index += 1
         while self.check_exists and self._stat_file_exists():
             self.bias_current_index += 1
         if self.bias_current_index >= len(self.bias_current_values):

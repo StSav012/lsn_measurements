@@ -228,12 +228,12 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         return self.config.getboolean('GHz signal', 'on', fallback=False)
 
     @abc.abstractmethod
-    def _next_indices(self) -> bool: ...
+    def _next_indices(self, make_step: bool = True) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
         super(SwitchingCurrentDistributionBase, self).on_button_start_clicked()
 
-        if self.check_exists and not self._next_indices():
+        if self.check_exists and not self._next_indices(make_step=False):
             error('nothing left to measure')
             self.on_button_stop_clicked()
             return

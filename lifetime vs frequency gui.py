@@ -49,10 +49,11 @@ class App(LifetimeBase):
             if not np.isnan(self.power_dbm) else '',
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_frequency.isChecked():
             return False
-        self.frequency_index += 1
+        if make_step:
+            self.frequency_index += 1
         while self.synthesizer_output and self.check_exists and self._data_file_exists():
             self.frequency_index += 1
         if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):

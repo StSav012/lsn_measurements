@@ -48,10 +48,11 @@ class App(SwitchingCurrentDistributionBase):
             if not np.isnan(self.frequency) else '',
         )).replace('  ', ' ').replace('  ', ' ').strip(' ').rstrip(',')
 
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_power.isChecked():
             return False
-        self.power_index += 1
+        if make_step:
+            self.power_index += 1
         while self.synthesizer_output and self.check_exists and self._data_file_exists():
             self.power_index += 1
         if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):

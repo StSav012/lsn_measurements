@@ -312,7 +312,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         {'detect': self.start_measurement_detect, 'lifetime': self.start_measurement_lifetime}[self.mode]()
 
     @abc.abstractmethod
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         ...
 
     def on_button_start_clicked(self) -> None:
@@ -321,14 +321,14 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if self.mode == 'detect':
             while self.check_exists and self.stat_file.exists():
                 warning(f'{self.stat_file} already exists')
-                if not self._next_indices():
+                if not self._next_indices(make_step=False):
                     error('nothing left to measure')
                     self.on_button_stop_clicked()
                     return
         elif self.mode == 'lifetime':
             while self.check_exists and self.data_file_lifetime.exists():
                 warning(f'{self.data_file_lifetime} already exists')
-                if not self._next_indices():
+                if not self._next_indices(make_step=False):
                     error('nothing left to measure')
                     self.on_button_stop_clicked()
                     return

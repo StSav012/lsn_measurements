@@ -51,10 +51,11 @@ class App(LifetimeBase):
             if not np.isnan(self.power_dbm) else '',
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step=True) -> bool:
         if self.stop_key_bias.isChecked():
             return False
-        self.bias_current_index += 1
+        if make_step:
+            self.bias_current_index += 1
         while self.check_exists and self._data_file_exists():
             self.bias_current_index += 1
         if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):

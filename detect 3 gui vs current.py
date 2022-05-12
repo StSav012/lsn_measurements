@@ -48,11 +48,12 @@ class App(DetectBase):
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
-    def _next_indices(self) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_power.isChecked():
             self.on_button_stop_clicked()
             return False
-        self.power_index += 1
+        if make_step:
+            self.power_index += 1
         while self.check_exists and self._stat_file_exists():
             self.power_index += 1
         if self.power_index >= len(self.power_dbm_values):

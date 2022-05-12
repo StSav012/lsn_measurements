@@ -154,6 +154,11 @@ class DetectBase(DetectGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+
+        self.synthesizer.pulse_modulation.source = 'ext'
+        self.synthesizer.pulse_modulation.state = True
+        self.synthesizer.output = True
+
         self.measurement = DetectMeasurement(results_queue=self.results_queue, state_queue=self.state_queue,
                                              good_to_go=self.good_to_measure,
                                              resistance=self.r,
@@ -174,25 +179,6 @@ class DetectBase(DetectGUI):
                                              frequency=self.frequency,
                                              waiting_after_pulse=self.waiting_after_pulse)
         self.measurement.start()
-        self.temperature_just_set = False
-        print(f'saving to {self.stat_file}')
-        self.timer.start(50)
-
-    @abc.abstractmethod
-    def _next_indices(self) -> bool: ...
-
-    def on_button_start_clicked(self) -> None:
-        super(DetectBase, self).on_button_start_clicked()
-        self.plot_line.clear()
-
-        self.synthesizer.pulse_modulation.source = 'ext'
-        self.synthesizer.pulse_modulation.state = True
-        self.synthesizer.output = True
-
-        if self.check_exists and not self._next_indices():
-            error('nothing left to measure')
-            self.on_button_stop_clicked()
-            return
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
@@ -201,6 +187,29 @@ class DetectBase(DetectGUI):
         self.label_bias.setValue(self.bias_current)
         self.synthesizer.power.level = self.power_dbm
         self.label_power.setValue(self.power_dbm)
+
+        actual_temperature: float
+        temperature_unit: str
+        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        self.temperature_just_set = not (
+                (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                < actual_temperature
+                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
+
+        print(f'saving to {self.stat_file}')
+        self.timer.start(50)
+
+    @abc.abstractmethod
+    def _next_indices(self) -> bool: ...
+
+    def on_button_start_clicked(self) -> None:
+        super(DetectBase, self).on_button_start_clicked()
+
+        if self.check_exists and not self._next_indices():
+            error('nothing left to measure')
+            self.on_button_stop_clicked()
+            return
+
         self.start_measurement()
 
     def on_button_stop_clicked(self) -> None:

@@ -211,9 +211,11 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+
         self.synthesizer.pulse_modulation.source = 'ext'
         self.synthesizer.pulse_modulation.state = True
-        self.synthesizer.output = self.mode == 'detect'
+        self.synthesizer.output = True
+
         self.measurement = DetectMeasurement(results_queue=self.results_queue_detect,
                                              state_queue=self.state_queue_detect,
                                              good_to_go=self.good_to_measure,
@@ -235,7 +237,23 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                                              frequency=self.frequency,
                                              waiting_after_pulse=self.waiting_after_pulse)
         self.measurement.start()
-        self.temperature_just_set = False
+
+        self.triton.issue_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.setValue(self.frequency)
+        self.label_bias.setValue(self.bias_current)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.setValue(self.power_dbm)
+
+        actual_temperature: float
+        temperature_unit: str
+        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        self.temperature_just_set = not (
+                (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                < actual_temperature
+                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
+
         print(f'saving to {self.stat_file}')
         self.timer.start(50)
 
@@ -243,10 +261,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+
         self.synthesizer.power.alc.low_noise = True
-        self.synthesizer.output = self.mode != 'lifetime'
-        self.label_frequency.setValue(np.nan)
-        self.label_power.setValue(np.nan)
+        self.synthesizer.output = False
+
         self.measurement = LifetimeMeasurement(results_queue=self.results_queue_lifetime,
                                                state_queue=self.state_queue_lifetime,
                                                good_to_go=self.good_to_measure,
@@ -270,7 +288,23 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                                                max_reasonable_bias_error=self.max_reasonable_bias_error,
                                                delay_between_cycles=self.delay_between_cycles)
         self.measurement.start()
-        self.temperature_just_set = False
+
+        self.triton.issue_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.clear()
+        self.label_bias.setValue(self.bias_current)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.clear()
+
+        actual_temperature: float
+        temperature_unit: str
+        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        self.temperature_just_set = not (
+                (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                < actual_temperature
+                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
+
         print(f'saving to {self.stat_file}')
         self.timer.start(50)
 
@@ -284,15 +318,11 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def on_button_start_clicked(self) -> None:
         super(DetectLifetimeBase, self).on_button_start_clicked()
 
-        self.synthesizer.output = self.mode == 'detect'
-
         if self.mode == 'detect':
             while self.check_exists and self.stat_file.exists():
                 warning(f'{self.stat_file} already exists')
                 if not self._next_indices():
                     error('nothing left to measure')
-                    self.synthesizer.pulse_modulation.state = False
-                    self.synthesizer.output = False
                     self.on_button_stop_clicked()
                     return
         elif self.mode == 'lifetime':
@@ -303,13 +333,6 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                     self.on_button_stop_clicked()
                     return
 
-        self.triton.issue_temperature(6, self.temperature)
-        self.label_temperature.setValue(self.temperature * 1000)
-        self.synthesizer.frequency = self.frequency * 1e9
-        self.label_frequency.setValue(self.frequency)
-        self.label_bias.setValue(self.bias_current)
-        self.synthesizer.power.level = self.power_dbm
-        self.label_power.setValue(self.power_dbm)
         if self.stat_file.exists():
             f_out: TextIO
             with self.stat_file.open('at', encoding='utf-8') as f_out:

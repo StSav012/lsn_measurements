@@ -174,6 +174,10 @@ class LifetimeBase(LifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+
+        self.synthesizer.output = self.synthesizer_output
+        self.synthesizer.power.alc.low_noise = True
+
         self.measurement = LifetimeMeasurement(results_queue=self.results_queue, state_queue=self.state_queue,
                                                good_to_go=self.good_to_measure,
                                                resistance=self.r,
@@ -196,7 +200,23 @@ class LifetimeBase(LifetimeGUI):
                                                max_reasonable_bias_error=self.max_reasonable_bias_error,
                                                delay_between_cycles=self.delay_between_cycles)
         self.measurement.start()
-        self.temperature_just_set = False
+
+        self.triton.issue_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.setValue(self.frequency)
+        self.label_bias.setValue(self.bias_current)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.setValue(self.power_dbm)
+
+        actual_temperature: float
+        temperature_unit: str
+        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        self.temperature_just_set = not (
+                (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                < actual_temperature
+                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
+
         print(f'saving to {self.stat_file}')
         self.timer.start(50)
 
@@ -209,22 +229,11 @@ class LifetimeBase(LifetimeGUI):
 
     def on_button_start_clicked(self) -> None:
         super(LifetimeBase, self).on_button_start_clicked()
-
-        self.synthesizer.output = self.synthesizer_output
-        self.synthesizer.power.alc.low_noise = True
-
         if self.check_exists and not self._next_indices():
             error('nothing left to measure')
             self.on_button_stop_clicked()
             return
 
-        self.triton.issue_temperature(6, self.temperature)
-        self.label_temperature.setValue(self.temperature * 1000)
-        self.synthesizer.frequency = self.frequency * 1e9
-        self.label_frequency.setValue(self.frequency)
-        self.label_bias.setValue(self.bias_current)
-        self.synthesizer.power.level = self.power_dbm
-        self.label_power.setValue(self.power_dbm)
         if self.stat_file.exists():
             f_out: TextIO
             with self.stat_file.open('at', encoding='utf-8') as f_out:

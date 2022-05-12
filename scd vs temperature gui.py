@@ -99,12 +99,6 @@ class App(SwitchingCurrentDistributionBase):
             if not self._next_indices():
                 self.on_button_stop_clicked()
                 return
-            self.triton.issue_temperature(6, self.temperature)
-            self.label_temperature.setValue(self.temperature * 1000)
-            self.synthesizer.frequency = self.frequency * 1e9
-            self.label_frequency.setValue(self.frequency)
-            self.synthesizer.power.level = self.power_dbm
-            self.label_power.setValue(self.power_dbm)
 
             self.start_measurement()
         else:

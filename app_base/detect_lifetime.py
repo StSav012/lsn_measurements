@@ -210,6 +210,8 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+        self.synthesizer.pulse_modulation.source = 'ext'
+        self.synthesizer.pulse_modulation.state = True
         self.synthesizer.output = self.mode == 'detect'
         self.measurement = DetectMeasurement(results_queue=self.results_queue_detect,
                                              state_queue=self.state_queue_detect,
@@ -240,6 +242,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+        self.synthesizer.power.alc.low_noise = True
         self.synthesizer.output = self.mode != 'lifetime'
         self.label_frequency.setValue(np.nan)
         self.label_power.setValue(np.nan)
@@ -281,7 +284,6 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         super(DetectLifetimeBase, self).on_button_start_clicked()
 
         self.synthesizer.output = self.mode == 'detect'
-        self.synthesizer.power.alc.low_noise = True
 
         if self.mode == 'detect':
             while self.check_exists and self.stat_file.exists():
@@ -293,13 +295,12 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                     self.on_button_stop_clicked()
                     return
         elif self.mode == 'lifetime':
-            if self.check_exists:
-                while self.data_file_lifetime.exists():
-                    warning(f'{self.data_file_lifetime} already exists')
-                    if not self._next_indices():
-                        error('nothing left to measure')
-                        self.on_button_stop_clicked()
-                        return
+            while self.check_exists and self.data_file_lifetime.exists():
+                warning(f'{self.data_file_lifetime} already exists')
+                if not self._next_indices():
+                    error('nothing left to measure')
+                    self.on_button_stop_clicked()
+                    return
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)

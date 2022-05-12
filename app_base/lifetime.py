@@ -218,6 +218,7 @@ class LifetimeBase(LifetimeGUI):
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
 
         print(f'saving to {self.stat_file}')
+        self.setWindowTitle(f'Lifetime — {self.stat_file}')
         self.timer.start(50)
 
     @property

@@ -41,11 +41,11 @@ class App(SwitchingCurrentDistributionBase):
 
     @property
     def _line_name(self) -> str:
-        return ', '.join((
+        return ', '.join(filter(None, (
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
             f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
             if not np.isnan(self.power_dbm) else '',
-        )).replace('  ', ' ').replace('  ', ' ').strip(' ').rstrip(',')
+        )))
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_frequency.isChecked():

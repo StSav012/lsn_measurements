@@ -130,7 +130,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
     @property
     def data_file(self) -> Path:
-        return self.saving_location / (' '.join((
+        return self.saving_location / (' '.join(filter(None, (
             'I''SCD',
             self.config.get('output', 'prefix', fallback=''),
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
@@ -144,7 +144,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
             f'threshold{self.trigger_voltage * 1e3:.8f}'.rstrip('0').rstrip('.') + 'mV',
             self.config.get('output', 'suffix', fallback='')
-        )).replace('  ', ' ').replace('  ', ' ').strip(' ') + '.txt')
+        ))) + '.txt')
 
     @property
     @abc.abstractmethod

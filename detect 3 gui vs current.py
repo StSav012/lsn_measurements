@@ -18,7 +18,7 @@ class App(DetectBase):
 
     @property
     def stat_file(self) -> Path:
-        return self.saving_location / (' '.join((
+        return self.saving_location / (' '.join(filter(None, (
             'detect',
             self.config.get('output', 'prefix', fallback=''),
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
@@ -30,7 +30,7 @@ class App(DetectBase):
             f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
             f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
             self.config.get('output', 'suffix', fallback='')
-        )).replace('  ', ' ').strip(' ') + '.txt')
+        ))) + '.txt')
 
     @property
     def _line_index(self) -> int:
@@ -40,13 +40,13 @@ class App(DetectBase):
 
     @property
     def _line_name(self) -> str:
-        return ', '.join((
+        return ', '.join(filter(None, (
             f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
             if not np.isnan(self.power_dbm) else '',
             f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
             if not np.isnan(self.frequency) else '',
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-        )).replace('  ', ' ').replace('  ', ' ').strip(', ')
+        )))
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_power.isChecked():

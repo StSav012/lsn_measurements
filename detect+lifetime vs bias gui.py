@@ -19,7 +19,7 @@ class App(DetectLifetimeBase):
 
     @property
     def stat_file_detect(self) -> Path:
-        return self.saving_location / (' '.join((
+        return self.saving_location / (' '.join(filter(None, (
             'detect',
             self.config.get('output', 'prefix', fallback=''),
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
@@ -31,11 +31,11 @@ class App(DetectLifetimeBase):
             f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
             f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
             self.config.get('output', 'suffix', fallback='')
-        )).replace('  ', ' ').strip(' ') + '.txt')
+        ))) + '.txt')
 
     @property
     def stat_file_lifetime(self) -> Path:
-        return self.saving_location / (' '.join((
+        return self.saving_location / (' '.join(filter(None, (
             'lifetime',
             self.config.get('output', 'prefix', fallback=''),
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
@@ -50,7 +50,7 @@ class App(DetectLifetimeBase):
             if not np.isnan(self.power_dbm) else '',
             f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
             self.config.get('output', 'suffix', fallback=''),
-        )).replace('  ', ' ').replace('  ', ' ').strip(' ') + '.txt')
+        ))) + '.txt')
 
     @property
     def stat_file(self) -> Path:
@@ -64,12 +64,12 @@ class App(DetectLifetimeBase):
 
     @property
     def _line_name_detect(self) -> str:
-        return ', '.join((
+        return ', '.join(filter(None, (
             f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
             f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
             if not np.isnan(self.frequency) else '',
-        )).replace('  ', ' ').replace('  ', ' ').strip(', ')
+        )))
 
     @property
     def _line_index_lifetime(self) -> int:
@@ -77,9 +77,9 @@ class App(DetectLifetimeBase):
 
     @property
     def _line_name_lifetime(self) -> str:
-        return ', '.join((
+        return ', '.join(filter(None, (
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-        )).replace('  ', ' ').replace('  ', ' ').strip(', ')
+        )))
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():

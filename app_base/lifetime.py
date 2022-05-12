@@ -137,7 +137,7 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     def data_file(self) -> Path:
-        return self.saving_location / (' '.join((
+        return self.saving_location / (' '.join(filter(None, (
             'lifetimes',
             self.config.get('output', 'prefix', fallback=''),
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
@@ -151,7 +151,7 @@ class LifetimeBase(LifetimeGUI):
             if not np.isnan(self.power_dbm) else '',
             f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
             self.config.get('output', 'suffix', fallback='')
-        )).replace('  ', ' ').replace('  ', ' ').strip(' ') + '.txt')
+        ))) + '.txt')
 
     @property
     @abc.abstractmethod

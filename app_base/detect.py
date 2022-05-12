@@ -189,13 +189,10 @@ class DetectBase(DetectGUI):
         self.synthesizer.pulse_modulation.state = True
         self.synthesizer.output = True
 
-        while self.check_exists and self.stat_file.exists():
-            warning(f'{self.stat_file} already exists')
-            if not self._next_indices():
-                error('nothing left to measure')
-                self.synthesizer.pulse_modulation.state = False
-                self.synthesizer.output = False
-                return
+        if self.check_exists and not self._next_indices():
+            error('nothing left to measure')
+            self.on_button_stop_clicked()
+            return
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
@@ -275,6 +272,16 @@ class DetectBase(DetectGUI):
                 self.timer.setInterval(1000)
         else:
             self.good_to_measure.buf[0] = True
+
+    def _stat_file_exists(self, verbose: bool = True) -> bool:
+        exists: bool = (self.bias_current_index < len(self.bias_current_values)
+                        and self.power_index < len(self.power_dbm_values)
+                        and self.frequency_index < len(self.frequency_values)
+                        and self.temperature_index < len(self.temperature_values)
+                        and self.stat_file.exists())
+        if exists and verbose:
+            warning(f'{self.stat_file} already exists')
+        return exists
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...

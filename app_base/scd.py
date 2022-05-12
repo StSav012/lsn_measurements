@@ -217,13 +217,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.synthesizer.output = self.synthesizer_output
         self.synthesizer.power.alc.low_noise = True
 
-        if self.check_exists:
-            while self.data_file.exists():
-                warning(f'{self.data_file} already exists')
-                if not self._next_indices():
-                    error('nothing left to measure')
-                    self.on_button_stop_clicked()
-                    return
+        if self.check_exists and not self._next_indices():
+            error('nothing left to measure')
+            self.on_button_stop_clicked()
+            return
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
@@ -318,6 +315,15 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 self.timer.setInterval(1000)
         else:
             self.good_to_measure.buf[0] = True
+
+    def _data_file_exists(self, verbose: bool = True) -> bool:
+        exists: bool = (self.power_index < len(self.power_dbm_values)
+                        and self.frequency_index < len(self.frequency_values)
+                        and self.temperature_index < len(self.temperature_values)
+                        and self.data_file.exists())
+        if exists and verbose:
+            warning(f'{self.data_file} already exists')
+        return exists
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...

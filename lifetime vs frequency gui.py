@@ -50,19 +50,42 @@ class App(LifetimeBase):
         )).replace('  ', ' ').replace('  ', ' ').strip(', ')
 
     def _next_indices(self) -> bool:
+        if self.stop_key_frequency.isChecked():
+            return False
         self.frequency_index += 1
-        if self.frequency_index >= len(self.frequency_values):
+        while self.synthesizer_output and self.check_exists and self._data_file_exists():
+            self.frequency_index += 1
+        if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
             self.frequency_index = 0
+            if self.stop_key_power.isChecked():
+                return False
             self.power_index += 1
-            if self.power_index >= len(self.power_dbm_values):
+            while self.synthesizer_output and self.check_exists and self._data_file_exists():
+                self.power_index += 1
+            if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
+                if self.stop_key_bias.isChecked():
+                    return False
                 self.bias_current_index += 1
-                if self.bias_current_index >= len(self.bias_current_values):
+                while self.check_exists and self._data_file_exists():
+                    self.bias_current_index += 1
+                if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
                     self.bias_current_index = 0
+                    if self.stop_key_temperature.isChecked():
+                        return False
                     self.temperature_index += 1
+                    while self.check_exists and self._data_file_exists():
+                        self.temperature_index += 1
                     if self.temperature_index >= len(self.temperature_values):
                         self.temperature_index = 0
                         return False
+                    actual_temperature: float
+                    temperature_unit: str
+                    actual_temperature, temperature_unit = self.triton.query_temperature(6)
+                    if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                            < actual_temperature
+                            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                        self.temperature_just_set = True
         return True
 
     def on_timeout(self) -> None:
@@ -82,53 +105,14 @@ class App(LifetimeBase):
 
         if not self.measurement.is_alive():
             self.timer.stop()
-            if self.stop_key_frequency.isChecked():
+            if not self._next_indices():
                 self.on_button_stop_clicked()
                 return
-            if self.synthesizer_output and self.check_exists:
-                while self.frequency_index < len(self.frequency_values) and self.data_file.exists():
-                    self.frequency_index += 1
-            else:
-                self.frequency_index += 1
-            if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
-                self.frequency_index = 0
-                if self.stop_key_power.isChecked():
-                    self.on_button_stop_clicked()
-                    return
-                if self.synthesizer_output and self.check_exists:
-                    while self.power_index < len(self.power_dbm_values) and self.data_file.exists():
-                        self.power_index += 1
-                else:
-                    self.power_index += 1
-                if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
-                    self.power_index = 0
-                    if self.stop_key_bias.isChecked():
-                        self.on_button_stop_clicked()
-                        return
-                    if self.synthesizer_output and self.check_exists:
-                        while self.bias_current_index < len(self.bias_current_values) and self.data_file.exists():
-                            self.bias_current_index += 1
-                    else:
-                        self.bias_current_index += 1
-                    if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
-                        self.bias_current_index = 0
-                        if self.stop_key_temperature.isChecked():
-                            self.on_button_stop_clicked()
-                            return
-                        if self.check_exists:
-                            while self.temperature_index < len(self.temperature_values) and self.data_file.exists():
-                                self.temperature_index += 1
-                        else:
-                            self.temperature_index += 1
-                        if self.temperature_index >= len(self.temperature_values):
-                            self.temperature_index = 0
-                            self.on_button_stop_clicked()
-                            return
-                        self.triton.issue_temperature(6, self.temperature)
-                        self.label_temperature.setValue(self.temperature * 1000)
-                    self.label_bias.setValue(self.bias_current)
-                self.synthesizer.power.level = self.power_dbm
-                self.label_power.setValue(self.power_dbm)
+            self.triton.issue_temperature(6, self.temperature)
+            self.label_temperature.setValue(self.temperature * 1000)
+            self.label_bias.setValue(self.bias_current)
+            self.synthesizer.power.level = self.power_dbm
+            self.label_power.setValue(self.power_dbm)
             self.synthesizer.frequency = self.frequency * 1e9
             self.label_frequency.setValue(self.frequency)
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import abc
-import sys
 from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from multiprocessing import Queue
@@ -12,12 +11,11 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCloseEvent, QColor
-from PyQt5.QtWidgets import QApplication
 
 from backend.communication.anapico_communication import APUASYN20
 from backend.communication.triton_communication import Triton
 from backend.measurement.scd import SCDMeasurement
-from backend.utils import SliceSequence, error, warning, zero_sources
+from backend.utils import SliceSequence, error, warning
 from backend.utils.config import *
 from ui.scd_gui import SwitchingCurrentDistributionGUI
 
@@ -248,12 +246,3 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...
-
-
-if __name__ == '__main__':
-    app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    window: SwitchingCurrentDistributionBase = SwitchingCurrentDistributionBase()
-    window.show()
-    app.exec()
-    zero_sources()

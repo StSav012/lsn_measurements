@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import abc
-import sys
 from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from multiprocessing import Queue
@@ -12,12 +11,11 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCloseEvent, QColor
-from PyQt5.QtWidgets import QApplication
 
 from backend.communication.anapico_communication import APUASYN20
 from backend.communication.triton_communication import Triton
 from backend.measurement.detect import DetectMeasurement
-from backend.utils import SliceSequence, error, warning, zero_sources
+from backend.utils import SliceSequence, error, warning
 from backend.utils.config import *
 from ui.detect_gui import DetectGUI
 
@@ -40,14 +38,14 @@ class DetectBase(DetectGUI):
         self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=('#', ';'))
         self.config.read('config.ini')
 
-        sys.stdout.write('connecting Triton...')
+        print('connecting Triton...', end='', flush=True)
         self.triton: Triton = Triton('192.168.199.89', 33576)
-        sys.stdout.write(' done\n')
+        print(' done')
         self.triton.query_temperature(6, blocking=True)
 
-        sys.stdout.write('connecting APUASYN20...')
+        print('connecting APUASYN20...', end='', flush=True)
         self.synthesizer: APUASYN20 = APUASYN20('192.168.199.109')
-        sys.stdout.write(' done\n')
+        print(' done\n')
 
         self.sample_name: Final[str] = self.config.get('circuitry', 'sample name')
         self.parameters_box.setTitle(self.sample_name)
@@ -218,12 +216,3 @@ class DetectBase(DetectGUI):
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...
-
-
-if __name__ == '__main__':
-    app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    window: DetectBase = DetectBase()
-    window.show()
-    app.exec()
-    zero_sources()

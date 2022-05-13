@@ -193,7 +193,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if i not in self.plot_lines_detect:
             color: QColor = pg.intColor(i)
             self.plot_lines_detect[i] = self.canvas_detect.plot(np.empty(0), symbol='o',
-                                                                name=self._line_name_detect,
+                                                                name=self._line_name_detect or None,
                                                                 pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_detect[i]
 
@@ -203,7 +203,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         if i not in self.plot_lines_lifetime:
             color: QColor = pg.intColor(i)
             self.plot_lines_lifetime[i] = self.canvas_lifetime.plot(np.empty(0), symbol='o',
-                                                                    name=self._line_name_lifetime,
+                                                                    name=self._line_name_lifetime or None,
                                                                     pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_lifetime[i]
 

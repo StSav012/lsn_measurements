@@ -159,7 +159,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         i: int = self._line_index
         if i not in self.plot_lines_mean:
             color: QColor = pg.intColor(i)
-            self.plot_lines_mean[i] = self.canvas_mean.plot(np.empty(0), symbol='o', name=self._line_name,
+            self.plot_lines_mean[i] = self.canvas_mean.plot(np.empty(0), symbol='o',
+                                                            name=self._line_name or None,
                                                             pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_mean[i]
 
@@ -168,7 +169,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         i: int = self._line_index
         if i not in self.plot_lines_std:
             color: QColor = pg.intColor(i)
-            self.plot_lines_std[i] = self.canvas_std.plot(np.empty(0), symbol='o', name=self._line_name,
+            self.plot_lines_std[i] = self.canvas_std.plot(np.empty(0), symbol='o',
+                                                          name=self._line_name or None,
                                                           pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_std[i]
 

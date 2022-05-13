@@ -150,6 +150,28 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         ...
 
     @property
+    def data_file(self) -> Path:
+        return {'detect': self, 'lifetime': self.data_file_lifetime}[self.mode]
+
+    @property
+    def data_file_detect(self) -> Path:
+        return self.saving_location / (' '.join(filter(None, (
+            'detect-data',
+            self.config.get('output', 'prefix', fallback=''),
+            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
+            f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
+            f'CC{self.cycles_count_detect}',
+            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            if self.synthesizer.output else '',
+            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            if self.synthesizer.output else '',
+            f'P{self.pulse_duration:.6f}'.rstrip('0').rstrip('.') + 's',
+            f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
+            f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
+            self.config.get('output', 'suffix', fallback='')
+        ))) + '.txt')
+
+    @property
     def data_file_lifetime(self) -> Path:
         return self.saving_location / (' '.join(filter(None, (
             'lifetimes',
@@ -234,6 +256,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                                              voltage_gain=self.gain,
                                              temperature=self.temperature,
                                              stat_file=self.stat_file,
+                                             data_file=self.data_file,
                                              frequency=self.frequency,
                                              waiting_after_pulse=self.waiting_after_pulse)
         self.measurement.start()

@@ -12,9 +12,12 @@ from nidaqmx.task import Task
 from numpy.typing import NDArray
 
 from backend.hardware import *
-from backend.utils import Count, error, linear_segments, measure_offsets, sine_segments
+from backend.utils import Count, FileWriter, error, linear_segments, measure_offsets, sine_segments
 
 __all__ = ['DetectMeasurement']
+
+fw: FileWriter = FileWriter()
+fw.start()
 
 
 class DetectMeasurement(Process):
@@ -39,6 +42,7 @@ class DetectMeasurement(Process):
                  max_switching_events_count: int,
 
                  stat_file: Path,
+                 data_file: Path,
 
                  power_dbm: float = np.nan,
                  frequency: float = np.nan,
@@ -73,6 +77,7 @@ class DetectMeasurement(Process):
         self.temperature: Final[float] = temperature
 
         self.stat_file: Path = stat_file
+        self.data_file: Path = data_file
 
         self.c: Count = Count()
         self.pulse_started: bool = False
@@ -125,7 +130,6 @@ class DetectMeasurement(Process):
                 adc_stream.read_many_sample(data, num_samples)
                 waiting: NDArray[np.bool] = (data[2] > trigger_trigger)
                 data[1] -= self.r_series / self.r * data[0] * self.voltage_gain
-                # fw.write_data(Path(r'd:\ttt\voltage at 'f'{self.power_dbm} dBm 0.1 ms.csv'), 'at', data)
                 not_switched: NDArray[np.bool] = (data[1] < self.trigger_voltage)
                 if np.any(waiting):
                     self.pulse_started = True
@@ -246,6 +250,7 @@ class DetectMeasurement(Process):
 
                     switches_count += 1
                     print('switching at'f' t = {t:.5f} s, {i * 1e9:.4f} nA, {v * 1e3:.4f} mV')
+                    fw.write(self.data_file, 'at', (i * 1e9, v * 1e3, t))
                 else:
                     print('no switching events detected')
                     self.c.reset()

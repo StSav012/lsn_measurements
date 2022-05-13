@@ -60,7 +60,8 @@ class App(DetectBase):
             if self.stop_key_frequency.isChecked():
                 self.on_button_stop_clicked()
                 return False
-            self.frequency_index += 1
+            if make_step:
+                self.frequency_index += 1
             while self.check_exists and self._stat_file_exists():
                 self.frequency_index += 1
             if self.frequency_index >= len(self.frequency_values):
@@ -68,7 +69,8 @@ class App(DetectBase):
                 if self.stop_key_temperature.isChecked():
                     self.on_button_stop_clicked()
                     return False
-                self.temperature_index += 1
+                if make_step:
+                    self.temperature_index += 1
                 while self.check_exists and self._stat_file_exists():
                     self.temperature_index += 1
                 if self.temperature_index >= len(self.temperature_values):

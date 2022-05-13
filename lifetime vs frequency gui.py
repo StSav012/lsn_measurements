@@ -60,21 +60,24 @@ class App(LifetimeBase):
             self.frequency_index = 0
             if self.stop_key_power.isChecked():
                 return False
-            self.power_index += 1
+            if make_step:
+                self.power_index += 1
             while self.synthesizer_output and self.check_exists and self._data_file_exists():
                 self.power_index += 1
             if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
                 if self.stop_key_bias.isChecked():
                     return False
-                self.bias_current_index += 1
+                if make_step:
+                    self.bias_current_index += 1
                 while self.check_exists and self._data_file_exists():
                     self.bias_current_index += 1
                 if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
                     self.bias_current_index = 0
                     if self.stop_key_temperature.isChecked():
                         return False
-                    self.temperature_index += 1
+                    if make_step:
+                        self.temperature_index += 1
                     while self.check_exists and self._data_file_exists():
                         self.temperature_index += 1
                     if self.temperature_index >= len(self.temperature_values):

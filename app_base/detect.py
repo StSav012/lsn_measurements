@@ -123,11 +123,11 @@ class DetectBase(DetectGUI):
 
     @property
     def power_dbm(self) -> float:
-        return float(self.power_dbm_values[self.power_index]) if self.synthesizer.output else np.nan
+        return float(self.power_dbm_values[self.power_index])
 
     @property
     def frequency(self) -> float:
-        return float(self.frequency_values[self.frequency_index]) if self.synthesizer.output else np.nan
+        return float(self.frequency_values[self.frequency_index])
 
     @property
     @abc.abstractmethod
@@ -141,10 +141,8 @@ class DetectBase(DetectGUI):
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
             f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
             f'CC{self.cycles_count}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if self.synthesizer.output else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
-            if self.synthesizer.output else '',
+            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
+            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm',
             f'P{self.pulse_duration:.6f}'.rstrip('0').rstrip('.') + 's',
             f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
             f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',

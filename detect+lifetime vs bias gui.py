@@ -25,8 +25,7 @@ class App(DetectLifetimeBase):
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
             f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
             f'CC{self.cycles_count_detect}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if self.synthesizer.output else '',
+            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
             f'P{self.pulse_duration:.6f}'.rstrip('0').rstrip('.') + 's',
             f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
             f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',

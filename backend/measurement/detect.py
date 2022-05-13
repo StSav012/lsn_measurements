@@ -98,7 +98,7 @@ class DetectMeasurement(Process):
             task_dac.ao_channels.add_ao_voltage_chan(dac_attenuation.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
-            dac_rate: float = 0.2 * task_dac.timing.samp_clk_max_rate
+            dac_rate: float = task_dac.timing.samp_clk_max_rate
 
             bias_current_steps_count: int = round(self.setting_time * dac_rate)
             pulse_duration_points_count: int = round(self.pulse_duration * dac_rate)

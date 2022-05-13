@@ -272,10 +272,19 @@ class SCDMeasurement(Process):
                     median_switching_current * (1. + .01 * self.max_reasonable_bias_error)
                 reasonable: np.ndarray = ((switching_current >= min_reasonable_switching_current)
                                           & (switching_current <= max_reasonable_switching_current))
-                with self.stat_file.open('at') as f_out:
-                    f_out.write(f'{self.temperature}\t'
-                                f'{self.frequency}\t'
-                                f'{self.power_dbm}\t'
+                if not self.stat_file.exists():
+                    self.stat_file.write_text('\t'.join((
+                        'Temperature [mK]',
+                        'Frequency [GHz]',
+                        'Power [dBm]',
+                        'Mean Switch Current [nA]',
+                        'Switch Current StD [nA]',
+                        'Measurement Duration [s]',
+                    )) + '\n', encoding='utf-8')
+                with self.stat_file.open('at', encoding='utf-8') as f_out:
+                    f_out.write(f'{self.temperature * 1000:.10f}'.rstrip('0').rstrip('.') + '\t' +
+                                f'{self.frequency:.10f}'.rstrip('0').rstrip('.') + '\t' +
+                                f'{self.power_dbm:.10f}'.rstrip('0').rstrip('.') + '\t' +
                                 f'{1e9 * np.nanmean(switching_current[reasonable]):.6f}\t'
                                 f'{1e9 * np.nanstd(switching_current[reasonable]):.6f}\t'
                                 f'{(datetime.now() - measurement_start_time).total_seconds():.3f}\n')

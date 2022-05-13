@@ -261,7 +261,18 @@ class DetectMeasurement(Process):
             print(f'for bias current set to {self.bias_current} nA, '
                   f'switching probability is {prob:.3f}% ± {err:.3f}%\n')
             self.results_queue.put((prob, err))
-            with self.stat_file.open('at') as f_out:
+            if not self.stat_file.exists():
+                self.stat_file.write_text('\t'.join((
+                    'Set Bias Current [nA]',
+                    'Temperature [mK]',
+                    'Frequency [GHz]',
+                    'Power [dBm]',
+                    'Switch Probability [%]',
+                    'Power [mW]',
+                    'Actual Cycles Count',
+                    'Probability Uncertainty [%]',
+                )) + '\n', encoding='utf-8')
+            with self.stat_file.open('at', encoding='utf-8') as f_out:
                 f_out.write(f'{self.bias_current:.10f}'.rstrip('0').rstrip('.') + '\t' +
                             f'{self.temperature * 1000:.10f}'.rstrip('0').rstrip('.') + '\t' +
                             f'{self.frequency:.10f}'.rstrip('0').rstrip('.') + '\t' +

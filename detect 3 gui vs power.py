@@ -49,7 +49,6 @@ class App(DetectBase):
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():
-            self.on_button_stop_clicked()
             return False
         if make_step:
             self.bias_current_index += 1
@@ -58,7 +57,6 @@ class App(DetectBase):
         if self.bias_current_index >= len(self.bias_current_values):
             self.bias_current_index = 0
             if self.stop_key_frequency.isChecked():
-                self.on_button_stop_clicked()
                 return False
             if make_step:
                 self.frequency_index += 1
@@ -67,7 +65,6 @@ class App(DetectBase):
             if self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
                 if self.stop_key_temperature.isChecked():
-                    self.on_button_stop_clicked()
                     return False
                 if make_step:
                     self.temperature_index += 1
@@ -75,7 +72,6 @@ class App(DetectBase):
                     self.temperature_index += 1
                 if self.temperature_index >= len(self.temperature_values):
                     self.temperature_index = 0
-                    self.on_button_stop_clicked()
                     return False
                 actual_temperature: float
                 temperature_unit: str

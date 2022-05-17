@@ -24,11 +24,13 @@ _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
 
 
 def zero_sources() -> None:
-    task_dac_current: Task
-    with Task() as task_dac_current:
-        task_dac_current.ao_channels.add_ao_voltage_chan(dac_current.name)
-        task_dac_current.write(0.0)
-        task_dac_current.wait_until_done()
+    task_dac: Task
+    with Task() as task_dac:
+        channel: PhysicalChannel
+        for channel in device_dac.ao_physical_chans:
+            task_dac.ao_channels.add_ao_voltage_chan(channel.name)
+        task_dac.write([0.0] * len(device_dac.ao_physical_chans))
+        task_dac.wait_until_done()
 
 
 def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_adc: bool = True) -> None:

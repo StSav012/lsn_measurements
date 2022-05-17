@@ -33,15 +33,23 @@ class FileWriter(Thread):
         if not self.done and not self.queue:
             time.sleep(0.05)
         while self.queue:
-            with self.lock:
-                qr: QueueRecord = self.queue.pop(0)
+            qr: QueueRecord = self.queue[0]
             f_out: TextIO
             with qr.file_name.open(qr.file_mode) as f_out:
-                if isinstance(qr.x, np.ndarray) and qr.x.ndim == 2:
-                    for x in qr.x.T:
-                        f_out.write('\t'.join(f'{y}' for y in x) + '\n')
-                else:
-                    f_out.write('\t'.join(f'{x}' for x in qr.x) + '\n')
+                # look through the records for the ones of the same file name and file mode
+                index: int = 0
+                while index < len(self.queue):
+                    another_qr: QueueRecord = self.queue[index]  # for index == 0, it's qr, so we start with qr
+                    if another_qr.file_name == qr.file_name and another_qr.file_mode == qr.file_mode:
+                        if isinstance(another_qr.x, np.ndarray) and another_qr.x.ndim == 2:
+                            for x in another_qr.x.T:
+                                f_out.write('\t'.join(f'{y}' for y in x) + '\n')
+                        else:
+                            f_out.write('\t'.join(f'{x}' for x in another_qr.x) + '\n')
+                        with self.lock:
+                            self.queue.pop(index)
+                    else:
+                        index += 1
 
     def run(self) -> None:
         while not self.done:

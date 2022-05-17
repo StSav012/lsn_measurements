@@ -11,7 +11,7 @@ from .decimalslice import DecimalSlice
 from .files_io import read_340_table, save_txt
 from .filewriter import FileWriter
 from .floatslice import FloatSlice
-from .ni import (max_sample_rate, measure_noise_fft, measure_noise_trend, measure_noise_welch, measure_noise_welch_iter,
+from .ni import (measure_noise_fft, measure_noise_trend, measure_noise_welch, measure_noise_welch_iter,
                  measure_offsets, zero_sources)
 from .printqueue import PrintQueue
 from .processing import moving_mean, moving_median, welch
@@ -26,7 +26,6 @@ __all__ = [
     'decimals', 'seconds_to_time', 'multi_split', 'nth_occurrence',
     'parse_temperature',
     'zero_sources',
-    'max_sample_rate',
     'measure_offsets',
     'measure_noise_fft', 'measure_noise_trend', 'measure_noise_welch', 'measure_noise_welch_iter',
     'seconds_to_time',

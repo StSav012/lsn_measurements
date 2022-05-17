@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QFormLayout, QGroupBox, QH
                              QRadioButton, QStatusBar, QVBoxLayout, QWidget)
 from numpy.typing import NDArray
 
-from backend.hardware import adc_current, adc_voltage, offsets
+from backend.hardware import adc_current, adc_voltage, offsets, device_adc
 from backend.measurement.iv_curve import IVCurveMeasurement
 
 
@@ -103,7 +103,7 @@ class GUI(QMainWindow):
         self.spin_voltage_gain.setOpts(**opts)
 
         opts = {
-            'bounds': (31.25, 102400),
+            'bounds': (device_adc.ai_min_rate, device_adc.ai_max_multi_chan_rate),
             'suffix': 'Hz',
             'siPrefix': True,
             'decimals': 3,

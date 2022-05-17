@@ -10,10 +10,11 @@ from PyQt5.QtGui import QCloseEvent, QIcon
 from PyQt5.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QMainWindow,
                              QPushButton, QVBoxLayout, QWidget)
 
+from backend.hardware import device_adc
 from backend.measurement.noise import NoiseMeasurement
-from backend.utils import max_sample_rate, welch
+from backend.utils import welch
 
-_MAX_ADC_SAMPLE_RATE: Final[float] = max_sample_rate()
+_MAX_ADC_SAMPLE_RATE: Final[float] = device_adc.ai_max_multi_chan_rate
 
 
 class GUI(QMainWindow):

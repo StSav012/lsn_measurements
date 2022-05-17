@@ -13,7 +13,6 @@ from backend.hardware import *
 
 __all__ = [
     'zero_sources',
-    'max_sample_rate',
     'measure_offsets',
     'measure_noise_fft', 'measure_noise_trend', 'measure_noise_welch', 'measure_noise_welch_iter',
 ]
@@ -30,16 +29,6 @@ def zero_sources() -> None:
         task_dac_current.ao_channels.add_ao_voltage_chan(dac_current.name)
         task_dac_current.write(0.0)
         task_dac_current.wait_until_done()
-
-
-def max_sample_rate(reset_adc: bool = True) -> float:
-    if reset_adc:
-        device_adc.reset_device()
-    task_adc: Task
-    with Task() as task_adc:
-        task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
-        task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
-        return task_adc.timing.samp_clk_max_rate
 
 
 def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_adc: bool = True) -> None:

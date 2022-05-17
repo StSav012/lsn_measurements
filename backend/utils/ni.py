@@ -197,3 +197,80 @@ def measure_noise_trend(channel: Union[PhysicalChannel, Iterable[PhysicalChannel
         data: NDArray[np.float64] = task_adc.read(length, timeout=WAIT_INFINITELY)
 
     return np.arange(0, data.size) / rate, data
+
+
+if not hasattr(Task, 'output_onboard_buffer_size'):
+    import ctypes
+    import nidaqmx
+    from _ctypes import CFuncPtr
+    from nidaqmx.errors import check_for_error
+
+    def get_output_onboard_buffer_size(self) -> int:
+        """
+        int: Indicates in samples per channel the size of the onboard output buffer of the device.
+        """
+        val: ctypes.c_uint32 = ctypes.c_uint32()
+
+        lib_importer = getattr(nidaqmx, '_lib').lib_importer
+        c_func: CFuncPtr = lib_importer.windll.DAQmxGetBufOutputOnbrdBufSize
+        if c_func.argtypes is None:
+            with c_func.arglock:
+                if c_func.argtypes is None:
+                    c_func.argtypes = [lib_importer.task_handle, ctypes.POINTER(ctypes.c_uint)]
+
+        error_code: int = c_func(self._handle, ctypes.byref(val))
+        check_for_error(error_code)
+
+        return val.value
+
+    def set_output_onboard_buffer_size(self, buffer_size: int) -> None:
+        """
+        int: Specifies in samples per channel the size of the onboard output buffer of the device.
+        """
+        val: ctypes.c_uint32 = ctypes.c_uint32(buffer_size)
+
+        lib_importer = getattr(nidaqmx, '_lib').lib_importer
+        c_func: CFuncPtr = lib_importer.windll.DAQmxSetBufOutputOnbrdBufSize
+        if c_func.argtypes is None:
+            with c_func.arglock:
+                if c_func.argtypes is None:
+                    c_func.argtypes = [lib_importer.task_handle, ctypes.POINTER(ctypes.c_uint32)]
+
+        error_code: int = c_func(self._handle, val)
+        check_for_error(error_code)
+
+    Task.output_onboard_buffer_size = property(
+        fget=get_output_onboard_buffer_size,
+        fset=set_output_onboard_buffer_size,
+        fdel=lambda self: None,
+        doc='int: Specifies in samples per channel the size of the onboard output buffer of the device.')
+
+
+if not hasattr(Task, 'input_onboard_buffer_size'):
+    import ctypes
+    import nidaqmx
+    from _ctypes import CFuncPtr
+    from nidaqmx.errors import check_for_error
+
+    def get_input_onboard_buffer_size(self) -> int:
+        """
+        int: Indicates in samples per channel the size of the onboard input buffer of the device.
+        """
+        val: ctypes.c_uint = ctypes.c_uint()
+
+        lib_importer = getattr(nidaqmx, '_lib').lib_importer
+        c_func: CFuncPtr = lib_importer.windll.DAQmxGetBufOutputOnbrdBufSize
+        if c_func.argtypes is None:
+            with c_func.arglock:
+                if c_func.argtypes is None:
+                    c_func.argtypes = [lib_importer.task_handle, ctypes.POINTER(ctypes.c_uint32)]
+
+        error_code: int = c_func(self._handle, ctypes.byref(val))
+        check_for_error(error_code)
+
+        return val.value
+
+    Task.input_onboard_buffer_size = property(
+        fget=get_input_onboard_buffer_size,
+        fdel=lambda self: None,
+        doc='int: Indicates in samples per channel the size of the onboard input buffer of the device.')

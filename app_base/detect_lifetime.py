@@ -151,7 +151,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     @property
     def data_file(self) -> Path:
-        return {'detect': self, 'lifetime': self.data_file_lifetime}[self.mode]
+        return {'detect': self.data_file_detect, 'lifetime': self.data_file_lifetime}[self.mode]
 
     @property
     def data_file_detect(self) -> Path:
@@ -269,6 +269,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.synthesizer.power.level = self.power_dbm
         self.label_power.setValue(self.power_dbm)
         self.label_pulse_duration.setValue(self.pulse_duration * 1000)
+        self.label_spent_time.clear()
 
         actual_temperature: float
         temperature_unit: str
@@ -322,6 +323,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.synthesizer.power.level = self.power_dbm
         self.label_power.clear()
         self.label_pulse_duration.clear()
+        self.label_loop_count.setValue(self.cycles_count_lifetime)
 
         actual_temperature: float
         temperature_unit: str

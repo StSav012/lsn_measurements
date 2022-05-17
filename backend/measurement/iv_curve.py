@@ -72,15 +72,29 @@ class IVCurveMeasurement(Process):
 
             trigger_trigger: Final[float] = 0.45 * sync_channel.ao_max
 
-            points: int = round(abs(self.max_current - self.min_current)
-                                / self.current_rate * task_dac.timing.samp_clk_max_rate)
+            dac_rate: float = task_dac.timing.samp_clk_max_rate
+            points: int = round(abs(self.max_current - self.min_current) / self.current_rate * dac_rate)
+            samples_per_dac_channel: int = (2 if self.two_way else 1) * points + 2
+            if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+                points = round(abs(self.max_current - self.min_current) / self.current_rate * dac_rate)
+                samples_per_dac_channel = (2 if self.two_way else 1) * points + 2
+            # Number of samples per channel to write multiplied by the number of channels in the task
+            # cannot be an odd number for this device.
+            spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
+            samples_per_dac_channel += spare_sample_count
+            # If we get too many samples per channel again, we sacrifice the current steps
+            while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+                points -= 1
+                samples_per_dac_channel = (2 if self.two_way else 1) * points + 2 + spare_sample_count
+
             task_adc.timing.cfg_samp_clk_timing(rate=adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=10000,
+                                                samps_per_chan=task_adc.input_onboard_buffer_size,
                                                 )
             task_dac.timing.cfg_samp_clk_timing(rate=task_dac.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.FINITE,
-                                                samps_per_chan=(2 if self.two_way else 1) * points + 2,
+                                                samps_per_chan=samples_per_dac_channel,
                                                 )
 
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
@@ -110,13 +124,13 @@ class IVCurveMeasurement(Process):
                 trigger_on_sequence = np.concatenate((
                     [0.0],
                     np.full(2 * points - 2, 2.0 * trigger_trigger),
-                    [0.0]
+                    [0.0] * (spare_sample_count + 1)
                 ))
             else:
                 trigger_on_sequence = np.concatenate((
                     [0.0],
                     np.full(points - 2, 2.0 * trigger_trigger),
-                    [0.0]
+                    [0.0] * (spare_sample_count + 1)
                 ))
 
             i_set: NDArray[np.float64]

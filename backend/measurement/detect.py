@@ -94,7 +94,7 @@ class DetectMeasurement(Process):
             task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
-            task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
+            current_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
             task_dac.ao_channels.add_ao_voltage_chan(dac_attenuation.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
@@ -104,22 +104,43 @@ class DetectMeasurement(Process):
             pulse_duration_points_count: int = round(self.pulse_duration * dac_rate)
             waiting_after_pulse_points_count: int = round(self.waiting_after_pulse * dac_rate)
 
+            samples_per_dac_channel: int = (2 * bias_current_steps_count
+                                            + pulse_duration_points_count
+                                            + waiting_after_pulse_points_count)
+            if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+                bias_current_steps_count = round(self.setting_time * dac_rate)
+                pulse_duration_points_count = round(self.pulse_duration * dac_rate)
+                waiting_after_pulse_points_count = round(self.waiting_after_pulse * dac_rate)
+                samples_per_dac_channel = (2 * bias_current_steps_count
+                                           + pulse_duration_points_count
+                                           + waiting_after_pulse_points_count)
+            # Number of samples per channel to write multiplied by the number of channels in the task
+            # cannot be an odd number for this device.
+            spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
+            samples_per_dac_channel += spare_sample_count
+            # If we get too many samples per channel again, we sacrifice the current steps
+            while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+                bias_current_steps_count -= 1
+                samples_per_dac_channel = (2 * bias_current_steps_count
+                                           + pulse_duration_points_count
+                                           + waiting_after_pulse_points_count
+                                           + spare_sample_count)
+
             trigger_trigger: float = 0.45 * sync_channel.ao_max
             trigger_sequence: np.ndarray = np.concatenate((
                 np.zeros(bias_current_steps_count),
                 np.full(pulse_duration_points_count + waiting_after_pulse_points_count, 2. * trigger_trigger),
-                np.zeros(bias_current_steps_count)
+                np.zeros(bias_current_steps_count + spare_sample_count)
             ))
 
             task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=10000,
+                                                samps_per_chan=task_adc.input_onboard_buffer_size,
                                                 )
             task_dac.timing.cfg_samp_clk_timing(rate=dac_rate,
                                                 sample_mode=AcquisitionType.FINITE,
-                                                samps_per_chan=(2 * bias_current_steps_count
-                                                                + pulse_duration_points_count
-                                                                + waiting_after_pulse_points_count),
+                                                samps_per_chan=samples_per_dac_channel,
                                                 )
 
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
@@ -158,7 +179,10 @@ class DetectMeasurement(Process):
 
             bias_current_amplitude: float = np.abs(float(self.bias_current) - self.initial_biases[-1])
             actual_bias_current_steps_count: int = round(bias_current_amplitude * 1e-9
-                                                         * self.r * self.divider / (20 / 65536))
+                                                         * self.r * self.divider
+                                                         / min(((current_channel.ao_max - current_channel.ao_min)
+                                                                / (2 ** current_channel.ao_resolution)),
+                                                               bias_current_steps_count))
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
             print(f'\nbias current is set to {self.bias_current} nA')
@@ -174,15 +198,15 @@ class DetectMeasurement(Process):
                 i_set = np.concatenate((
                     sine_segments([self.initial_biases[-1], self.bias_current], bias_current_steps_count),
                     np.full(pulse_duration_points_count + waiting_after_pulse_points_count, self.bias_current),
-                    sine_segments([self.bias_current] + self.initial_biases, bias_current_steps_count)
+                    sine_segments([self.bias_current] + self.initial_biases, bias_current_steps_count),
+                    [self.initial_biases[-1]] * spare_sample_count
                 )) * 1e-9 * self.r * self.divider
             elif self.setting_function.casefold() == 'linear':
                 i_set = np.concatenate((
-                    linear_segments([self.initial_biases[-1], self.bias_current],
-                                    bias_current_steps_count) * self.r * self.divider,
+                    linear_segments([self.initial_biases[-1], self.bias_current], bias_current_steps_count),
                     np.full(pulse_duration_points_count + waiting_after_pulse_points_count, self.bias_current),
-                    linear_segments([self.bias_current] + self.initial_biases,
-                                    bias_current_steps_count) * self.r * self.divider
+                    linear_segments([self.bias_current] + self.initial_biases, bias_current_steps_count),
+                    [self.initial_biases[-1]] * spare_sample_count
                 )) * 1e-9 * self.r * self.divider
             else:
                 raise ValueError('Unsupported current setting function:', self.setting_function)
@@ -191,7 +215,7 @@ class DetectMeasurement(Process):
                 np.full(bias_current_steps_count, 0.0),
                 np.full(pulse_duration_points_count, 1.5),
                 np.full(waiting_after_pulse_points_count, 0.0),
-                np.full(bias_current_steps_count, 0.0)
+                np.full(bias_current_steps_count + spare_sample_count, 0.0)
             ))
             period_sequence: np.ndarray = np.row_stack((i_set * (1. + DIVIDER_RESISTANCE / self.r),
                                                         am_voltage_sequence,

@@ -15,6 +15,9 @@ from numpy.typing import NDArray
 from backend.hardware import *
 from backend.utils import PrintQueue, FileWriter, error, linear_segments, sine_segments, measure_offsets
 
+fw: FileWriter = FileWriter()
+fw.start()
+
 pq: PrintQueue = PrintQueue()
 pq.start()
 
@@ -88,9 +91,6 @@ class SCDMeasurement(Process):
 
     def run(self) -> None:
         measure_offsets()
-
-        fw: FileWriter = FileWriter()
-        fw.start()
 
         task_adc: Task
         task_dac: Task

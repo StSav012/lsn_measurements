@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QFormLayout, QGroupBox, QH
                              QRadioButton, QStatusBar, QVBoxLayout, QWidget)
 from numpy.typing import NDArray
 
-from backend.hardware import adc_current, adc_voltage, offsets, device_adc
+from backend.hardware import device_adc
 from backend.measurement.iv_curve import IVCurveMeasurement
 
 
@@ -276,12 +276,6 @@ class App(GUI):
             old_x_data: NDArray[np.float64] = np.empty(0) if self.plot_line.xData is None else self.plot_line.xData
             old_y_data: NDArray[np.float64] = np.empty(0) if self.plot_line.yData is None else self.plot_line.yData
             new_data: NDArray[np.float64] = self.results_queue.get()
-            new_data[1] -= (self.spin_resistance_in_series.value() / self.spin_ballast_resistance.value()
-                            * new_data[0] * self.spin_voltage_gain.value()
-                            + offsets[adc_voltage.name])
-            new_data[0] -= offsets[adc_current.name] + new_data[1] / self.spin_voltage_gain.value()
-            new_data[0] /= self.spin_ballast_resistance.value()
-            new_data[1] /= self.spin_voltage_gain.value()
             x_data: NDArray[np.float64] = np.concatenate((old_x_data, new_data[1]))
             y_data: NDArray[np.float64] = np.concatenate((old_y_data, new_data[0]))
             self.plot_line.setData(x_data, y_data)

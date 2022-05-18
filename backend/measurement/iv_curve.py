@@ -90,9 +90,9 @@ class IVCurveMeasurement(Process):
 
             task_adc.timing.cfg_samp_clk_timing(rate=adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=task_adc.input_onboard_buffer_size,
+                                                samps_per_chan=10000,
                                                 )
-            task_dac.timing.cfg_samp_clk_timing(rate=task_dac.timing.samp_clk_max_rate,
+            task_dac.timing.cfg_samp_clk_timing(rate=dac_rate,
                                                 sample_mode=AcquisitionType.FINITE,
                                                 samps_per_chan=samples_per_dac_channel,
                                                 )
@@ -104,9 +104,15 @@ class IVCurveMeasurement(Process):
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
                 waiting: NDArray[np.bool] = (data[2] > trigger_trigger)
-                if np.any(waiting):
+                if not self.pulse_started and np.any(waiting):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]
+                    data[0] -= offsets[adc_current.name]
+                    data[1] -= offsets[adc_voltage.name]
+                    data[0] /= self.ballast_resistance
+                    data[1] /= self.voltage_gain
+                    data[1] -= data[0] * self.resistance_in_series
+                    data[0] -= data[1] / self.ballast_resistance
                     self.results_queue.put(data[0:2, waiting])
                 else:
                     if self.pulse_started:
@@ -551,7 +557,7 @@ def iv_curve_of_rate(limits: Tuple[float, float], current_rate: float, two_way: 
             if min_current <= 0 and max_current <= 0:
                 i_set = -np.square(np.linspace(np.sqrt(-min_current), np.sqrt(-max_current),
                                                points, endpoint=True))
-            elif min_current <= 0 and max_current >= 0:
+            elif min_current <= 0 <= max_current:
                 i_set = np.concatenate((
                     -np.square(np.linspace(np.sqrt(-min_current), 0.0,
                                            round(points * abs(min_current / limits_ptp)),
@@ -560,7 +566,7 @@ def iv_curve_of_rate(limits: Tuple[float, float], current_rate: float, two_way: 
                                           round(points * abs(max_current / limits_ptp)),
                                           endpoint=True))
                 ))
-            elif min_current >= 0 and max_current <= 0:
+            elif min_current >= 0 >= max_current:
                 i_set = np.concatenate((
                     np.square(np.linspace(np.sqrt(min_current), 0.0,
                                           round(points * abs(min_current / limits_ptp)),

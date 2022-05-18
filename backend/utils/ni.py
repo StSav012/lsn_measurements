@@ -265,7 +265,7 @@ if not hasattr(Task, 'input_onboard_buffer_size'):
         val: ctypes.c_uint = ctypes.c_uint()
 
         lib_importer = getattr(nidaqmx, '_lib').lib_importer
-        c_func: CFuncPtr = lib_importer.windll.DAQmxGetBufOutputOnbrdBufSize
+        c_func: CFuncPtr = lib_importer.windll.DAQmxGetBufInputOnbrdBufSize
         if c_func.argtypes is None:
             with c_func.arglock:
                 if c_func.argtypes is None:

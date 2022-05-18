@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -11,9 +11,9 @@ from numpy.typing import ArrayLike, NDArray
 __all__ = ['save_txt', 'read_340_table']
 
 
-def save_txt(filename: Union[str, Path], x: ArrayLike, fmt: Union[str, Iterable[str]] = '%.18e',
+def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.18e',
              delimiter: str = ' ', newline: str = os.linesep,
-             header: str = '', footer: str = '', comments: str = '# ', encoding: Optional[str] = 'utf-8') -> None:
+             header: str = '', footer: str = '', comments: str = '# ', encoding: str | None = 'utf-8') -> None:
     """
     from `numpy.savetxt`
     Save an array to a text file.
@@ -154,7 +154,7 @@ def save_txt(filename: Union[str, Path], x: ArrayLike, fmt: Union[str, Iterable[
         pass
 
 
-def read_340_table(filename: Union[str, Path]) -> Tuple[NDArray[float], NDArray[float]]:
+def read_340_table(filename: str | Path) -> tuple[NDArray[float], NDArray[float]]:
     data = np.loadtxt(filename, skiprows=9, usecols=(1, 2), unpack=True)
     print(data.dtype, type(data))
     return data[0], data[1]

@@ -455,12 +455,15 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         else:
             self.good_to_measure.buf[0] = True
 
-    def _stat_file_exists(self) -> bool:
-        return (self.bias_current_index < len(self.bias_current_values)
-                and self.power_index < len(self.power_dbm_values)
-                and self.frequency_index < len(self.frequency_values)
-                and self.temperature_index < len(self.temperature_values)
-                and self.stat_file.exists())
+    def _stat_file_exists(self, verbose: bool = True) -> bool:
+        exists: bool = (self.bias_current_index < len(self.bias_current_values)
+                        and self.power_index < len(self.power_dbm_values)
+                        and self.frequency_index < len(self.frequency_values)
+                        and self.temperature_index < len(self.temperature_values)
+                        and self.stat_file.exists())
+        if exists and verbose:
+            warning(f'{self.stat_file} already exists')
+        return exists
 
     @abc.abstractmethod
     def on_timeout(self) -> None:

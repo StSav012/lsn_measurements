@@ -38,8 +38,9 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
         device_adc.reset_device()
     task_adc: Task
     with Task() as task_adc:
-        task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
-        task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
+        channel: PhysicalChannel
+        for channel in device_adc.ai_physical_chans:
+            task_adc.ai_channels.add_ai_voltage_chan(channel.name)
         count: int = round(duration * task_adc.timing.samp_clk_max_rate)
         task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
                                             sample_mode=AcquisitionType.CONTINUOUS)
@@ -48,8 +49,9 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
         task_adc.start()
         data: List[float] = task_adc.read(count, timeout=WAIT_INFINITELY)
         task_adc.stop()
-        offsets[adc_current.name] = cast(float, np.mean(data[0]))
-        offsets[adc_voltage.name] = cast(float, np.mean(data[1]))
+        index: int
+        for index, channel in enumerate(device_adc.ai_physical_chans):
+            offsets[channel.name] = cast(float, np.mean(data[index]))
 
 
 def measure_noise_fft(length: int, rate: Optional[float] = None, reset_adc: bool = _RESET_ADC_DEFAULT) \

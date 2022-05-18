@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
+from numpy.typing import NDArray
 
 from app_base.detect import DetectBase
-from backend.utils import zero_sources
+from backend.utils import load_txt, zero_sources
 
 
 class App(DetectBase):
@@ -44,6 +47,17 @@ class App(DetectBase):
             f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
         )))
+
+    def _fill_the_data_from_stat_file(self) -> None:
+        data: NDArray[float]
+        titles: tuple[str]
+        data, titles = load_txt(self.stat_file, sep='\t', encoding='utf-8')
+        if 'Power [dBm]' in titles and 'Switch Probability [%]' in titles and 'Probability Uncertainty [%]' in titles:
+            x_column: int = titles.index('Power [dBm]')
+            prob_column: int = titles.index('Switch Probability [%]')
+            err_column: int = titles.index('Probability Uncertainty [%]')
+            for x, prob, err in zip(data[..., x_column], data[..., prob_column], data[..., err_column]):
+                self._add_plot_point(x, prob, err)
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():

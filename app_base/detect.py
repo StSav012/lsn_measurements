@@ -75,15 +75,17 @@ class DetectBase(DetectGUI):
             get_float(self.config, self.sample_name, 'measurement', 'voltage trigger [V]') * self.gain
         self.cycles_count: Final[int] = self.config.getint('detect', 'number of cycles')
         self.max_switching_events_count: Final[int] = self.config.getint('detect', 'number of switches')
-        self.minimal_probability_to_measure: Final[float] \
-            = self.config.getfloat('detect', 'minimal probability to measure [%]', fallback=0.0)
+        self.minimal_probability_to_measure: Final[float] = \
+            get_float(self.config, self.sample_name, 'detect', 'minimal probability to measure [%]', fallback=0.0)
 
         self.frequency_values: SliceSequence = SliceSequence(self.config.get('GHz signal', 'frequency [GHz]'))
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
         self.power_dbm_values: SliceSequence = SliceSequence(self.config.get('GHz signal', 'power [dBm]'))
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
-        self.pulse_duration: Final[float] = self.config.getfloat('detect', 'GHz pulse duration [sec]')
-        self.waiting_after_pulse: Final[float] = self.config.getfloat('detect', 'waiting after GHz pulse [sec]')
+        self.pulse_duration: Final[float] = \
+            get_float(self.config, self.sample_name, 'detect', 'GHz pulse duration [sec]')
+        self.waiting_after_pulse: Final[float] = \
+            get_float(self.config, self.sample_name, 'detect', 'waiting after GHz pulse [sec]')
 
         self.saving_location: Path = Path(self.config.get('output', 'location', fallback=r'd:\ttt\detect'))
         self.saving_location /= self.sample_name
@@ -92,11 +94,11 @@ class DetectBase(DetectGUI):
 
         self.temperature_values: SliceSequence = SliceSequence(self.config.get('measurement', 'temperature'))
         self.temperature_delay: timedelta = \
-            timedelta(seconds=self.config.getfloat('measurement', 'time to wait for temperature [minutes]',
-                                                   fallback=0.0) * 60.)
+            timedelta(seconds=get_float(self.config, self.sample_name,
+                                        'measurement', 'time to wait for temperature [minutes]', fallback=0.0) * 60.)
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
-        self.temperature_tolerance: Final[float] = abs(self.config.getfloat('measurement', 'temperature tolerance [%]',
-                                                                            fallback=0.5))
+        self.temperature_tolerance: Final[float] = \
+            abs(get_float(self.config, self.sample_name, 'measurement', 'temperature tolerance [%]', fallback=0.5))
         self.change_filtered_readings: Final[bool] = self.config.getboolean('measurement',
                                                                             'change filtered readings in Triton',
                                                                             fallback=True)
@@ -301,12 +303,17 @@ class DetectBase(DetectGUI):
         else:
             self.good_to_measure.buf[0] = True
 
+    @abc.abstractmethod
+    def _fill_the_data_from_stat_file(self) -> None: ...
+
     def _stat_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.stat_file.exists())
+        if exists and self.plot_line.xData is None:
+            self._fill_the_data_from_stat_file()
         if exists and verbose:
             warning(f'{self.stat_file} already exists')
         return exists

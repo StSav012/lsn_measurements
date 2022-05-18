@@ -41,8 +41,7 @@ class App(DetectBase):
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
             f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if not np.isnan(self.frequency) else '',
+            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
         )))
 

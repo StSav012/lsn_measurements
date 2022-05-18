@@ -40,10 +40,8 @@ class App(DetectBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
-            if not np.isnan(self.power_dbm) else '',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if not np.isnan(self.frequency) else '',
+            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm',
+            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
             f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
         )))
 

@@ -3,12 +3,23 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable, SupportsFloat, SupportsIndex
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-__all__ = ['save_txt', 'read_340_table']
+__all__ = ['load_txt', 'save_txt', 'read_340_table']
+
+
+def is_float(val: Any) -> bool:
+    if not isinstance(val, (SupportsFloat, SupportsIndex, str, bytes, bytearray)):
+        return False
+    try:
+        float(val)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.18e',
@@ -17,6 +28,7 @@ def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.1
     """
     from `numpy.savetxt`
     Save an array to a text file.
+
     Parameters
     ----------
     filename : {pathlib.Path}
@@ -55,14 +67,15 @@ def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.1
         streams. If the encoding is something other than 'bytes' or 'latin1'
         you will not be able to load the file in NumPy versions < 1.14. Default
         is 'latin1'.
+
     Notes
     -----
     Further explanation of the `fmt` parameter
     (``%[flag]width[.precision]specifier``):
     flags:
-        ``-`` : left justify
-        ``+`` : Forces to precede result with + or -.
-        ``0`` : Left pad the number with zeros instead of space (see width).
+        * ``-`` : left justify
+        * ``+`` : Forces to precede result with + or -.
+        * ``0`` : Left pad the number with zeros instead of space (see width).
     width:
         Minimum number of characters to be printed. The value is not truncated
         if it has more characters.
@@ -85,6 +98,7 @@ def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.1
         ``x,X`` : unsigned hexadecimal integer
     This explanation of ``fmt`` is not complete, for an exhaustive
     specification see [1]_.
+
     References
     ----------
     .. [1] `Format Specification Mini-Language
@@ -152,6 +166,59 @@ def save_txt(filename: str | Path, x: ArrayLike, fmt: str | Iterable[str] = '%.1
                 fh.write(comments + footer + '\n')
     finally:
         pass
+
+
+def load_txt(filename: str | Path,
+             sep: str | None = None,
+             encoding: str | None = None,
+             errors: str | None = None) -> tuple[NDArray[float], tuple[str]]:
+    """
+    Load data from a text file, possibly with a header.
+
+    Parameters
+    ----------
+    filename : {str, pathlib.Path}
+        Name of the file to read text data from.
+    sep : {None, str}, optional
+        The delimiter between the values as they are written in the file.
+        None (the default value) means split according to any whitespace,
+            and discard empty strings from the result.
+    encoding : {None, str}, optional
+        Encoding used to encode the input file. See [1]_ for the available values.
+    errors : {None, str}, optional
+        Way of handling encoding errors. See [1]_ for the available values.
+
+    References
+    ----------
+    .. [1] `Python Built-In Functions: open
+           <https://docs.python.org/3/library/functions.html#open>`_,
+           Python Documentation.
+
+    Returns
+    -------
+    data : numpy.typing.NDArray[float]
+        An array object containing the numerical data read from the file.
+    titles : tuple[str]
+        The first line of the file split by `sep`.
+    """
+
+    filename = Path(filename)
+    line: list[str]
+    word: str
+    data: list[list[str]] = [word.split(sep=sep)
+                             for word in filename.read_text(encoding=encoding, errors=errors).splitlines()
+                             if word]
+    if not data:
+        return np.empty(0, float), tuple()
+    header: tuple[str]
+    numeric_data: NDArray[float]
+    if all(is_float(word) for word in data[0]):
+        header = tuple()
+        numeric_data = np.array([[float(word) for word in line] for line in data], dtype=float)
+    else:
+        header = tuple(data[0])
+        numeric_data = np.array([[float(word) for word in line] for line in data[1:]], dtype=float)
+    return numeric_data, header
 
 
 def read_340_table(filename: str | Path) -> tuple[NDArray[float], NDArray[float]]:

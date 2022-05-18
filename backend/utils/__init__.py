@@ -8,7 +8,7 @@ from .config import (get_bool, get_decimal, get_decimal_list, get_float, get_flo
 from .connected_points import linear_segments, sine_segments
 from .count import Count
 from .decimalslice import DecimalSlice
-from .files_io import read_340_table, save_txt
+from .files_io import load_txt, read_340_table, save_txt
 from .filewriter import FileWriter
 from .floatslice import FloatSlice
 from .ni import (measure_noise_fft, measure_noise_trend, measure_noise_welch, measure_noise_welch_iter,
@@ -34,7 +34,7 @@ __all__ = [
     'get_str', 'get_bool', 'get_int', 'get_float', 'get_decimal',
     'get_float_tuple', 'get_float_list', 'get_decimal_list',
     'superscript_number', 'tick_strings',
-    'save_txt', 'read_340_table',
+    'load_txt', 'save_txt', 'read_340_table',
     'welch', 'moving_mean', 'moving_median',
 ]
 

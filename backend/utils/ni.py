@@ -23,7 +23,9 @@ _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
 # NDArray[np.float64].tolist = lambda a: a
 
 
-def zero_sources() -> None:
+def zero_sources(reset_dac: bool = True) -> None:
+    if reset_dac:
+        device_dac.reset_device()
     task_dac: Task
     with Task() as task_dac:
         channel: PhysicalChannel

@@ -3,6 +3,8 @@ from configparser import ConfigParser
 from decimal import Decimal
 from typing import List, Optional, Sequence, Tuple
 
+from backend.utils.si import parse_si_number
+
 __all__ = [
     'get_str', 'get_bool', 'get_int', 'get_float', 'get_decimal',
     'get_float_tuple', 'get_float_list', 'get_decimal_list',
@@ -52,13 +54,13 @@ def get_float(config: ConfigParser, sample: str, section: str, key: str, fallbac
     if f'{section}/{sample}' in config.sections():
         if key in config[f'{section}/{sample}']:
             if fallback is not None:
-                return config.getfloat(f'{section}/{sample}', key, fallback=fallback)
+                return parse_si_number(config.get(f'{section}/{sample}', key, fallback=fallback))
             else:
-                return config.getfloat(f'{section}/{sample}', key)
+                return parse_si_number(config.get(f'{section}/{sample}', key))
     if fallback is not None:
-        return config.getfloat(f'{section}', key, fallback=fallback)
+        return parse_si_number(config.get(f'{section}', key, fallback=fallback))
     else:
-        return config.getfloat(f'{section}', key)
+        return parse_si_number(config.get(f'{section}', key))
 
 
 def get_decimal(config: ConfigParser, sample: str, section: str, key: str, fallback: Optional[float] = None) -> Decimal:

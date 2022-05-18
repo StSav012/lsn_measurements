@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import functools
+import math
 
 import numpy as np
 
-__all__ = ['SI_PREFIX_EXPONENTS', 'parse_temperature', 'si_prefix', 'si_factor']
+__all__ = ['SI_PREFIX_EXPONENTS', 'parse_temperature', 'si_prefix', 'si_factor', 'parse_si_number']
 
 SI_PREFIX_EXPONENTS: dict[str, int] = {
     'y': -24,
@@ -60,3 +61,17 @@ def si_prefix(unit: str) -> str:
 @functools.lru_cache(maxsize=128, typed=True)
 def si_factor(unit: str) -> float:
     return 10 ** SI_PREFIX_EXPONENTS[si_prefix(unit)]
+
+
+@functools.lru_cache(maxsize=128, typed=True)
+def parse_si_number(number_text: str) -> float:
+    leftovers: int = len(number_text)
+    while leftovers > 0:
+        try:
+            float(number_text[:leftovers])
+        except ValueError:
+            leftovers -= 1
+        else:
+            return float(number_text[:leftovers]) * si_factor(number_text[leftovers:].strip())
+    else:
+        return math.nan

@@ -6,7 +6,7 @@ from typing import Iterator, Sequence
 
 __all__ = ['SliceSequence']
 
-from .si import si_factor
+from .si import parse_si_number
 from .string_utils import multi_split, nth_occurrence
 
 
@@ -35,24 +35,12 @@ class SliceSequence:
         self._items: list[float] = self._parse(text)
 
     def _parse(self, text: str) -> list[float]:
-        def _parse_number(number_text: str) -> float:
-            leftovers: int = len(number_text)
-            while leftovers > 0:
-                try:
-                    float(number_text[:leftovers])
-                except ValueError:
-                    leftovers -= 1
-                else:
-                    return float(number_text[:leftovers]) * si_factor(number_text[leftovers:].strip())
-            else:
-                return math.nan
-
         def _parse_slice(slice_text: str) -> list[float]:
             if not slice_text:
                 return []
             slice_text = slice_text.strip()
             parts: list[str] = multi_split(slice_text, self._slice_separators)
-            _slice: list[float] = list(map(_parse_number, parts))
+            _slice: list[float] = list(map(parse_si_number, parts))
             if len(_slice) == 1:
                 return _slice
             elif len(_slice) == 2 and not any(map(math.isnan, _slice)):

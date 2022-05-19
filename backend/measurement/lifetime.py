@@ -14,6 +14,7 @@ from numpy.typing import NDArray
 
 from backend.hardware import *
 from backend.utils import FileWriter, Count, measure_offsets, error, sine_segments, linear_segments
+from backend.utils.string_utils import format_float
 
 __all__ = ['LifetimeMeasurement']
 
@@ -303,8 +304,8 @@ class LifetimeMeasurement(Process):
                     )) + '\n', encoding='utf-8')
                 with self.stat_file.open('at', encoding='utf-8') as f_out:
                     f_out.write('\t'.join((
-                        f'{self.frequency:.10f}'.rstrip('0').rstrip('.'),
-                        f'{self.bias_current:.10f}'.rstrip('0').rstrip('.'),
+                        format_float(self.frequency),
+                        format_float(self.bias_current),
                         f'{np.nanmean(set_bias_current[reasonable]) * 1e9:.10f}'
                         if np.any(reasonable) else 'nan',
                         f'{np.nanstd(set_bias_current[reasonable]) * 1e9:.10f}'

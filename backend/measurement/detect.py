@@ -13,6 +13,7 @@ from numpy.typing import NDArray
 
 from backend.hardware import *
 from backend.utils import Count, FileWriter, error, linear_segments, measure_offsets, sine_segments
+from backend.utils.string_utils import format_float
 
 __all__ = ['DetectMeasurement']
 
@@ -302,11 +303,11 @@ class DetectMeasurement(Process):
                     'Probability Uncertainty [%]',
                 )) + '\n', encoding='utf-8')
             with self.stat_file.open('at', encoding='utf-8') as f_out:
-                f_out.write(f'{self.bias_current:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                            f'{self.temperature * 1000:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                            f'{self.frequency:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                            f'{self.power_dbm:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                            f'{prob:.10f}'.rstrip('0').rstrip('.') + '\t' +
+                f_out.write(format_float(self.bias_current) + '\t' +
+                            format_float(self.temperature * 1000) + '\t' +
+                            format_float(self.frequency) + '\t' +
+                            format_float(self.power_dbm) + '\t' +
+                            format_float(prob) + '\t' +
                             f'{10.0 ** (0.1 * float(self.power_dbm)):.6e}\t'
                             f'{actual_cycles_count}\t'
                             f'{err}\n')

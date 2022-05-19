@@ -14,6 +14,7 @@ from numpy.typing import NDArray
 
 from backend.hardware import *
 from backend.utils import PrintQueue, FileWriter, error, linear_segments, sine_segments, measure_offsets
+from backend.utils.string_utils import format_float
 
 fw: FileWriter = FileWriter()
 fw.start()
@@ -295,9 +296,9 @@ class SCDMeasurement(Process):
                         'Measurement Duration [s]',
                     )) + '\n', encoding='utf-8')
                 with self.stat_file.open('at', encoding='utf-8') as f_out:
-                    f_out.write(f'{self.temperature * 1000:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                                f'{self.frequency:.10f}'.rstrip('0').rstrip('.') + '\t' +
-                                f'{self.power_dbm:.10f}'.rstrip('0').rstrip('.') + '\t' +
+                    f_out.write(format_float(self.temperature * 1000) + '\t' +
+                                format_float(self.frequency) + '\t' +
+                                format_float(self.power_dbm) + '\t' +
                                 f'{1e9 * np.nanmean(switching_current[reasonable]):.6f}\t'
                                 f'{1e9 * np.nanstd(switching_current[reasonable]):.6f}\t'
                                 f'{(datetime.now() - measurement_start_time).total_seconds():.3f}\n')

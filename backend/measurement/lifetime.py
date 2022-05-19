@@ -16,6 +16,9 @@ from backend.hardware import *
 from backend.utils import FileWriter, Count, measure_offsets, error, sine_segments, linear_segments
 from backend.utils.string_utils import format_float
 
+fw: FileWriter = FileWriter()
+fw.start()
+
 __all__ = ['LifetimeMeasurement']
 
 
@@ -86,9 +89,6 @@ class LifetimeMeasurement(Process):
         self.trigger_voltage -= offsets[adc_voltage.name]
         measure_offsets()
         self.trigger_voltage += offsets[adc_voltage.name]
-
-        fw: FileWriter = FileWriter()
-        fw.start()
 
         task_adc: Task
         task_dac: Task

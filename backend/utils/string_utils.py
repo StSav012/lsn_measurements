@@ -15,8 +15,8 @@ def decimals(text: str) -> int:
 
 
 @functools.lru_cache(maxsize=128, typed=True)
-def format_float(value: float, precision: int = 12) -> str:
-    return f'{value:.{precision}f}'.rstrip('0').rstrip('.')
+def format_float(value: float, precision: int = 12, *, prefix: str = '', suffix: str = '') -> str:
+    return prefix + f'{value:.{precision}f}'.rstrip('0').rstrip('.') + suffix
 
 
 def seconds_to_time(seconds: int) -> str:

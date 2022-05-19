@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import time
 from datetime import datetime, timedelta
 from multiprocessing import Process, Queue
@@ -128,11 +130,11 @@ class SCDMeasurement(Process):
                 error('current steps are too large')
                 return
 
-            switching_current: np.ndarray = np.full(self.cycles_count, np.nan)
-            switching_voltage: np.ndarray = np.full(self.cycles_count, np.nan)
+            switching_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan)
+            switching_voltage: NDArray[np.float64] = np.full(self.cycles_count, np.nan)
 
             trigger_trigger: float = 0.45 * sync_channel.ao_max
-            trigger_sequence: np.ndarray = np.concatenate((
+            trigger_sequence: NDArray[np.float64] = np.concatenate((
                 np.full(bias_current_steps_count, 2. * trigger_trigger),
                 np.zeros(bias_current_steps_count)
             ))
@@ -158,12 +160,12 @@ class SCDMeasurement(Process):
                     self.pulse_started = True
                     self.pulse_ended = not increasing_current[-1]
                     if np.isnan(switching_current[-1]):
-                        v: np.ndarray = data[1]
+                        v: NDArray[np.float64] = data[1]
                         v = (v - offsets[adc_voltage.name]) / self.gain
                         v -= self.r_series / self.r * data[0]
                         # if np.any(v < self.trigger_voltage) and np.any(self.trigger_voltage < v):
                         if (v[0] < self.trigger_voltage) and (self.trigger_voltage < v[-1]):
-                            i: np.ndarray = (data[0] - v - offsets[adc_current.name]) / self.r
+                            i: NDArray[np.float64] = (data[0] - v - offsets[adc_current.name]) / self.r
                             # _index: int = cast(int, np.argmin(np.abs(v - self.trigger_voltage)))
                             _index: int = cast(int, np.searchsorted(v, self.trigger_voltage))
                             # if data[2, _index] < trigger_trigger:  # if the current is decreasing
@@ -194,7 +196,7 @@ class SCDMeasurement(Process):
                                                                          reading_task_callback)
 
             # calculating the current sequence
-            i_set: np.ndarray = np.row_stack((np.concatenate((
+            i_set: NDArray[np.float64] = np.row_stack((np.concatenate((
                 np.linspace(self.initial_biases[-1], self.max_bias_current, bias_current_steps_count, endpoint=True),
                 {
                     'linear': linear_segments([self.max_bias_current] + self.initial_biases, bias_current_steps_count),
@@ -284,8 +286,17 @@ class SCDMeasurement(Process):
                     median_switching_current * (1. - .01 * self.max_reasonable_bias_error)
                 max_reasonable_switching_current: float = \
                     median_switching_current * (1. + .01 * self.max_reasonable_bias_error)
-                reasonable: np.ndarray = ((switching_current >= min_reasonable_switching_current)
-                                          & (switching_current <= max_reasonable_switching_current))
+                reasonable: NDArray[np.float64] = ((switching_current >= min_reasonable_switching_current)
+                                                   & (switching_current <= max_reasonable_switching_current))
+                reasonable_switching_current: NDArray[np.float64] = switching_current[reasonable]
+                mean_switching_current: np.float64 | NDArray[np.float64]
+                switching_current_std: np.float64 | NDArray[np.float64]
+                if reasonable_switching_current.size:
+                    mean_switching_current = 1e9 * np.nanmean(reasonable_switching_current)
+                    switching_current_std = 1e9 * np.nanstd(reasonable_switching_current)
+                else:
+                    mean_switching_current = np.nan
+                    switching_current_std = np.nan
                 if not self.stat_file.exists():
                     self.stat_file.write_text('\t'.join((
                         'Temperature [mK]',
@@ -296,11 +307,13 @@ class SCDMeasurement(Process):
                         'Measurement Duration [s]',
                     )) + '\n', encoding='utf-8')
                 with self.stat_file.open('at', encoding='utf-8') as f_out:
-                    f_out.write(format_float(self.temperature * 1000) + '\t' +
-                                format_float(self.frequency) + '\t' +
-                                format_float(self.power_dbm) + '\t' +
-                                f'{1e9 * np.nanmean(switching_current[reasonable]):.6f}\t'
-                                f'{1e9 * np.nanstd(switching_current[reasonable]):.6f}\t'
-                                f'{(datetime.now() - measurement_start_time).total_seconds():.3f}\n')
-                self.results_queue.put((cast(float, 1e9 * np.nanmean(switching_current[reasonable])),
-                                        cast(float, 1e9 * np.nanstd(switching_current[reasonable]))))
+                    f_out.write('\t'.join((
+                        format_float(self.temperature * 1000),
+                        format_float(self.frequency),
+                        format_float(self.power_dbm),
+                        f'{mean_switching_current:.6f}',
+                        f'{switching_current_std:.6f}',
+                        f'{(datetime.now() - measurement_start_time).total_seconds():.3f}',
+                    )) + '\n')
+                self.results_queue.put((cast(float, mean_switching_current),
+                                        cast(float, switching_current_std)))

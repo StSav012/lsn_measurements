@@ -275,17 +275,43 @@ class LifetimeMeasurement(Process):
                       f'mean switching time is {np.nanmean(switching_time)} s '
                       f'± {np.nanstd(switching_time)} s')
                 # set_bias_current = (set_bias_current - offsets[adc_current.name]) / r
+
                 # noinspection PyTypeChecker
                 median_bias_current: float = np.nanmedian(set_bias_current)
-                min_reasonable_bias_current: float = \
-                    median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
-                max_reasonable_bias_current: float = \
-                    median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
+                min_reasonable_bias_current: float = median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
+                max_reasonable_bias_current: float = median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
                 reasonable: np.ndarray = ((set_bias_current >= min_reasonable_bias_current)
                                           & (set_bias_current <= max_reasonable_bias_current))
+                set_bias_current_reasonable: NDArray[np.float64] = set_bias_current[reasonable] * 1e9
+                mean_set_bias_current_reasonable: np.float64 | NDArray[np.float64]
+                set_bias_current_reasonable_std: np.float64 | NDArray[np.float64]
+                if set_bias_current_reasonable.size:
+                    mean_set_bias_current_reasonable = np.nanmean(set_bias_current_reasonable)
+                    set_bias_current_reasonable_std = np.nanstd(set_bias_current_reasonable)
+                else:
+                    mean_set_bias_current_reasonable = np.nan
+                    set_bias_current_reasonable_std = np.nan
+
                 switching_time_reasonable: NDArray[np.float64] = switching_time[reasonable]
+                mean_switching_time_reasonable: np.float64 | NDArray[np.float64]
+                switching_time_reasonable_std: np.float64 | NDArray[np.float64]
+                if switching_time_reasonable.size:
+                    mean_switching_time_reasonable = np.nanmean(switching_time_reasonable)
+                    switching_time_reasonable_std = np.nanstd(switching_time_reasonable)
+                else:
+                    mean_switching_time_reasonable = np.nan
+                    switching_time_reasonable_std = np.nan
+
                 non_zero: np.ndarray = (switching_time_reasonable > 0.0)
                 switching_time_rnz: NDArray[np.float64] = switching_time_reasonable[non_zero]
+                mean_switching_time_rnz: np.float64 | NDArray[np.float64]
+                switching_time_rnz_std: np.float64 | NDArray[np.float64]
+                if switching_time_rnz.size:
+                    mean_switching_time_rnz = np.nanmean(switching_time_rnz)
+                    switching_time_rnz_std = np.nanstd(switching_time_rnz)
+                else:
+                    mean_switching_time_rnz = np.nan
+                    switching_time_rnz_std = np.nan
                 if not self.stat_file.exists():
                     self.stat_file.write_text('\t'.join((
                         'Frequency [GHz]',
@@ -306,28 +332,20 @@ class LifetimeMeasurement(Process):
                     f_out.write('\t'.join((
                         format_float(self.frequency),
                         format_float(self.bias_current),
-                        f'{np.nanmean(set_bias_current[reasonable]) * 1e9:.10f}'
-                        if np.any(reasonable) else 'nan',
-                        f'{np.nanstd(set_bias_current[reasonable]) * 1e9:.10f}'
-                        if np.any(reasonable) else 'nan',
+                        f'{mean_set_bias_current_reasonable:.10f}',
+                        f'{set_bias_current_reasonable_std:.10f}',
 
-                        f'{np.nanmean(switching_time_reasonable):.10f}'
-                        if np.any(reasonable) else 'nan',
-                        f'{np.nanstd(switching_time_reasonable):.10f}'
-                        if np.any(reasonable) else 'nan',
+                        f'{mean_switching_time_reasonable:.10f}',
+                        f'{switching_time_reasonable_std:.10f}',
 
-                        f'{np.nanmean(switching_time_rnz):.10f}'
-                        if np.any(reasonable) and np.any(non_zero) else 'nan',
-                        f'{np.nanstd(switching_time_rnz):.10f}'
-                        if np.any(reasonable) and np.any(non_zero) else 'nan',
+                        f'{mean_switching_time_rnz:.10f}',
+                        f'{switching_time_rnz_std:.10f}',
 
-                        f'{np.nanmean(switching_time_reasonable) / np.nanstd(switching_time_reasonable):.10f}'
-                        if np.any(reasonable) else 'nan',
-                        f'{np.nanmean(switching_time_rnz) / np.nanstd(switching_time_rnz):.10f}'
-                        if np.any(reasonable) else 'nan',
+                        f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}',
+                        f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}',
                     )) + '\n')
-                self.results_queue.put((cast(float, np.nanmean(set_bias_current[reasonable]) * 1e9),
-                                        cast(float, np.nanmean(switching_time[reasonable])),
-                                        cast(float, np.nanmean(switching_time[reasonable][non_zero]))))
+                self.results_queue.put((cast(float, mean_set_bias_current_reasonable),
+                                        cast(float, mean_switching_time_reasonable),
+                                        cast(float, mean_switching_time_rnz)))
             else:
                 print(f'no switching event detected for bias current set to {self.bias_current} nA')

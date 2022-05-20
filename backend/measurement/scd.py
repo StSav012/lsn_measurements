@@ -100,8 +100,8 @@ class SCDMeasurement(Process):
         with Task() as task_adc, Task() as task_dac:
             task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
-            current_channel = task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
-            task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
+            task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
+            current_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
             bias_current_amplitude: float = np.abs(self.max_bias_current - self.initial_biases[-1])
@@ -141,7 +141,7 @@ class SCDMeasurement(Process):
 
             task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=task_adc.input_onboard_buffer_size,
+                                                samps_per_chan=1000,
                                                 )
             task_dac.timing.cfg_samp_clk_timing(rate=task_dac.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.FINITE,

@@ -95,8 +95,8 @@ class LifetimeMeasurement(Process):
         with Task() as task_adc, Task() as task_dac:
             task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
-            current_channel = task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
-            task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
+            task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
+            current_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
             dac_rate: float = task_dac.timing.samp_clk_max_rate
@@ -116,7 +116,7 @@ class LifetimeMeasurement(Process):
 
             task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=task_adc.input_onboard_buffer_size,
+                                                samps_per_chan=1000,
                                                 )
             task_dac.timing.cfg_samp_clk_timing(rate=task_dac.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.FINITE,
@@ -164,11 +164,10 @@ class LifetimeMeasurement(Process):
             measurement_start_time: datetime = datetime.now()
 
             bias_current_amplitude: float = np.abs(float(self.bias_current) - self.initial_biases[-1])
-            actual_bias_current_steps_count: int = round(bias_current_amplitude * 1e-9
-                                                         * self.r * self.divider
-                                                         / min(((current_channel.ao_max - current_channel.ao_min)
-                                                                / (2 ** current_channel.ao_resolution)),
-                                                               bias_current_steps_count))
+            actual_bias_current_steps_count: int = \
+                round(bias_current_amplitude * 1e-9 * self.r * self.divider
+                      / min(((current_channel.ao_max - current_channel.ao_min) / (2 ** current_channel.ao_resolution)),
+                            bias_current_steps_count))
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
             print(f'\nbias current is set to {self.bias_current} nA')

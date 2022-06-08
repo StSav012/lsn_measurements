@@ -11,7 +11,7 @@ __all__ = [
     'system',
     'device_dac', 'device_adc',
     'adc_sync', 'adc_voltage', 'adc_current',
-    'dac_sync', 'dac_current', 'dac_attenuation',
+    'dac_sync', 'dac_current', 'dac_aux',
     'offsets'
 ]
 
@@ -30,7 +30,7 @@ adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[1]
 adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[0]
 adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[4]
 dac_current: Final[PhysicalChannel] = device_dac.ao_physical_chans[1]
-dac_attenuation: Final[PhysicalChannel] = device_dac.ao_physical_chans[2]
+dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[2]
 dac_sync: Final[PhysicalChannel] = device_dac.ao_physical_chans[4]
 
 offsets: Dict[str, float] = {adc_current.name: 0.0, adc_voltage.name: 0.0}

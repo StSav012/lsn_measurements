@@ -106,7 +106,7 @@ class SCDMeasurement(Process):
             task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
             current_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
-            task_dac.ao_channels.add_ao_voltage_chan(dac_attenuation.name)
+            task_dac.ao_channels.add_ao_voltage_chan(dac_aux.name)
 
             bias_current_amplitude: float = np.abs(self.max_bias_current - self.initial_biases[-1])
             dac_rate: float = task_dac.timing.samp_clk_max_rate

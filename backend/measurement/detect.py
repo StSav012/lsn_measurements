@@ -96,7 +96,7 @@ class DetectMeasurement(Process):
             task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_sync.name)
             current_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
-            task_dac.ao_channels.add_ao_voltage_chan(dac_attenuation.name)
+            task_dac.ao_channels.add_ao_voltage_chan(dac_aux.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
             dac_rate: float = task_dac.timing.samp_clk_max_rate

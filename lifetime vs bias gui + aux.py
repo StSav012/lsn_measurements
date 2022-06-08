@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
 from app_base.lifetime_aux import LifetimeBase
-from backend.hardware import dac_attenuation
+from backend.hardware import dac_aux
 from backend.utils import zero_sources
 
 
@@ -142,4 +142,4 @@ if __name__ == '__main__':
     window: App = App()
     window.show()
     app.exec()
-    zero_sources(reset_dac=False, exceptions=(dac_attenuation, ))
+    zero_sources(reset_dac=False, exceptions=(dac_aux,))

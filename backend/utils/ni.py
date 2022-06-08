@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Final, Iterable, Iterator, List, Optional, Tuple, Union, cast
+from typing import Final, Iterable, Iterator, List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 from nidaqmx.channels import AIChannel
@@ -23,15 +23,16 @@ _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
 # NDArray[np.float64].tolist = lambda a: a
 
 
-def zero_sources(reset_dac: bool = True) -> None:
+def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
     if reset_dac:
         device_dac.reset_device()
     task_dac: Task
     with Task() as task_dac:
         channel: PhysicalChannel
         for channel in device_dac.ao_physical_chans:
-            task_dac.ao_channels.add_ao_voltage_chan(channel.name)
-        task_dac.write([0.0] * len(device_dac.ao_physical_chans))
+            if channel not in exceptions:
+                task_dac.ao_channels.add_ao_voltage_chan(channel.name)
+        task_dac.write([0.0] * task_dac.number_of_channels)
         task_dac.wait_until_done()
 
 

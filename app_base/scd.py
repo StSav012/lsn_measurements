@@ -62,8 +62,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         if self.reset_function.casefold() not in ('linear', 'sine'):
             raise ValueError('Unsupported current reset function:', self.reset_function)
         self.max_bias_current: float = get_float(self.config, self.sample_name, 'scd', 'max bias current [nA]')
-        self.initial_biases: List[float] = list(map(float, get_str(self.config, self.sample_name, 'current',
-                                                                   'initial current [nA]').split(',')))
+        self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
+                                                          'current', 'initial current [nA]', [0.0])
         self.current_speed: Final[float] = \
             get_float(self.config, self.sample_name, 'scd', 'current speed [nA/sec]')
 

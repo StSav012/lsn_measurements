@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 import numpy as np
 import pyqtgraph as pg
@@ -63,8 +63,8 @@ class DetectBase(DetectGUI):
         self.bias_current_values: SliceSequence = SliceSequence(get_str(self.config, self.sample_name,
                                                                         'current', 'bias current [nA]'))
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
-        self.initial_biases: Tuple[float] = get_float_tuple(self.config, self.sample_name,
-                                                            'current', 'initial current [nA]')
+        self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
+                                                          'current', 'initial current [nA]', [0.0])
 
         self.setting_time: Final[float] = get_float(self.config, self.sample_name, 'current', 'setting time [sec]')
         if self.setting_function.casefold() not in ('linear', 'sine'):

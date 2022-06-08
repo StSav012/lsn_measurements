@@ -61,8 +61,8 @@ class LifetimeBase(LifetimeGUI):
         self.bias_current_values: SliceSequence = SliceSequence(get_str(self.config, self.sample_name,
                                                                         'current', 'bias current [nA]'))
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
-        self.initial_biases: List[float] = list(map(float, get_str(self.config, self.sample_name, 'current',
-                                                                   'initial current [nA]').split(',')))
+        self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
+                                                          'current', 'initial current [nA]', [0.0])
         self.setting_time: Final[float] = get_float(self.config, self.sample_name, 'current', 'setting time [sec]')
 
         self.check_exists: Final[bool] = self.config.getboolean('measurement', 'check whether file exists')

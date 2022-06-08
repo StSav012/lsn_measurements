@@ -65,8 +65,8 @@ class DetectGUI(QMainWindow):
         self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
         self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
 
-        self.label_loop_count.formatStr = '{value}'
-        self.label_loop_number.formatStr = '{value}'
+        self.label_loop_count.formatStr = '{value:.0f}'
+        self.label_loop_number.formatStr = '{value:.0f}'
         self.label_probability.suffix = '%'
         self.label_probability.formatStr = '{value:0.2f}{suffix}'
         self.label_power.suffix = 'dBm'

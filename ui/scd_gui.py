@@ -81,7 +81,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.canvas_mean.addLegend()
         self.canvas_std.addLegend()
 
-        self.label_loop_number.formatStr = '{value}'
+        self.label_loop_number.formatStr = '{value:.0f}'
         self.label_mean_current.suffix = 'nA'
         self.label_mean_current.formatStr = '{value:0.2f} {suffix}'
         self.label_std_current.suffix = 'nA'

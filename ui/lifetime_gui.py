@@ -65,7 +65,7 @@ class LifetimeGUI(QMainWindow):
 
         self.label_spent_time.suffix = 's'
         self.label_spent_time.formatStr = '{value:0.5f} {suffix}'
-        self.label_loop_number.formatStr = '{value}'
+        self.label_loop_number.formatStr = '{value:.0f}'
         self.label_power.suffix = 'dBm'
         self.label_frequency.suffix = 'GHz'
         self.label_frequency.formatStr = '{value:0.4f} {suffix}'

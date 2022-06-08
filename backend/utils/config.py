@@ -69,7 +69,7 @@ def get_decimal(config: ConfigParser, sample: str, section: str, key: str, fallb
 
 def get_float_tuple(config: ConfigParser, sample: str, section: str, key: str,
                     fallback: Optional[Sequence[float]] = None,
-                    separator: str = ',') -> Tuple[float]:
+                    separator: str = ',') -> Tuple[float, ...]:
     return tuple(map(float, get_str(config=config, sample=sample, section=section, key=key,
                                     fallback=fallback).split(separator)))
 

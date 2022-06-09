@@ -167,16 +167,13 @@ class SCDMeasurement(Process):
                         v: NDArray[np.float64] = data[1]
                         v = (v - offsets[adc_voltage.name]) / self.gain
                         v -= self.r_series / self.r * data[0]
-                        # if np.any(v < self.trigger_voltage) and np.any(self.trigger_voltage < v):
+                        _switching_events_count: int
                         if (v[0] < self.trigger_voltage) and (self.trigger_voltage < v[-1]):
-                            i: NDArray[np.float64] = (data[0] - v - offsets[adc_current.name]) / self.r
-                            # _index: int = cast(int, np.argmin(np.abs(v - self.trigger_voltage)))
-                            _index: int = cast(int, np.searchsorted(v, self.trigger_voltage))
-                            # if data[2, _index] < trigger_trigger:  # if the current is decreasing
-                            #     return 0
-
                             if not self.ignore_switch:
-                                _switching_events_count: int = np.count_nonzero(~np.isnan(switching_current))
+                                i: NDArray[np.float64] = (data[0] - v - offsets[adc_current.name]) / self.r
+                                _index: int = cast(int, np.searchsorted(v, self.trigger_voltage))
+
+                                _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = i[_index]
                                 switching_voltage[_switching_events_count] = v[_index]
                                 fw.write(self.data_file, 'at', (i[_index], v[_index]))
@@ -185,8 +182,20 @@ class SCDMeasurement(Process):
                                          f'(voltage is {v[_index] * 1e6:.3f} uV)',
                                          end='')
                             self.switch_registered = True
-                        # elif v[0] > trigger_voltage > v[-1]:
-                        #     pq.write('switching to the superconducting branch')
+                        elif not self.switch_registered and v[0] > self.trigger_voltage:
+                            if not self.ignore_switch:
+                                _v: np.float64 = v[0]
+                                _i: np.float64 = (data[0, 0] - _v - offsets[adc_current.name]) / self.r
+
+                                _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
+                                switching_current[_switching_events_count] = _i
+                                switching_voltage[_switching_events_count] = _v
+                                fw.write(self.data_file, 'at', (_i, _v))
+                                self.switching_data_queue.put((_i, _v))
+                                pq.write(f'switching current is {_i * 1e9:.2f} nA '
+                                         f'(voltage is {_v * 1e6:.3f} uV)',
+                                         end='')
+                            self.switch_registered = True
                 else:
                     if self.pulse_started:
                         self.pulse_ended = True

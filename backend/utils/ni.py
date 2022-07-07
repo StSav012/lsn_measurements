@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 from typing import Final, Iterable, Iterator, List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
@@ -18,9 +20,6 @@ __all__ = [
 ]
 
 _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
-
-# disable the function to speed up the ADC data processing
-# NDArray[np.float64].tolist = lambda a: a
 
 
 def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
@@ -123,7 +122,7 @@ def measure_noise_welch(channel: str, resolution: float, rate: Optional[float] =
         freq, pn_xx = signal.welch(np.column_stack([
             data[a * averaging_step:-((averaging - a - 1) * averaging_step) or None]
             for a in range(averaging)]),
-                                   fs=rate, nperseg=data.size - (averaging - 1) * averaging_step, axis=0)
+            fs=rate, nperseg=data.size - (averaging - 1) * averaging_step, axis=0)
         pn_xx = np.mean(pn_xx, axis=1)
 
     if progress:
@@ -210,7 +209,7 @@ if not hasattr(Task, 'output_onboard_buffer_size'):
     import ctypes
     import nidaqmx
     from _ctypes import CFuncPtr
-    from nidaqmx.errors import check_for_error
+
 
     def get_output_onboard_buffer_size(self) -> int:
         """
@@ -230,6 +229,7 @@ if not hasattr(Task, 'output_onboard_buffer_size'):
 
         return val.value
 
+
     def set_output_onboard_buffer_size(self, buffer_size: int) -> None:
         """
         int: Specifies in samples per channel the size of the onboard output buffer of the device.
@@ -246,18 +246,19 @@ if not hasattr(Task, 'output_onboard_buffer_size'):
         error_code: int = c_func(self._handle, val)
         check_for_error(error_code)
 
+
     Task.output_onboard_buffer_size = property(
         fget=get_output_onboard_buffer_size,
         fset=set_output_onboard_buffer_size,
         fdel=lambda self: None,
         doc='int: Specifies in samples per channel the size of the onboard output buffer of the device.')
 
-
 if not hasattr(Task, 'input_onboard_buffer_size'):
     import ctypes
     import nidaqmx
     from _ctypes import CFuncPtr
     from nidaqmx.errors import check_for_error
+
 
     def get_input_onboard_buffer_size(self) -> int:
         """
@@ -277,7 +278,55 @@ if not hasattr(Task, 'input_onboard_buffer_size'):
 
         return val.value
 
+
     Task.input_onboard_buffer_size = property(
         fget=get_input_onboard_buffer_size,
         fdel=lambda self: None,
         doc='int: Indicates in samples per channel the size of the onboard input buffer of the device.')
+
+
+# don't convert the samples read from NDArray into a list
+# the following function is an almost exact copy of what is in the NI sources, except there is no `np.tolist` used
+def _read_ai_faster(self: Task, number_of_samples_per_channel=nidaqmx.task.NUM_SAMPLES_UNSET, timeout: float = 10.0) \
+        -> np.float64 | NDArray[np.float64]:
+    channels_to_read = self.in_stream.channels_to_read
+    meas_type = channels_to_read.ai_meas_type
+    read_chan_type: ChannelType = channels_to_read.chan_type
+
+    if read_chan_type != ChannelType.ANALOG_INPUT or meas_type == UsageTypeAI.POWER:
+        return self._read()  # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
+
+    num_samples_not_set: bool = number_of_samples_per_channel is nidaqmx.task.NUM_SAMPLES_UNSET
+    number_of_samples_per_channel: int = self._calculate_num_samps_per_chan(number_of_samples_per_channel)
+    number_of_channels: int = len(channels_to_read.channel_names)
+
+    # Determine the array shape and size to create
+    if number_of_channels > 1:
+        if not num_samples_not_set:
+            array_shape = (number_of_channels,
+                           number_of_samples_per_channel)
+        else:
+            array_shape = number_of_channels
+    else:
+        array_shape = number_of_samples_per_channel
+
+    from nidaqmx._task_modules.read_functions import _read_analog_f_64
+
+    # Analog Input Only
+    data: NDArray[float] = np.zeros(array_shape, dtype=np.float64)
+    samples_read: int = _read_analog_f_64(self._handle, data, number_of_samples_per_channel, timeout)
+
+    if num_samples_not_set and array_shape == 1:
+        return data[0]
+
+    if samples_read != number_of_samples_per_channel:
+        if number_of_channels > 1:
+            return data[:, :samples_read]
+        else:
+            return data[:samples_read]
+
+    return data
+
+
+Task._read = Task.read
+Task.read = _read_ai_faster

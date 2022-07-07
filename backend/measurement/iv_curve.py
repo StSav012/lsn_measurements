@@ -55,6 +55,8 @@ class IVCurveMeasurement(Process):
         with Task() as task_dac:
             task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
             task_dac.write(self.min_current * self.ballast_resistance * self.current_divider)
+            task_dac.wait_until_done()
+            task_dac.stop()
 
         time.sleep(0.01)
 
@@ -79,18 +81,13 @@ class IVCurveMeasurement(Process):
                 dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
                 points = round(abs(self.max_current - self.min_current) / self.current_rate * dac_rate)
                 samples_per_dac_channel = (2 if self.two_way else 1) * points + 2
-            # Number of samples per channel to write multiplied by the number of channels in the task
-            # cannot be an odd number for this device.
-            spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
-            samples_per_dac_channel += spare_sample_count
             # If we get too many samples per channel again, we sacrifice the current steps
             while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                points -= 1
-                samples_per_dac_channel = (2 if self.two_way else 1) * points + 2 + spare_sample_count
+                points -= (1 if self.two_way else 2)  # keep samples_per_dac_channel even
+                samples_per_dac_channel = (2 if self.two_way else 1) * points + 2
 
             task_adc.timing.cfg_samp_clk_timing(rate=adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
-                                                samps_per_chan=10000,
                                                 )
             task_dac.timing.cfg_samp_clk_timing(rate=dac_rate,
                                                 sample_mode=AcquisitionType.FINITE,
@@ -104,7 +101,7 @@ class IVCurveMeasurement(Process):
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
                 waiting: NDArray[np.bool] = (data[2] > trigger_trigger)
-                if not self.pulse_started and np.any(waiting):
+                if np.any(waiting):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]
                     data[0] -= offsets[adc_current.name]
@@ -114,30 +111,21 @@ class IVCurveMeasurement(Process):
                     data[1] -= data[0] * self.resistance_in_series
                     data[0] -= data[1] / self.ballast_resistance
                     self.results_queue.put(data[0:2, waiting])
-                else:
-                    if self.pulse_started:
-                        self.pulse_ended = True
-                        self.pulse_started = False
+                elif self.pulse_started:
+                    self.pulse_ended = True
+                    self.pulse_started = False
                 return 0
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(task_adc.timing.samp_quant_samp_per_chan,
                                                                          reading_task_callback)
 
-            # calculating the current sequence
-            trigger_on_sequence: NDArray[np.float64]
-            if self.two_way:
-                trigger_on_sequence = np.concatenate((
-                    [0.0],
-                    np.full(2 * points - 2, 2.0 * trigger_trigger),
-                    [0.0] * (spare_sample_count + 1)
-                ))
-            else:
-                trigger_on_sequence = np.concatenate((
-                    [0.0],
-                    np.full(points - 2, 2.0 * trigger_trigger),
-                    [0.0] * (spare_sample_count + 1)
-                ))
+            # calculate the current sequence
+            trigger_sequence: NDArray[np.float64] = np.concatenate((
+                [0.0],
+                np.full((2 if self.two_way else 1) * points, 2.0 * trigger_trigger),
+                [0.0]
+            ))
 
             i_set: NDArray[np.float64]
             if self.current_mode == 'linear':
@@ -148,22 +136,29 @@ class IVCurveMeasurement(Process):
                 raise ValueError('Invalid current mode')
 
             i_set *= self.current_divider * (DIVIDER_RESISTANCE + self.ballast_resistance)
+
             if self.two_way:
                 i_set = np.concatenate((
                     i_set,
                     i_set[::-1],
                 ))
 
+            i_set = np.concatenate((
+                [i_set[0]],
+                i_set,
+                [i_set[-1]]
+            ))
+
             task_adc.start()
 
             self.pulse_started = False
             self.pulse_ended = False
-            task_dac.write(np.row_stack((i_set, trigger_on_sequence)), auto_start=True, timeout=WAIT_INFINITELY)
+            task_dac.write(np.row_stack((i_set, trigger_sequence)), auto_start=True, timeout=WAIT_INFINITELY)
             task_dac.wait_until_done(timeout=WAIT_INFINITELY)
             task_dac.stop()
 
             while not self.pulse_ended:
-                time.sleep(0.01)
+                time.sleep(0.1)
 
             task_adc.stop()
 

@@ -32,7 +32,7 @@ class GUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.PlotWidget = pg.PlotWidget(self.central_widget)
-        self.plot_line: pg.PlotDataItem = self.figure.plot(np.empty(0), name='')
+        self.plot_line: pg.PlotDataItem = self.figure.plot(np.empty(0))
 
         self.spin_current_min: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_current_max: pg.SpinBox = pg.SpinBox(self.central_widget)
@@ -94,7 +94,7 @@ class GUI(QMainWindow):
         opts = {
             'suffix': '',
             'siPrefix': False,
-            'decimals': 2,
+            'decimals': 3,
             'dec': True,
             'compactHeight': False,
             'format': '{value:.{decimals}f}'
@@ -114,6 +114,10 @@ class GUI(QMainWindow):
         self.spin_adc_rate.setOpts(**opts)
 
         self.figure.setFocusPolicy(Qt.ClickFocus)
+        self.figure.getAxis('bottom').setLabel(text='Voltage', units='V')
+        self.figure.getAxis('left').setLabel(text='Current', units='A')
+        self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
+        self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
 
         self.main_layout.addWidget(self.figure)
         self.main_layout.addLayout(self.controls_layout)

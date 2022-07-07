@@ -1,13 +1,28 @@
 # coding: utf-8
 import socket
 from socket import *
-from typing import Any, Optional
+from typing import Any, List, Optional
+
+from backend.communication.port_scanner import port_scanner
 
 __all__ = ['SCPIDevice']
 
 
 class SCPIDevice:
-    def __init__(self, ip: str, port: int, *, terminator: bytes = b'\r\n', expected: bool = True) -> None:
+    def __init__(self, ip: Optional[str], port: int, *, terminator: bytes = b'\r\n', expected: bool = True) -> None:
+        if ip is None and expected:
+            from ipaddress import IPv4Address
+
+            connectable_hosts: List[IPv4Address] = port_scanner(port)
+            if not connectable_hosts:
+                raise RuntimeError(f'{self.__class__.__name__} with open port {port} could not be found automatically. '
+                                   'Try specifying an IP address.')
+            if len(connectable_hosts) > 1:
+                raise RuntimeError(f'There are numerous devices with open port {port}:\n',
+                                   ',\n'.join(map(str, connectable_hosts)),
+                                   '\nTry specifying an IP address.')
+            ip = str(connectable_hosts[0])
+
         self.socket: Optional[socket] = None
         self.terminator: bytes = terminator
         if expected:

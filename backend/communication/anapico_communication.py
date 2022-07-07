@@ -1,6 +1,6 @@
 # coding: utf-8
-from math import nan, isnan
-from typing import Final, List, Tuple, Union
+from math import isnan, nan
+from typing import Final, List, Optional, Tuple, Union
 
 from .scpi_device import SCPIDevice
 
@@ -474,8 +474,10 @@ class _System:
 
 
 class APUASYN20(SCPIDevice):
-    def __init__(self, ip: str, *, expected: bool = True) -> None:
-        super().__init__(ip, 18, terminator=b'\n', expected=expected)  # always port 18
+    _PORT: Final[int] = 18  # always port 18
+
+    def __init__(self, ip: Optional[str] = None, *, expected: bool = True) -> None:
+        super().__init__(ip, APUASYN20._PORT, terminator=b'\n', expected=expected)
         self.am: Final[_AmplitudeModulation] = _AmplitudeModulation(self)
         self.lf_output: Final[_LFOutput] = _LFOutput(self)
         self.pulse_modulation: Final[_PulseModulation] = _PulseModulation(self)
@@ -508,5 +510,5 @@ class APUASYN20(SCPIDevice):
 
 
 if __name__ == '__main__':
-    s: APUASYN20 = APUASYN20('192.168.199.109')
+    s: APUASYN20 = APUASYN20()
     print(s.idn)

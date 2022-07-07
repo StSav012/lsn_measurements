@@ -40,12 +40,12 @@ class DetectBase(DetectGUI):
         self.config.read('config.ini')
 
         print('connecting Triton...', end='', flush=True)
-        self.triton: Triton = Triton('192.168.199.89', 33576)
+        self.triton: Triton = Triton(None, 33576)
         print(' done')
         self.triton.query_temperature(6, blocking=True)
 
         print('connecting APUASYN20...', end='', flush=True)
-        self.synthesizer: APUASYN20 = APUASYN20('192.168.199.109')
+        self.synthesizer: APUASYN20 = APUASYN20()
         print(' done\n')
 
         self.sample_name: Final[str] = self.config.get('circuitry', 'sample name')

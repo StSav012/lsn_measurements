@@ -42,11 +42,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=('#', ';'))
         self.config.read('config.ini')
 
-        self.triton: Triton = Triton('192.168.199.89', 33576)
+        self.triton: Triton = Triton(None, 33576)
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20('192.168.199.109',
-                                                expected=self.config.getboolean('GHz signal', 'connect', fallback=True))
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean('GHz signal', 'connect', fallback=True))
 
         self.sample_name: Final[str] = self.config.get('circuitry', 'sample name')
         self.parameters_box.setTitle(self.sample_name)

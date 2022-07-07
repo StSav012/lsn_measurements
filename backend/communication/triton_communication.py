@@ -1,10 +1,12 @@
 # coding: utf-8
 import socket
 import time
+from math import nan
 from socket import *
 from threading import Thread
-from typing import Dict, Optional, Tuple, Any
-from math import nan
+from typing import Any, Dict, List, Optional, Tuple
+
+from backend.communication.port_scanner import port_scanner
 
 __all__ = ['Triton']
 
@@ -26,7 +28,19 @@ class Triton(Thread):
             return False
         return True
 
-    def __init__(self, ip: str, port: int) -> None:
+    def __init__(self, ip: Optional[str], port: int) -> None:
+        if ip is None:
+            from ipaddress import IPv4Address
+
+            connectable_hosts: List[IPv4Address] = port_scanner(port)
+            if not connectable_hosts:
+                raise RuntimeError('Triton could not be found automatically. Try specifying an IP address.')
+            if len(connectable_hosts) > 1:
+                raise RuntimeError(f'There are numerous devices with open port {port}:\n',
+                                   ',\n'.join(map(str, connectable_hosts)),
+                                   '\nTry specifying an IP address.')
+            ip = str(connectable_hosts[0])
+
         super().__init__()
         self.daemon = True
 
@@ -131,7 +145,7 @@ class Triton(Thread):
 
 
 if __name__ == '__main__':
-    t: Triton = Triton('192.168.199.89', 33576)
+    t: Triton = Triton(None, 33576)
     # for _ in range(3):
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:SIG:TEMP'))
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:LOOP:TSET'))

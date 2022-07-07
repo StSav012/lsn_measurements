@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from typing import Final, Iterable, Iterator, List, Optional, Sequence, Tuple, Union, cast
+from typing import Final, Iterable, Iterator, Optional, Sequence, cast
 
 import numpy as np
 from nidaqmx.channels import AIChannel
@@ -49,7 +49,7 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
         if do_zero_sources:
             zero_sources()
         task_adc.start()
-        data: List[float] = task_adc.read(count, timeout=WAIT_INFINITELY)
+        data: list[float] = task_adc.read(count, timeout=WAIT_INFINITELY)
         task_adc.stop()
         index: int
         for index, channel in enumerate(device_adc.ai_physical_chans):
@@ -57,7 +57,7 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
 
 
 def measure_noise_fft(length: int, rate: Optional[float] = None, reset_adc: bool = _RESET_ADC_DEFAULT) \
-        -> Tuple[NDArray[np.float64], Tuple[NDArray[np.float64], str], Tuple[NDArray[np.float64], str]]:
+        -> tuple[NDArray[np.float64], tuple[NDArray[np.float64], str], tuple[NDArray[np.float64], str]]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -86,7 +86,7 @@ def measure_noise_fft(length: int, rate: Optional[float] = None, reset_adc: bool
 def measure_noise_welch(channel: str, resolution: float, rate: Optional[float] = None, *,
                         averaging: int = 1, averaging_shift: float = 0.,
                         reset_adc: bool = _RESET_ADC_DEFAULT,
-                        progress: str = '') -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+                        progress: str = '') -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     if averaging < 1:
         raise ValueError('Averaging must be a positive number')
 
@@ -133,7 +133,7 @@ def measure_noise_welch(channel: str, resolution: float, rate: Optional[float] =
 
 def measure_noise_welch_iter(channel: str, length: int, count: int = 1, rate: Optional[float] = None,
                              reset_adc: bool = _RESET_ADC_DEFAULT
-                             ) -> Iterator[Tuple[NDArray[np.float64], NDArray[np.float64]]]:
+                             ) -> Iterator[tuple[NDArray[np.float64], NDArray[np.float64]]]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -174,11 +174,11 @@ def measure_noise_welch_iter(channel: str, length: int, count: int = 1, rate: Op
 #         print('done')
 
 
-def measure_noise_trend(channel: Union[PhysicalChannel, Iterable[PhysicalChannel]], duration: float,
+def measure_noise_trend(channel: PhysicalChannel | Iterable[PhysicalChannel], duration: float,
                         rate: Optional[float] = None,
                         reset_adc: bool = _RESET_ADC_DEFAULT,
                         out_channel: Optional[PhysicalChannel] = None, out_value: float = np.nan) \
-        -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task

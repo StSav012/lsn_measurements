@@ -340,7 +340,8 @@ class LifetimeMeasurement(Process):
                         f'{mean_switching_time_rnz:.10f}',
                         f'{switching_time_rnz_std:.10f}',
 
-                        f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}',
+                        f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}'
+                        if switching_time_reasonable_std else 'nan',
                         f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}',
                     )) + '\n')
                 self.results_queue.put((cast(float, mean_set_bias_current_reasonable),

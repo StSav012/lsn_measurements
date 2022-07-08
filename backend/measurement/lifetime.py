@@ -110,9 +110,9 @@ class LifetimeMeasurement(Process):
                 bias_current_steps_count -= 1
 
             trigger_trigger: float = 0.45 * sync_channel.ao_max
-            trigger_on_sequence: np.ndarray = np.zeros(bias_current_steps_count)
+            trigger_on_sequence: NDArray[np.float64] = np.zeros(bias_current_steps_count, dtype=np.float64)
             trigger_on_sequence[-1] = 2.0 * trigger_trigger
-            trigger_off_sequence: np.ndarray = np.zeros(bias_current_steps_count)
+            trigger_off_sequence: NDArray[np.float64] = np.zeros(bias_current_steps_count, dtype=np.float64)
 
             task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
@@ -127,11 +127,11 @@ class LifetimeMeasurement(Process):
 
             def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data: Any) \
                     -> Literal[0]:
-                data: np.ndarray = np.empty((3, num_samples))
+                data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
-                waiting: np.ndarray = (data[2] > trigger_trigger)
+                waiting: NDArray[np.bool_] = (data[2] > trigger_trigger)
                 data[1] -= self.r_series / self.r * data[0] * self.gain
-                not_switched: np.ndarray = (data[1, waiting] < self.trigger_voltage)
+                not_switched: NDArray[np.bool_] = (data[1, waiting] < self.trigger_voltage)
                 if np.any(waiting):
                     if self.c.loadable and not self.c.loaded:
                         this_time_not_switched: int = np.count_nonzero(not_switched)
@@ -178,8 +178,8 @@ class LifetimeMeasurement(Process):
                 return
 
             # calculate the current sequence
-            i_set: np.ndarray
-            i_unset: np.ndarray
+            i_set: NDArray[np.float64]
+            i_unset: NDArray[np.float64]
             if self.reset_function.casefold() == 'sine':
                 i_set = sine_segments([self.initial_biases[-1], float(self.bias_current)],
                                       bias_current_steps_count) * self.r * self.divider
@@ -203,8 +203,8 @@ class LifetimeMeasurement(Process):
             task_dac.wait_until_done()
             task_dac.stop()
 
-            switching_time: np.ndarray = np.full(self.cycles_count, np.nan)
-            set_bias_current: np.ndarray = np.full(self.cycles_count, np.nan)
+            switching_time: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
+            set_bias_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
 
             for cycle_index in range(self.cycles_count):
                 while not self.good_to_go.buf[0]:
@@ -279,8 +279,8 @@ class LifetimeMeasurement(Process):
                 median_bias_current: float = np.nanmedian(set_bias_current)
                 min_reasonable_bias_current: float = median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
                 max_reasonable_bias_current: float = median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
-                reasonable: np.ndarray = ((set_bias_current >= min_reasonable_bias_current)
-                                          & (set_bias_current <= max_reasonable_bias_current))
+                reasonable: NDArray[np.bool_] = ((set_bias_current >= min_reasonable_bias_current)
+                                                 & (set_bias_current <= max_reasonable_bias_current))
                 set_bias_current_reasonable: NDArray[np.float64] = set_bias_current[reasonable] * 1e9
                 mean_set_bias_current_reasonable: np.float64 | NDArray[np.float64]
                 set_bias_current_reasonable_std: np.float64 | NDArray[np.float64]
@@ -301,7 +301,7 @@ class LifetimeMeasurement(Process):
                     mean_switching_time_reasonable = np.nan
                     switching_time_reasonable_std = np.nan
 
-                non_zero: np.ndarray = (switching_time_reasonable > 0.0)
+                non_zero: NDArray[np.bool_] = (switching_time_reasonable > 0.0)
                 switching_time_rnz: NDArray[np.float64] = switching_time_reasonable[non_zero]
                 mean_switching_time_rnz: np.float64 | NDArray[np.float64]
                 switching_time_rnz_std: np.float64 | NDArray[np.float64]

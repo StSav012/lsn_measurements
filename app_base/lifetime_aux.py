@@ -89,6 +89,7 @@ class LifetimeBase(LifetimeGUI):
         self.aux_voltage_delay: timedelta = \
             timedelta(seconds=self.config.getfloat('measurement', 'time to wait after aux voltage changed [minutes]',
                                                    fallback=0.0) * 60.)
+        self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
 
         self.temperature_values: SliceSequence = SliceSequence(self.config.get('measurement', 'temperature'))
         self.temperature_delay: timedelta = \

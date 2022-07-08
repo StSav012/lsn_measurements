@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication
 
 from app_base.lifetime import LifetimeBase
 from backend.utils import zero_sources
+from backend.utils.string_utils import format_float
 
 
 class App(LifetimeBase):
@@ -21,17 +22,17 @@ class App(LifetimeBase):
         return self.saving_location / (' '.join(filter(None, (
             'lifetime',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'{self.bias_current_values[0]:.6f}'.rstrip('0').rstrip('.') + 'nA'
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current_values[0], suffix='nA')
             if len(self.bias_current_values) == 1 else '',
-            f'd{self.delay_between_cycles:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count}',
-            f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            format_float(self.setting_time, prefix='ST', suffix='s'),
+            format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
-            f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
             self.config.get('output', 'suffix', fallback=''),
         ))) + '.txt')
 
@@ -44,10 +45,10 @@ class App(LifetimeBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
         )))
 

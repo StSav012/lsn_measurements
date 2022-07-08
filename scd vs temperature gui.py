@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication
 
 from app_base.scd import SwitchingCurrentDistributionBase
 from backend.utils import zero_sources
+from backend.utils.string_utils import format_float
 
 
 class App(SwitchingCurrentDistributionBase):
@@ -22,16 +23,16 @@ class App(SwitchingCurrentDistributionBase):
         return self.saving_location / (' '.join((
             'SCD-stat',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK' if len(self.temperature_values) == 1 else '',
-            f'v{self.current_speed:.6f}'.rstrip('0').rstrip('.') + 'nAps',
-            f'd{self.delay_between_cycles:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.temperature * 1e3, suffix='mK') if len(self.temperature_values) == 1 else '',
+            format_float(self.current_speed, prefix='v', suffix='nAps'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            format_float(self.frequency, suffix='GHz')
             if self.synthesizer_output else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            format_float(self.power_dbm, suffix='dBm')
             if self.synthesizer_output else '',
-            f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
-            f'threshold{self.trigger_voltage * 1e3:.8f}'.rstrip('0').rstrip('.') + 'mV',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
+            format_float(self.trigger_voltage * 1e3, prefix='threshold', suffix='mV'),
             self.config.get('output', 'suffix', fallback=''),
         )).replace('  ', ' ').replace('  ', ' ').strip(' ') + '.txt')
 
@@ -42,9 +43,9 @@ class App(SwitchingCurrentDistributionBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
         )))
 

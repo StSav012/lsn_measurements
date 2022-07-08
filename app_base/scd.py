@@ -18,6 +18,7 @@ from backend.communication.triton_communication import Triton
 from backend.measurement.scd import SCDMeasurement
 from backend.utils import SliceSequence, error, warning
 from backend.utils.config import *
+from backend.utils.string_utils import format_float
 from ui.scd_gui import SwitchingCurrentDistributionGUI
 
 __all__ = ['SwitchingCurrentDistributionBase']
@@ -132,16 +133,16 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         return self.saving_location / (' '.join(filter(None, (
             'I''SCD',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'v{self.current_speed:.6f}'.rstrip('0').rstrip('.') + 'nAps',
-            f'd{self.delay_between_cycles:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.current_speed, prefix='v', suffix='nAps'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if not np.isnan(self.frequency) else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
-            if not np.isnan(self.power_dbm) else '',
-            f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
-            f'threshold{self.trigger_voltage * 1e3:.8f}'.rstrip('0').rstrip('.') + 'mV',
+            format_float(self.frequency, suffix='GHz')
+            if self.synthesizer_output else '',
+            format_float(self.power_dbm, suffix='dBm')
+            if self.synthesizer_output else '',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
+            format_float(self.trigger_voltage * 1e3, prefix='threshold', suffix='mV'),
             self.config.get('output', 'suffix', fallback='')
         ))) + '.txt')
 

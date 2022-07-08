@@ -11,6 +11,7 @@ from numpy.typing import NDArray
 
 from app_base.detect import DetectBase
 from backend.utils import load_txt, zero_sources
+from backend.utils.string_utils import format_float
 
 
 class App(DetectBase):
@@ -24,13 +25,13 @@ class App(DetectBase):
         return self.saving_location / (' '.join(filter(None, (
             'detect',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current, suffix='nA'),
             f'CC{self.cycles_count}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz',
-            f'P{self.pulse_duration:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.frequency, suffix='GHz'),
+            format_float(self.pulse_duration, prefix='P', suffix='s'),
+            format_float(self.waiting_after_pulse, prefix='WaP', suffix='s'),
+            format_float(self.setting_time, prefix='ST', suffix='s'),
             self.config.get('output', 'suffix', fallback='')
         ))) + '.txt')
 

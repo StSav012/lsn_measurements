@@ -21,6 +21,7 @@ from backend.measurement.detect import DetectMeasurement
 from backend.measurement.lifetime import LifetimeMeasurement
 from backend.utils import SliceSequence, error, warning
 from backend.utils.config import *
+from backend.utils.string_utils import format_float
 from ui.detect_lifetime_gui import DetectLifetimeGUI
 
 __all__ = ['DetectLifetimeBase']
@@ -157,16 +158,16 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         return self.saving_location / (' '.join(filter(None, (
             'detect-data',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current, suffix='nA'),
             f'CC{self.cycles_count_detect}',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
-            if self.synthesizer.output else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
-            if self.synthesizer.output else '',
-            f'P{self.pulse_duration:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'WaP{self.waiting_after_pulse:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.frequency, suffix='GHz')
+            if not np.isnan(self.frequency) else '',
+            format_float(self.power_dbm, suffix='dBm')
+            if not np.isnan(self.power_dbm) else '',
+            format_float(self.pulse_duration, prefix='P', suffix='s'),
+            format_float(self.waiting_after_pulse, prefix='WaP', suffix='s'),
+            format_float(self.setting_time, prefix='ST', suffix='s'),
             self.config.get('output', 'suffix', fallback='')
         ))) + '.txt')
 
@@ -175,16 +176,16 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         return self.saving_location / (' '.join(filter(None, (
             'lifetimes',
             self.config.get('output', 'prefix', fallback=''),
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
-            f'{self.bias_current:.6f}'.rstrip('0').rstrip('.') + 'nA',
-            f'd{self.delay_between_cycles:.6f}'.rstrip('0').rstrip('.') + 's',
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current, suffix='nA'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count_lifetime}',
-            f'ST{self.setting_time:.6f}'.rstrip('0').rstrip('.') + 's',
-            f'{self.frequency:.6f}'.rstrip('0').rstrip('.') + 'GHz'
+            format_float(self.setting_time, prefix='ST', suffix='s'),
+            format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
-            f'{self.power_dbm:.6f}'.rstrip('0').rstrip('.') + 'dBm'
+            format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
-            f'from {self.initial_biases[-1]:.6f}'.rstrip('0').rstrip('.') + 'nA',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
             self.config.get('output', 'suffix', fallback='')
         ))) + '.txt')
 

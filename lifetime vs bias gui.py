@@ -2,7 +2,6 @@
 import sys
 from pathlib import Path
 
-import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
@@ -29,9 +28,9 @@ class App(LifetimeBase):
             f'CC{self.cycles_count}',
             format_float(self.setting_time, prefix='ST', suffix='s'),
             format_float(self.frequency, suffix='GHz')
-            if not np.isnan(self.frequency) else '',
+            if self.synthesizer_output else '',
             format_float(self.power_dbm, suffix='dBm')
-            if not np.isnan(self.power_dbm) else '',
+            if self.synthesizer_output else '',
             format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
             self.config.get('output', 'suffix', fallback=''),
         ))) + '.txt')
@@ -47,9 +46,9 @@ class App(LifetimeBase):
         return ', '.join(filter(None, (
             format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.frequency, suffix='GHz')
-            if not np.isnan(self.frequency) else '',
+            if self.synthesizer_output else '',
             format_float(self.power_dbm, suffix='dBm')
-            if not np.isnan(self.power_dbm) else '',
+            if self.synthesizer_output else '',
         )))
 
     def _next_indices(self, make_step=True) -> bool:

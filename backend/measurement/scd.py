@@ -178,7 +178,7 @@ class SCDMeasurement(Process):
                                 _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = i[_index]
                                 switching_voltage[_switching_events_count] = v[_index]
-                                fw.write(self.data_file, 'at', (i[_index], v[_index]))
+                                fw.write(self.data_file, 'at', (i[_index], v[_index], datetime.now().timestamp()))
                                 self.switching_data_queue.put((i[_index], v[_index]))
                                 pq.write(f'switching current is {i[_index] * 1e9:.2f} nA '
                                          f'(voltage is {v[_index] * 1e6:.3f} uV)',
@@ -192,7 +192,7 @@ class SCDMeasurement(Process):
                                 _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = _i
                                 switching_voltage[_switching_events_count] = _v
-                                fw.write(self.data_file, 'at', (_i, _v))
+                                fw.write(self.data_file, 'at', (_i, _v, datetime.now().timestamp()))
                                 self.switching_data_queue.put((_i, _v))
                                 pq.write(f'switching current is {_i * 1e9:.2f} nA '
                                          f'(voltage is {_v * 1e6:.3f} uV)',

@@ -20,7 +20,9 @@ class Triton(Thread):
             return '0.1'
         if temperature < 0.1:
             return '0.316'
-        return '1'
+        if temperature < 0.7:
+            return '1'
+        return '3.16'
 
     @staticmethod
     def filter_readings(temperature: float) -> bool:

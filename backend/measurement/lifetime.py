@@ -223,7 +223,7 @@ class LifetimeMeasurement(Process):
                     time.sleep(0.01)
                 self.c.loaded = False
 
-                print(f'cycle {cycle_index + 1} out of {self.cycles_count}:', end=' ')
+                print(datetime.now(), f'cycle {cycle_index + 1} out of {self.cycles_count}:', end=' ')
 
                 # set bias
                 task_dac.write(i_set, auto_start=True)

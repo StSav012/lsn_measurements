@@ -45,7 +45,7 @@ class GUI(QMainWindow):
 
         self.spin_sample_rate: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_current: pg.SpinBox = pg.SpinBox(self.central_widget)
-        self.combo_current_divider: pg.ComboBox = pg.ComboBox(self.central_widget)
+        self.combo_current_divider: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_ballast_resistance: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_resistance_in_series: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.combo_voltage_gain: pg.ComboBox = pg.ComboBox(self.central_widget)
@@ -81,9 +81,6 @@ class GUI(QMainWindow):
             'format': '{scaledValue:.{decimals}f}{suffixGap}{siPrefix}{suffix}'
         }
         self.spin_current.setOpts(**opts)
-
-        self.combo_current_divider.setEditable(False)
-        self.combo_current_divider.addItems({'1': 1, '10': 10, '100': 100})
 
         opts = {
             'suffix': 'Ω',

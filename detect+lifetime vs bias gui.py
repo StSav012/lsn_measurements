@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 from app_base.detect_lifetime import DetectLifetimeBase
 from backend.utils import zero_sources

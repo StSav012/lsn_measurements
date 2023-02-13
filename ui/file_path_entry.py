@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 import pathvalidate
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyle, QWidget
+from qtpy.QtCore import pyqtSignal
+from qtpy.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyle, QWidget
 
 __all__ = ['FilePathEntry']
 

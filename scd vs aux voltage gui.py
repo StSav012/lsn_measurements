@@ -4,8 +4,8 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 from app_base.scd_aux import SwitchingCurrentDistributionBase
 from backend.hardware import dac_aux

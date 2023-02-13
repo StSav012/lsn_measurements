@@ -3,8 +3,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 from app_base.lifetime_aux import LifetimeBase
 from backend.hardware import dac_aux

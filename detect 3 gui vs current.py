@@ -5,9 +5,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
 from numpy.typing import NDArray
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 from app_base.detect import DetectBase
 from backend.utils import load_txt, zero_sources

@@ -2,9 +2,9 @@
 from typing import Dict
 
 import pyqtgraph as pg
-from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtGui import QCloseEvent, QIcon
-from PyQt5.QtWidgets import QFormLayout, QGroupBox, QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from qtpy.QtCore import QSettings, Qt
+from qtpy.QtGui import QCloseEvent, QIcon
+from qtpy.QtWidgets import QFormLayout, QGroupBox, QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
 __all__ = ['LifetimeGUI']
 

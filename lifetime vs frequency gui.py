@@ -2,8 +2,8 @@
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 
 from app_base.lifetime import LifetimeBase
 from backend.utils import zero_sources

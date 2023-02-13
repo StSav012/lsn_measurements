@@ -5,10 +5,10 @@ from typing import Dict, Final, Optional, Tuple, Union
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5.QtCore import QSettings, QTimer, Qt
-from PyQt5.QtGui import QCloseEvent, QIcon
-from PyQt5.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QMainWindow,
-                             QPushButton, QVBoxLayout, QWidget)
+from qtpy.QtCore import QSettings, QTimer, Qt
+from qtpy.QtGui import QCloseEvent, QIcon
+from qtpy.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QGroupBox, QHBoxLayout, QMainWindow,
+                            QPushButton, QVBoxLayout, QWidget)
 
 from backend.hardware import device_adc
 from backend.measurement.noise import NoiseMeasurement

@@ -13,7 +13,7 @@ from nidaqmx.task import Task
 from numpy.typing import NDArray
 
 from backend.hardware import *
-from backend.utils import FileWriter, Count, measure_offsets, error, sine_segments, linear_segments
+from backend.utils import Count, FileWriter, error, linear_segments, measure_offsets, sine_segments
 from backend.utils.string_utils import format_float
 
 fw: FileWriter = FileWriter()
@@ -342,7 +342,8 @@ class LifetimeMeasurement(Process):
 
                         f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}'
                         if switching_time_reasonable_std else 'nan',
-                        f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}',
+                        f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}'
+                        if switching_time_rnz_std else 'nan',
                     )) + '\n')
                 self.results_queue.put((cast(float, mean_set_bias_current_reasonable),
                                         cast(float, mean_switching_time_reasonable),

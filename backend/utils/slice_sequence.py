@@ -72,7 +72,10 @@ class SliceSequence:
         return len(self._items)
 
     def __getitem__(self, item: int) -> float:
-        return self._items[item]
+        try:
+            return self._items[item]
+        except IndexError:
+            raise IndexError(f'item number {item} does not exist among {self._items}')
 
     def __iter__(self) -> Iterator[float]:
         yield from self._items

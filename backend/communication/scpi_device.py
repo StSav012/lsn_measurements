@@ -10,7 +10,9 @@ __all__ = ['SCPIDevice']
 
 
 class SCPIDevice:
-    def __init__(self, ip: Optional[str], port: int, *, terminator: bytes = b'\r\n', expected: bool = True) -> None:
+    def __init__(self, ip: Optional[str], port: int, *, terminator: bytes = b'\r\n', expected: bool = True,
+                 reset: bool = True) -> None:
+
         if ip is None and expected:
             from ipaddress import IPv4Address
 
@@ -37,7 +39,8 @@ class SCPIDevice:
                 self.socket = None
                 warning(f'{self.__class__.__name__} not connected.')
             else:
-                self.reset()
+                if reset:
+                    self.reset()
 
     def __del__(self):
         if self.socket is not None:

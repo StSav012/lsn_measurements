@@ -4,6 +4,7 @@ from socket import *
 from typing import Any, List, Optional
 
 from backend.communication.port_scanner import port_scanner
+from backend.utils import warning
 
 __all__ = ['SCPIDevice']
 
@@ -34,6 +35,7 @@ class SCPIDevice:
             except (TimeoutError, OSError):
                 self.socket.close()
                 self.socket = None
+                warning(f'{self.__class__.__name__} not connected.')
             else:
                 self.reset()
 

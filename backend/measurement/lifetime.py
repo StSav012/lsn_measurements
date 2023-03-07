@@ -219,7 +219,7 @@ class LifetimeMeasurement(Process):
                             (min(0.0, self.initial_biases[-1] * 1e-9 * self.r * self.divider)
                              * (1. + DIVIDER_RESISTANCE / self.r))),
                     np.zeros(bias_current_steps_count))),
-                        auto_start=True)
+                    auto_start=True)
                 task_dac.wait_until_done()
                 task_dac.stop()
                 while not self.c.loadable:
@@ -266,8 +266,8 @@ class LifetimeMeasurement(Process):
                             switching_time[cycle_index] = self.max_waiting_time.total_seconds()
                             self.state_queue.put((cycle_index, self.max_waiting_time))
                             fw.write(self.data_file, 'at',
-                                    [self.bias_current, self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
-                                    (datetime.now() - measurement_start_time).total_seconds()])
+                                     [self.bias_current, self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
+                                      (datetime.now() - measurement_start_time).total_seconds()])
 
                 task_dac.write(i_unset, auto_start=True)
                 task_dac.wait_until_done()

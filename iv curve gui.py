@@ -253,7 +253,8 @@ class App(GUI):
         if self.plot_line.xData is not None and self.plot_line.yData is not None:
             x_data: NDArray[np.float64] = self.plot_line.xData
             y_data: NDArray[np.float64] = self.plot_line.yData
-            self.status_bar.showMessage(f'Average resistance is {np.nanmean(x_data / y_data)} Ω')
+            k, b = list(np.polyfit(y_data, x_data, 1))
+            self.status_bar.showMessage(f'Average resistance is {k} Ω')
         super(App, self).on_button_stop_clicked()
 
     def on_button_filter_clicked(self) -> None:

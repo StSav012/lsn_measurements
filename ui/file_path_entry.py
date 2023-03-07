@@ -81,8 +81,8 @@ class FilePathEntry(QWidget):
     def on_browse_button_clicked(self) -> None:
         new_file_name: str
         new_file_name, _ = QFileDialog.getOpenFileName(
-            self, 'Open...',
+            self, self.tr('Open...'),
             str(self.path or ''),
-            'Calibration File (*.340)')
+            self.tr('Calibration File') + '(*.340)')
         if new_file_name:
             self.text.setText(new_file_name)

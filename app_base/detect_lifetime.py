@@ -11,9 +11,9 @@ from typing import Final, Literal, Optional, TextIO
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QCloseEvent, QColor
 from numpy.typing import NDArray
+from qtpy.QtCore import QTimer, Qt
+from qtpy.QtGui import QCloseEvent, QColor
 
 from backend.communication.anapico_communication import APUASYN20
 from backend.communication.triton_communication import Triton

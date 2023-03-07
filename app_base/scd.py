@@ -36,7 +36,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.switching_data_queue: Queue[Tuple[np.float64, np.float64]] = Queue()
         self.switching_current: List[np.float64] = []
         self.switching_voltage: List[np.float64] = []
-        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=1)
+        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=128)
         self.good_to_measure.buf[0] = False
         self.measurement: Optional[SCDMeasurement] = None
 
@@ -294,6 +294,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         actual_temperature: float
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        ats: bytes = str(actual_temperature * 1000).encode()
+        self.good_to_measure.buf[1:1 + len(ats)] = ats
         if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
                 < actual_temperature
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):

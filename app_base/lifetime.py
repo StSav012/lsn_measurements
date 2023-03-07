@@ -33,7 +33,7 @@ class LifetimeBase(LifetimeGUI):
 
         self.results_queue: Queue[Tuple[float, float, float]] = Queue()
         self.state_queue: Queue[Tuple[int, timedelta]] = Queue()
-        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=1)
+        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=128)
         self.good_to_measure.buf[0] = False
         self.measurement: Optional[LifetimeMeasurement] = None
 
@@ -277,6 +277,8 @@ class LifetimeBase(LifetimeGUI):
         actual_temperature: float
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        ats: bytes = str(actual_temperature * 1000).encode()
+        self.good_to_measure.buf[1:1 + len(ats)] = ats
         if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
                 < actual_temperature
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):

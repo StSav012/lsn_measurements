@@ -4,14 +4,14 @@ from pathlib import Path
 from typing import Optional
 
 import pathvalidate
-from qtpy.QtCore import pyqtSignal
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStyle, QWidget
 
 __all__ = ['FilePathEntry']
 
 
 class FilePathEntry(QWidget):
-    path_changed: pyqtSignal = pyqtSignal(str, name='path_changed')
+    path_changed: Signal = Signal(str, name='clicked')
 
     def __init__(self, initial_file_path: str = '', parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)

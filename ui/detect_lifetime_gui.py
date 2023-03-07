@@ -170,10 +170,12 @@ class DetectLifetimeGUI(QMainWindow):
 
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
-            self.setWindowFlags(self.windowFlags() | Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
+            self.setWindowFlags(self.windowFlags()
+                                | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
             self.show()
         else:
-            self.setWindowFlags(self.windowFlags() ^ (Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint))
+            self.setWindowFlags(self.windowFlags()
+                                ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint))
             self.show()
 
     def on_button_start_clicked(self) -> None:

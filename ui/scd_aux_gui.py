@@ -100,7 +100,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.label_temperature.suffix = 'mK'
         self.label_temperature.formatStr = '{value:0.2f} {suffix}'
 
-        self.figure.setFocusPolicy(Qt.ClickFocus)
+        self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         self.main_layout.addWidget(self.figure)
         self.main_layout.addLayout(self.controls_layout)
@@ -175,10 +175,12 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
 
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
-            self.setWindowFlags(self.windowFlags() | Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
+            self.setWindowFlags(self.windowFlags()
+                                | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
             self.show()
         else:
-            self.setWindowFlags(self.windowFlags() ^ (Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint))
+            self.setWindowFlags(self.windowFlags()
+                                ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint))
             self.show()
 
     def on_button_start_clicked(self) -> None:

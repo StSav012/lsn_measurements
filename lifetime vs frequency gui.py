@@ -37,8 +37,11 @@ class App(LifetimeBase):
     @property
     def _line_index(self) -> int:
         return (self.temperature_index
-                + (self.power_index * len(self.power_dbm_values)
-                   + self.bias_current_index) * len(self.bias_current_values))
+                + (self.bias_current_index
+                   + (self.power_index
+                      ) * len(self.power_dbm_values)
+                   ) * len(self.bias_current_values)
+                )
 
     @property
     def _line_name(self) -> str:

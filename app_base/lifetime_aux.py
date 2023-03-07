@@ -63,7 +63,9 @@ class LifetimeBase(LifetimeGUI):
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
         self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
                                                           'current', 'initial current [nA]', [0.0])
-        self.setting_time: Final[float] = get_float(self.config, self.sample_name, 'current', 'setting time [sec]')
+        self.setting_time_values: Final[SliceSequence] \
+            = SliceSequence(get_str(self.config, self.sample_name, 'current', 'setting time [sec]'))
+        self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean('measurement', 'check whether file exists')
         self.trigger_voltage: float = get_float(self.config, self.sample_name,
@@ -111,6 +113,7 @@ class LifetimeBase(LifetimeGUI):
         self.temperature_index: int = 0
         self.aux_voltage_index: int = 0
         self.frequency_index: int = 0
+        self.setting_time_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
@@ -142,6 +145,10 @@ class LifetimeBase(LifetimeGUI):
     @property
     def frequency(self) -> float:
         return float(self.frequency_values[self.frequency_index]) if self.synthesizer_output else np.nan
+
+    @property
+    def setting_time(self) -> float:
+        return self.setting_time_values[self.setting_time_index]
 
     @property
     @abc.abstractmethod
@@ -218,6 +225,7 @@ class LifetimeBase(LifetimeGUI):
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_aux_voltage.setValue(self.aux_voltage * 1000)
+        self.label_setting_time.setValue(self.setting_time * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.label_bias.setValue(self.bias_current)
@@ -332,6 +340,7 @@ class LifetimeBase(LifetimeGUI):
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
+                        and self.setting_time_index < len(self.setting_time_values)
                         and self.aux_voltage_index < len(self.aux_voltage_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.data_file.exists())

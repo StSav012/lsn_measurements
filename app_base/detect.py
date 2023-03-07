@@ -67,7 +67,9 @@ class DetectBase(DetectGUI):
         self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
                                                           'current', 'initial current [nA]', [0.0])
 
-        self.setting_time: Final[float] = get_float(self.config, self.sample_name, 'current', 'setting time [sec]')
+        self.setting_time_values: Final[SliceSequence] \
+            = SliceSequence(get_str(self.config, self.sample_name, 'current', 'setting time [sec]'))
+        self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
         if self.setting_function.casefold() not in ('linear', 'sine'):
             raise ValueError('Unsupported current setting function:', self.setting_function)
 
@@ -105,6 +107,7 @@ class DetectBase(DetectGUI):
                                                                             fallback=True)
 
         self.temperature_index: int = 0
+        self.setting_time_index: int = 0
         self.frequency_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
@@ -131,6 +134,10 @@ class DetectBase(DetectGUI):
     @property
     def frequency(self) -> float:
         return float(self.frequency_values[self.frequency_index])
+
+    @property
+    def setting_time(self) -> float:
+        return self.setting_time_values[self.setting_time_index]
 
     @property
     @abc.abstractmethod
@@ -311,6 +318,7 @@ class DetectBase(DetectGUI):
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
+                        and self.setting_time_index < len(self.setting_time_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.stat_file.exists())
         if exists and self.plot_line.xData is None:

@@ -12,6 +12,8 @@ __all__ = ['SCPIDevice']
 class SCPIDevice:
     def __init__(self, ip: Optional[str], port: int, *, terminator: bytes = b'\r\n', expected: bool = True,
                  reset: bool = True) -> None:
+        self.socket: Optional[socket] = None
+        self.terminator: bytes = terminator
 
         if ip is None and expected:
             from ipaddress import IPv4Address
@@ -26,8 +28,6 @@ class SCPIDevice:
                                    '\nTry specifying an IP address.')
             ip = str(connectable_hosts[0])
 
-        self.socket: Optional[socket] = None
-        self.terminator: bytes = terminator
         if expected:
             self.socket = socket(AF_INET, SOCK_STREAM)
             try:

@@ -225,6 +225,8 @@ class LifetimeBase(LifetimeGUI):
                 < actual_temperature
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature)
 
+        self.button_drop_measurement.reset()
+
         print(f'saving to {self.stat_file}')
         self.setWindowTitle(f'Lifetime — {self.stat_file}')
         self.timer.start(50)

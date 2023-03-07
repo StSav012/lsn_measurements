@@ -64,8 +64,9 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.max_bias_current: float = get_float(self.config, self.sample_name, 'scd', 'max bias current [nA]')
         self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
                                                           'current', 'initial current [nA]', [0.0])
-        self.current_speed: Final[float] = \
-            get_float(self.config, self.sample_name, 'scd', 'current speed [nA/sec]')
+        self.current_speed_values: Final[SliceSequence] = \
+            SliceSequence(get_str(self.config, self.sample_name, 'scd', 'current speed [nA/sec]'))
+        self.stop_key_current_speed.setDisabled(len(self.current_speed_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean('measurement', 'check whether file exists')
         self.trigger_voltage: float = get_float(self.config, self.sample_name, 'measurement', 'voltage trigger [V]')
@@ -86,6 +87,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.stop_key_power.setDisabled(not synthesizer_output or len(self.power_dbm_values) <= 1)
 
         self.aux_voltage_values: SliceSequence = SliceSequence(self.config.get('measurement', 'aux voltage [V]'))
+        self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
         self.aux_voltage_delay: timedelta = \
             timedelta(seconds=self.config.getfloat('measurement', 'time to wait after aux voltage changed [minutes]',
                                                    fallback=0.0) * 60.)
@@ -108,6 +110,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
         self.temperature_index: int = 0
         self.aux_voltage_index: int = 0
+        self.current_speed_index: int = 0
         self.frequency_index: int = 0
         self.power_index: int = 0
 
@@ -134,6 +137,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     @property
     def frequency(self) -> float:
         return float(self.frequency_values[self.frequency_index]) if self.synthesizer_output else np.nan
+
+    @property
+    def current_speed(self) -> float:
+        return self.current_speed_values[self.current_speed_index]
 
     @property
     @abc.abstractmethod
@@ -223,6 +230,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_aux_voltage.setValue(self.aux_voltage * 1000)
+        self.label_current_speed.setValue(self.current_speed)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.synthesizer.power.level = self.power_dbm
@@ -355,6 +363,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
+                        and self.current_speed_index < len(self.current_speed_values)
                         and self.aux_voltage_index < len(self.aux_voltage_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.data_file.exists())

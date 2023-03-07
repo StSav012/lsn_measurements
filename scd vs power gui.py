@@ -39,12 +39,18 @@ class App(SwitchingCurrentDistributionBase):
 
     @property
     def _line_index(self) -> int:
-        return self.frequency_index + self.temperature_index * len(self.frequency_values)
+        return (self.temperature_index
+                + (self.current_speed_index
+                   + (self.frequency_index
+                      ) * len(self.frequency_values)
+                   ) * len(self.current_speed_values)
+                )
 
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
             format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.current_speed, suffix='nA/s'),
             format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
         )))
@@ -66,22 +72,30 @@ class App(SwitchingCurrentDistributionBase):
                 self.frequency_index += 1
             if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
-                if self.stop_key_temperature.isChecked():
+                if self.stop_key_current_speed.isChecked():
                     return False
                 if make_step:
-                    self.temperature_index += 1
+                    self.current_speed_index += 1
                 while self.check_exists and self._data_file_exists():
-                    self.temperature_index += 1
-                if self.temperature_index >= len(self.temperature_values):
-                    self.temperature_index = 0
-                    return False
-                actual_temperature: float
-                temperature_unit: str
-                actual_temperature, temperature_unit = self.triton.query_temperature(6)
-                if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                        < actual_temperature
-                        < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
-                    self.temperature_just_set = True
+                    self.current_speed_index += 1
+                if self.current_speed_index >= len(self.current_speed_values):
+                    self.current_speed_index = 0
+                    if self.stop_key_temperature.isChecked():
+                        return False
+                    if make_step:
+                        self.temperature_index += 1
+                    while self.check_exists and self._data_file_exists():
+                        self.temperature_index += 1
+                    if self.temperature_index >= len(self.temperature_values):
+                        self.temperature_index = 0
+                        return False
+                    actual_temperature: float
+                    temperature_unit: str
+                    actual_temperature, temperature_unit = self.triton.query_temperature(6)
+                    if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                            < actual_temperature
+                            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                        self.temperature_just_set = True
         return True
 
     def on_timeout(self) -> None:

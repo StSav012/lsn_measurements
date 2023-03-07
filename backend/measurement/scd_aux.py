@@ -160,7 +160,12 @@ class SCDMeasurement(Process):
             def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data: Any) \
                     -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
-                adc_stream.read_many_sample(data, num_samples)
+                try:
+                    adc_stream.read_many_sample(data, num_samples)
+                except DaqReadError as ex:
+                    self.pulse_ended = True
+                    self.pulse_started = False
+                    pq.write(repr(ex), end='')
                 increasing_current: NDArray[np.bool] = (data[2] > trigger_trigger)
                 if np.any(increasing_current):
                     data = data[0:2, increasing_current]

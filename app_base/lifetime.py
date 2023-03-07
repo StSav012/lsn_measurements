@@ -273,6 +273,7 @@ class LifetimeBase(LifetimeGUI):
         self.plot_line.setData(x_data, y_data)
 
     def _watch_temperature(self) -> None:
+        td: timedelta
         actual_temperature: float
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
@@ -298,7 +299,7 @@ class LifetimeBase(LifetimeGUI):
                 self.timer.stop()
                 self.measurement.terminate()
         elif self.temperature_just_set:
-            td: timedelta = datetime.now() - self.bad_temperature_time
+            td = datetime.now() - self.bad_temperature_time
             if td > self.temperature_delay:
                 self.timer.setInterval(50)
                 self.good_to_measure.buf[0] = True

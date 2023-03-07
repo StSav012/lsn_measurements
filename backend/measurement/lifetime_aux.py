@@ -13,7 +13,7 @@ from nidaqmx.task import Task
 from numpy.typing import NDArray
 
 from backend.hardware import *
-from backend.utils import FileWriter, Count, measure_offsets, error, sine_segments, linear_segments
+from backend.utils import Count, FileWriter, error, linear_segments, measure_offsets, sine_segments
 from backend.utils.string_utils import format_float
 
 fw: FileWriter = FileWriter()
@@ -236,7 +236,7 @@ class LifetimeMeasurement(Process):
                     time.sleep(0.01)
                 self.c.loaded = False
 
-                print(f'cycle {cycle_index + 1} out of {self.cycles_count}:', end=' ')
+                print(datetime.now(), f'cycle {cycle_index + 1} out of {self.cycles_count}:', end=' ')
 
                 # set bias
                 task_dac.write(i_set, auto_start=True)
@@ -355,8 +355,10 @@ class LifetimeMeasurement(Process):
                         f'{mean_switching_time_rnz:.10f}',
                         f'{switching_time_rnz_std:.10f}',
 
-                        f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}',
-                        f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}',
+                        f'{mean_switching_time_reasonable / switching_time_reasonable_std:.10f}'
+                        if switching_time_reasonable_std else 'nan',
+                        f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}'
+                        if switching_time_rnz_std else 'nan',
 
                         bytes(self.good_to_go.buf[1:128]).strip(b'\0').decode(),
                     )) + '\n')

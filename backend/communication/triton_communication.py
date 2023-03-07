@@ -6,7 +6,7 @@ from socket import *
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.communication.port_scanner import port_scanner
+from .port_scanner import port_scanner
 
 __all__ = ['Triton']
 

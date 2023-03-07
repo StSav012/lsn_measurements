@@ -207,6 +207,9 @@ class LifetimeMeasurement(Process):
             set_bias_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
 
             for cycle_index in range(self.cycles_count):
+                if self.good_to_go.buf[127]:
+                    break
+
                 while not self.good_to_go.buf[0]:
                     time.sleep(1)
 
@@ -233,7 +236,7 @@ class LifetimeMeasurement(Process):
                 t0: datetime = datetime.now()
                 t1: datetime = datetime.now()
 
-                while t1 - t0 <= self.max_waiting_time and not self.c.loaded:
+                while t1 - t0 <= self.max_waiting_time and not self.c.loaded and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
                     self.state_queue.put((cycle_index, t1 - t0))
                     t1 = datetime.now()
@@ -254,14 +257,17 @@ class LifetimeMeasurement(Process):
 
                     self.c.loaded = False
                 else:
-                    print('no switching events detected')
-                    if not self.ignore_never_switched:
-                        i, v = np.nan, np.nan
-                        switching_time[cycle_index] = self.max_waiting_time.total_seconds()
-                        self.state_queue.put((cycle_index, self.max_waiting_time))
-                        fw.write(self.data_file, 'at',
-                                 [self.bias_current, self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
-                                  (datetime.now() - measurement_start_time).total_seconds()])
+                    if self.good_to_go.buf[127]:
+                        print('user aborted')
+                    else:
+                        print('no switching events detected')
+                        if not self.ignore_never_switched:
+                            i, v = np.nan, np.nan
+                            switching_time[cycle_index] = self.max_waiting_time.total_seconds()
+                            self.state_queue.put((cycle_index, self.max_waiting_time))
+                            fw.write(self.data_file, 'at',
+                                    [self.bias_current, self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
+                                    (datetime.now() - measurement_start_time).total_seconds()])
 
                 task_dac.write(i_unset, auto_start=True)
                 task_dac.wait_until_done()
@@ -326,6 +332,10 @@ class LifetimeMeasurement(Process):
 
                         'τ₀/σ₀',
                         'τ/σ',
+
+                        'Temperature [mK]',
+
+                        'Cycles',
                     )) + '\n', encoding='utf-8')
                 with self.stat_file.open('at', encoding='utf-8') as f_out:
                     f_out.write('\t'.join((
@@ -344,6 +354,10 @@ class LifetimeMeasurement(Process):
                         if switching_time_reasonable_std else 'nan',
                         f'{mean_switching_time_rnz / switching_time_rnz_std:.10f}'
                         if switching_time_rnz_std else 'nan',
+
+                        bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode(),
+
+                        str(np.count_nonzero(~np.isnan(switching_time))),
                     )) + '\n')
                 self.results_queue.put((cast(float, mean_set_bias_current_reasonable),
                                         cast(float, mean_switching_time_reasonable),

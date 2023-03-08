@@ -242,9 +242,16 @@ class DetectBase(DetectGUI):
         self.start_measurement()
 
     def on_button_stop_clicked(self) -> None:
+        self.good_to_measure.buf[127] = True  # tell the process to finish gracefully
         if self.measurement is not None:
-            self.measurement.terminate()
-            self.measurement.join()
+            if self.measurement.is_alive():
+                try:
+                    self.measurement.join(1)
+                except TimeoutError:  # still alive
+                    self.measurement.terminate()
+                    self.measurement.join()
+            else:
+                self.measurement.join()
         self.timer.stop()
         self.synthesizer.pulse_modulation.state = False
         self.synthesizer.output = False

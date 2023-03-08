@@ -4,14 +4,18 @@ from __future__ import annotations
 import time
 from pathlib import Path
 from threading import Lock, Thread
-from typing import Any, Iterable, NamedTuple, TextIO
+from typing import Any, Iterable, NamedTuple, TextIO, Union
 
 import numpy as np
 from numpy.typing import NDArray
 
 __all__ = ['FileWriter']
 
-QueueRecord = NamedTuple('QueueRecord', file_name=Path, file_mode=str, x=(NDArray[np.float64] | Iterable[Any]))
+
+class QueueRecord(NamedTuple):
+    file_name: Path
+    file_mode: str
+    x: Union[NDArray[float], Iterable[Any]]
 
 
 class FileWriter(Thread):

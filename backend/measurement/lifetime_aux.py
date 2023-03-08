@@ -381,4 +381,7 @@ class LifetimeMeasurement(Process):
                                         cast(float, mean_switching_time_reasonable),
                                         cast(float, mean_switching_time_rnz)))
             else:
-                print(f'no switching event detected for bias current set to {self.bias_current} nA')
+                if self.good_to_go.buf[127]:
+                    print('user aborted')
+                else:
+                    print(f'no switching event detected for bias current set to {self.bias_current} nA')

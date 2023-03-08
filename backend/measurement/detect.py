@@ -311,13 +311,17 @@ class DetectMeasurement(Process):
                     'Power [mW]',
                     'Actual Cycles Count',
                     'Probability Uncertainty [%]',
+                    'Actual Temperature [mK]',
                 )) + '\n', encoding='utf-8')
             with self.stat_file.open('at', encoding='utf-8') as f_out:
-                f_out.write(format_float(self.bias_current) + '\t' +
-                            format_float(self.temperature * 1000) + '\t' +
-                            format_float(self.frequency) + '\t' +
-                            format_float(self.power_dbm) + '\t' +
-                            format_float(prob) + '\t' +
-                            f'{10.0 ** (0.1 * float(self.power_dbm)):.6e}\t'
-                            f'{actual_cycles_count}\t'
-                            f'{err}\n')
+                f_out.write('\t'.join((
+                        format_float(self.bias_current),
+                        format_float(self.temperature * 1000),
+                        format_float(self.frequency),
+                        format_float(self.power_dbm),
+                        format_float(prob),
+                        f'{10.0 ** (0.1 * float(self.power_dbm)):.6e}',
+                        str(actual_cycles_count),
+                        str(err),
+                        bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode(),
+                )) + '\n')

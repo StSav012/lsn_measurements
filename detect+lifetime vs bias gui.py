@@ -138,8 +138,10 @@ class App(DetectLifetimeBase):
         self._watch_temperature()
 
         self.good_to_measure.buf[0] &= not self.button_pause.isChecked()
+        self.good_to_measure.buf[127] = self.button_drop_measurement.isPushed()
 
         if not self.measurement.is_alive():
+            self.button_drop_measurement.reset()
             self.timer.stop()
 
             if self.mode == 'detect' and self.power_index == len(self.power_dbm_values) - 1:

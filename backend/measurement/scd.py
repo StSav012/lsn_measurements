@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from multiprocessing import Process, Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Any, Final, List, Literal, Optional, Sequence, Tuple, cast
+from typing import Any, Final, Literal, Sequence, cast
 
 import numpy as np
 from nidaqmx.constants import *
@@ -30,9 +30,9 @@ __all__ = ['SCDMeasurement']
 
 class SCDMeasurement(Process):
     def __init__(self,
-                 results_queue: 'Queue[Tuple[float, float]]',
-                 state_queue: 'Queue[Tuple[int, timedelta]]',
-                 switching_data_queue: 'Queue[Tuple[np.float64, np.float64]]',
+                 results_queue: 'Queue[tuple[float, float]]',
+                 state_queue: 'Queue[tuple[int, timedelta]]',
+                 switching_data_queue: 'Queue[tuple[np.float64, np.float64]]',
                  good_to_go: SharedMemory,
                  *,
                  voltage_gain: float,
@@ -59,9 +59,9 @@ class SCDMeasurement(Process):
                  temperature: float = np.nan) -> None:
         super(SCDMeasurement, self).__init__()
 
-        self.results_queue: Queue[Tuple[float, float]] = results_queue
-        self.state_queue: Queue[Tuple[int, Optional[timedelta]]] = state_queue
-        self.switching_data_queue: Queue[Tuple[np.float64, np.float64]] = switching_data_queue
+        self.results_queue: Queue[tuple[float, float]] = results_queue
+        self.state_queue: Queue[tuple[int, timedelta | None]] = state_queue
+        self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = switching_data_queue
         self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
 
         self.gain: Final[float] = voltage_gain
@@ -70,7 +70,7 @@ class SCDMeasurement(Process):
         self.r_series: Final[float] = resistance_in_series
 
         self.max_bias_current: Final[float] = max_bias_current
-        self.initial_biases: List[float] = list(initial_biases)
+        self.initial_biases: list[float] = list(initial_biases)
         self.reset_function: Final[str] = current_reset_function
         self.current_speed: Final[float] = current_speed
 

@@ -1,7 +1,9 @@
 # coding: utf-8
+from __future__ import annotations
+
 import time
 from multiprocessing import Process, Queue
-from typing import Final, Tuple
+from typing import Final
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -17,7 +19,7 @@ class NoiseMeasurement(Process):
                  ballast_resistance: float, voltage_gain: float, current_divider: float,
                  resistance_in_series: float = 0.0) -> None:
         super(NoiseMeasurement, self).__init__()
-        self.results_queue: Queue[Tuple[float, np.ndarray]] = results_queue
+        self.results_queue: Queue[tuple[float, np.ndarray]] = results_queue
 
         self.sample_rate: Final[float] = sample_rate
         self.current: Final[float] = current

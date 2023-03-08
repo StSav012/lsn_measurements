@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import time
 from multiprocessing import Process, Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Any, Final, List, Literal, Sequence, Tuple
+from typing import Any, Final, Literal, Sequence
 
 import numpy as np
 from nidaqmx.constants import *
@@ -52,8 +54,8 @@ class DetectMeasurement(Process):
                  temperature: float = np.nan) -> None:
         super(DetectMeasurement, self).__init__()
 
-        self.results_queue: Queue[Tuple[float, float]] = results_queue
-        self.state_queue: Queue[Tuple[int, int, int]] = state_queue
+        self.results_queue: Queue[tuple[float, float]] = results_queue
+        self.state_queue: Queue[tuple[int, int, int]] = state_queue
         self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
 
         self.voltage_gain: Final[float] = voltage_gain
@@ -62,7 +64,7 @@ class DetectMeasurement(Process):
         self.r_series: Final[float] = resistance_in_series
 
         self.bias_current: Final[float] = bias_current
-        self.initial_biases: List[float] = list(initial_biases)
+        self.initial_biases: list[float] = list(initial_biases)
         self.setting_function: Final[str] = current_setting_function
         self.setting_time: Final[float] = setting_time
 

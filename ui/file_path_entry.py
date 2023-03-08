@@ -1,7 +1,7 @@
 # coding: utf-8
+from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 import pathvalidate
 from qtpy.QtCore import Signal
@@ -13,10 +13,10 @@ __all__ = ['FilePathEntry']
 class FilePathEntry(QWidget):
     path_changed: Signal = Signal(str, name='clicked')
 
-    def __init__(self, initial_file_path: str = '', parent: Optional[QWidget] = None) -> None:
+    def __init__(self, initial_file_path: str = '', parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.path: Optional[Path] = None
+        self.path: Path | None = None
 
         layout: QHBoxLayout = QHBoxLayout(self)
 

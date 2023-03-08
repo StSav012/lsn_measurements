@@ -1,7 +1,8 @@
 # coding: utf-8
+from __future__ import annotations
+
 import sys
 from multiprocessing import Queue
-from typing import Dict, Optional, Union
 
 import numpy as np
 import pyqtgraph as pg
@@ -60,7 +61,7 @@ class GUI(QMainWindow):
         self.setup_actions()
 
     def setup_ui_appearance(self) -> None:
-        opts: Dict[str, Union[bool, str, int]]
+        opts: dict[str, bool | str | int]
         opts = {
             'suffix': 'A',
             'siPrefix': True,
@@ -225,7 +226,7 @@ class App(GUI):
         self.timer.timeout.connect(self.on_timeout)
 
         self.results_queue: Queue[NDArray[np.float64]] = Queue()
-        self.measurement: Optional[IVCurveMeasurement] = None
+        self.measurement: IVCurveMeasurement | None = None
 
     def on_button_start_clicked(self) -> None:
         super(App, self).on_button_start_clicked()

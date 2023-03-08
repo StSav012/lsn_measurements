@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict
+from __future__ import annotations
 
 import pyqtgraph as pg
 from qtpy.QtCore import QSettings, Qt
@@ -32,8 +32,8 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
         self.canvas_mean: pg.PlotItem = self.figure.addPlot(row=0, col=0)
         self.canvas_std: pg.PlotItem = self.figure.addPlot(row=1, col=0)
-        self.plot_lines_mean: Dict[int, pg.PlotDataItem] = dict()
-        self.plot_lines_std: Dict[int, pg.PlotDataItem] = dict()
+        self.plot_lines_mean: dict[int, pg.PlotDataItem] = dict()
+        self.plot_lines_std: dict[int, pg.PlotDataItem] = dict()
 
         self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_remaining_time: QLabel = QLabel(self.central_widget)

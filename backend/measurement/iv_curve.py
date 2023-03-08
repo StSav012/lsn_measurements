@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import time
 from datetime import datetime
 from multiprocessing import Process, Queue
-from typing import Optional, Tuple, List, Final, Literal, Any
+from typing import Any, Final, Literal
 
 import numpy as np
-from nidaqmx.task import Task
 from nidaqmx.channels import AIChannel
 from nidaqmx.constants import *
 from nidaqmx.errors import DaqError
 from nidaqmx.stream_readers import AnalogMultiChannelReader, AnalogSingleChannelReader
 from nidaqmx.stream_writers import AnalogSingleChannelWriter
+from nidaqmx.task import Task
 from numpy.typing import NDArray
 
 from backend.hardware import *
@@ -24,7 +26,7 @@ class IVCurveMeasurement(Process):
     def __init__(self, results_queue: 'Queue[NDArray[np.float64]]',
                  min_current: float, max_current: float, current_rate: float, two_way: bool,
                  ballast_resistance: float, voltage_gain: float, current_divider: float,
-                 adc_rate: Optional[float] = None,
+                 adc_rate: float | None = None,
                  resistance_in_series: float = 0.0,
                  current_mode: str = 'linear') -> None:
         super(IVCurveMeasurement, self).__init__()
@@ -41,7 +43,7 @@ class IVCurveMeasurement(Process):
         self.current_divider: float = current_divider
         self.resistance_in_series: float = resistance_in_series
 
-        self.adc_rate: Optional[float] = adc_rate
+        self.adc_rate: float | None = adc_rate
 
         self.current_mode: str = current_mode.casefold()
 
@@ -165,7 +167,7 @@ class IVCurveMeasurement(Process):
         zero_sources()
 
 
-def iv_curve(limits: Tuple[float, float], points: int, two_way: bool = False) -> Tuple[List[float], List[float]]:
+def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) -> tuple[list[float], list[float]]:
     """ Measure IV curve without actual current measurement """
     task_adc: Task = Task()
     task_dac_current: Task = Task()
@@ -175,8 +177,8 @@ def iv_curve(limits: Tuple[float, float], points: int, two_way: bool = False) ->
                                         sample_mode=AcquisitionType.CONTINUOUS,
                                         )
 
-    v: List[float] = []
-    i: List[float] = []
+    v: list[float] = []
+    i: list[float] = []
     limits_min: float = min(limits)
     limits_ptp: float = max(limits) - limits_min
 
@@ -222,7 +224,7 @@ def iv_curve(limits: Tuple[float, float], points: int, two_way: bool = False) ->
     return i, v
 
 
-def iv_curve_2(limits: Tuple[float, float], points: int, two_way: bool = False) -> Tuple[List[float], List[float]]:
+def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) -> tuple[list[float], list[float]]:
     """ Measure IV curve with actual current measurement """
     task_adc: Task = Task()
     task_dac_current: Task = Task()
@@ -233,8 +235,8 @@ def iv_curve_2(limits: Tuple[float, float], points: int, two_way: bool = False) 
                                         sample_mode=AcquisitionType.CONTINUOUS,
                                         )
 
-    v: List[float] = []
-    i: List[float] = []
+    v: list[float] = []
+    i: list[float] = []
     limits_min: float = min(limits)
     limits_ptp: float = max(limits) - limits_min
 
@@ -281,8 +283,8 @@ def iv_curve_2(limits: Tuple[float, float], points: int, two_way: bool = False) 
     return i, v
 
 
-def fast_iv_curve(limits: Tuple[float, float], points: int, two_way: bool = False) \
-        -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+def fast_iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) \
+        -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """ Measure IV curve with actual current measurement """
     task_adc: Task = Task()
     task_dac: Task = Task()
@@ -366,8 +368,8 @@ def fast_iv_curve(limits: Tuple[float, float], points: int, two_way: bool = Fals
     return i, v
 
 
-def iv_curve_of_rate_bak(limits: Tuple[float, float], current_rate: float, two_way: bool = False) \
-        -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+def iv_curve_of_rate_bak(limits: tuple[float, float], current_rate: float, two_way: bool = False) \
+        -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """ Measure IV curve with actual current measurement """
     task_adc: Task
     task_dac: Task
@@ -459,12 +461,12 @@ def iv_curve_of_rate_bak(limits: Tuple[float, float], current_rate: float, two_w
     return i, v
 
 
-def iv_curve_of_rate(limits: Tuple[float, float], current_rate: float, two_way: bool = False, *,
+def iv_curve_of_rate(limits: tuple[float, float], current_rate: float, two_way: bool = False, *,
                      ballast_resistance: float = R, current_divider: float = DIVIDER,
                      voltage_gain: float = VOLTAGE_GAIN,
                      resistance_in_series: float = R_SERIES,
                      current_mode: str = 'linear') \
-        -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """ Measure IV curve with actual current measurement """
     min_current: float = min(limits)
     max_current: float = max(limits)

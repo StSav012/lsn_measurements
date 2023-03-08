@@ -1,7 +1,9 @@
 # coding: utf-8
+from __future__ import annotations
+
 import sys
 from multiprocessing import Queue
-from typing import Dict, Final, Optional, Tuple, Union
+from typing import Final
 
 import numpy as np
 import pyqtgraph as pg
@@ -60,7 +62,7 @@ class GUI(QMainWindow):
         self.setup_actions()
 
     def setup_ui_appearance(self) -> None:
-        opts: Dict[str, Union[bool, str, int]]
+        opts: dict[str, bool | str | int]
         opts = {
             'suffix': 'S/s',
             'siPrefix': True,
@@ -206,8 +208,8 @@ class App(GUI):
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
 
-        self.results_queue: Queue[Tuple[float, np.ndarray]] = Queue()
-        self.measurement: Optional[NoiseMeasurement] = None
+        self.results_queue: Queue[tuple[float, np.ndarray]] = Queue()
+        self.measurement: NoiseMeasurement | None = None
 
         self.i: np.ndarray = np.empty(0)
         self.v: np.ndarray = np.empty(0)

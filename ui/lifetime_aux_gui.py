@@ -35,14 +35,16 @@ class LifetimeGUI(QMainWindow):
         self.plot_lines: dict[int, pg.PlotDataItem] = dict()
         self.figure.addLegend(offset=(30, -30))
 
-        self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_spent_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_bias: pg.ValueLabel = pg.ValueLabel(self.central_widget)
-        self.label_power: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_frequency: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_power: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_setting_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_aux_voltage: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_mean_lifetime: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_lifetime_std: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
         self.stop_key_bias: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
@@ -72,18 +74,22 @@ class LifetimeGUI(QMainWindow):
 
         self.label_spent_time.suffix = 's'
         self.label_spent_time.formatStr = '{value:0.5f} {suffix}'
-        self.label_loop_number.formatStr = '{value:.0f}'
-        self.label_power.suffix = 'dBm'
-        self.label_frequency.suffix = 'GHz'
-        self.label_frequency.formatStr = '{value:0.4f} {suffix}'
         self.label_bias.suffix = 'nA'
         self.label_bias.formatStr = '{value:0.2f} {suffix}'
+        self.label_frequency.suffix = 'GHz'
+        self.label_frequency.formatStr = '{value:0.4f} {suffix}'
+        self.label_power.suffix = 'dBm'
         self.label_setting_time.suffix = 'ms'
         self.label_setting_time.formatStr = '{value:0.1f} {suffix}'
         self.label_aux_voltage.suffix = 'mV'
         self.label_aux_voltage.formatStr = '{value:0.2f} {suffix}'
         self.label_temperature.suffix = 'mK'
         self.label_temperature.formatStr = '{value:0.2f} {suffix}'
+        self.label_loop_number.formatStr = '{value:.0f}'
+        self.label_mean_lifetime.suffix = 's'
+        self.label_mean_lifetime.formatStr = '{value:0.5f} {suffix}'
+        self.label_lifetime_std.suffix = 's'
+        self.label_lifetime_std.formatStr = '{value:0.5f} {suffix}'
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
@@ -105,6 +111,8 @@ class LifetimeGUI(QMainWindow):
         self.parameters_layout.addRow('Aux voltage:', self.label_aux_voltage)
         self.parameters_layout.addRow('Temperature:', self.label_temperature)
         self.parameters_layout.addRow('Loop number:', self.label_loop_number)
+        self.parameters_layout.addRow('Mean lifetime:', self.label_mean_lifetime)
+        self.parameters_layout.addRow('Lifetime std:', self.label_lifetime_std)
 
         self.button_topmost.setText('Keep the Window Topmost')
         self.button_topmost.setCheckable(True)

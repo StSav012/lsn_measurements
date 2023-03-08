@@ -112,6 +112,7 @@ class LifetimeBase(LifetimeGUI):
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
+        self.loop_data: dict[int, timedelta] = dict()
         self.last_lifetime_0: float = np.nan
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
         self.temperature_just_set: bool = False
@@ -183,6 +184,8 @@ class LifetimeBase(LifetimeGUI):
         if self.measurement is not None and self.measurement.is_alive():
             self.measurement.terminate()
             self.measurement.join()
+
+        self.loop_data.clear()
 
         self.synthesizer.output = self.synthesizer_output
         self.synthesizer.power.alc.low_noise = True
@@ -275,6 +278,16 @@ class LifetimeBase(LifetimeGUI):
             cycle_index, spent_time = self.state_queue.get(block=True)
             self.label_loop_number.setValue(cycle_index + 1)
             self.label_spent_time.setValue(spent_time.total_seconds())
+            self.loop_data[cycle_index] = spent_time
+        finished_data: list[float] = list(v.total_seconds() for v in self.loop_data.values())[:-1]
+        if finished_data:
+            self.label_mean_lifetime.setValue(np.mean(finished_data))
+        else:
+            self.label_mean_lifetime.clear()
+        if len(finished_data) > 2:
+            self.label_lifetime_std.setValue(np.std(finished_data))
+        else:
+            self.label_lifetime_std.clear()
 
     def _add_plot_point(self, x: float, lifetime: float) -> None:
         old_x_data: NDArray[np.float64] = np.empty(0) if self.plot_line.xData is None else self.plot_line.xData

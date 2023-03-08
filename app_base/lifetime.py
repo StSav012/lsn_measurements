@@ -280,6 +280,7 @@ class LifetimeBase(LifetimeGUI):
             self.label_spent_time.setValue(spent_time.total_seconds())
             self.loop_data[cycle_index] = spent_time
         finished_data: list[float] = list(v.total_seconds() for v in self.loop_data.values())[:-1]
+        self.histogram.hist(finished_data, pen='white', symbolBrush='white', symbolPen='white')
         if finished_data:
             self.label_mean_lifetime.setValue(np.mean(finished_data))
         else:

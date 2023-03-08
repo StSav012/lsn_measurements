@@ -327,6 +327,8 @@ class SCDMeasurement(Process):
                         'Measurement Duration [s]',
 
                         'Actual Temperature [mK]',
+
+                        'Cycles',
                     )) + '\n', encoding='utf-8')
                 with self.stat_file.open('at', encoding='utf-8') as f_out:
                     f_out.write('\t'.join((
@@ -337,7 +339,9 @@ class SCDMeasurement(Process):
                         f'{switching_current_std:.6f}',
                         f'{(datetime.now() - measurement_start_time).total_seconds():.3f}',
 
-                        bytes(self.good_to_go.buf[1:128]).strip(b'\0').decode(),
+                        bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode(),
+
+                        str(np.count_nonzero(~np.isnan(switching_current))),
                     )) + '\n')
                 self.results_queue.put((cast(float, mean_switching_current),
                                         cast(float, switching_current_std)))

@@ -88,6 +88,18 @@ class LifetimeMeasurement(Process):
         self.c: Count = Count()
 
     def run(self) -> None:
+        if self.data_file.exists():
+            fw.write(self.data_file, 'at', [])
+        else:
+            fw.write(self.data_file, 'wt', [
+                'Frequency [GHz]',
+                'Set Bias Current [nA]',
+                'Lifetime [s]',
+                'Switch Bias Current [nA]',
+                'Switch Voltage [mV]',
+                'Measurement Duration [s]',
+                'Temperature [mK]'])
+
         self.trigger_voltage -= offsets[adc_voltage.name]
         measure_offsets()
         self.trigger_voltage += offsets[adc_voltage.name]

@@ -367,10 +367,16 @@ class LifetimeBase(LifetimeGUI):
                         and self.setting_time_index < len(self.setting_time_values)
                         and self.aux_voltage_index < len(self.aux_voltage_values)
                         and self.temperature_index < len(self.temperature_values)
-                        and self.data_file.exists())
+                        and self.data_file.exists()
+                        and self._get_data_file_content().size)
         if exists and verbose:
             warning(f'{self.data_file} already exists')
         return exists
+
+    def _get_data_file_content(self) -> NDArray[float]:
+        return np.array([[float(cell) for cell in row.split('\t')]
+                         for row in self.data_file.read_text(encoding='utf-8').splitlines()
+                         if row and not row[0].isalpha()])
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...

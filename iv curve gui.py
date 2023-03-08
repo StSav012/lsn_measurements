@@ -114,7 +114,7 @@ class GUI(QMainWindow):
         }
         self.spin_adc_rate.setOpts(**opts)
 
-        self.figure.setFocusPolicy(Qt.ClickFocus)
+        self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.figure.getAxis('bottom').setLabel(text='Voltage', units='V')
         self.figure.getAxis('left').setLabel(text='Current', units='A')
         self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
@@ -291,7 +291,7 @@ class App(GUI):
 
 if __name__ == '__main__':
     app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

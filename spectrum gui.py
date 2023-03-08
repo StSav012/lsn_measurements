@@ -106,7 +106,7 @@ class GUI(QMainWindow):
         self.spin_display_time_span.setSingleStep(1. / _MAX_ADC_SAMPLE_RATE)
         self.spin_display_time_span.setSuffix(' s')
 
-        self.figure.setFocusPolicy(Qt.ClickFocus)
+        self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.canvas_current_trend.setLabels(left=('Current', 'A'), bottom=('Time', 's'))
         self.canvas_voltage_trend.setLabels(left=('Voltage', 'V'), bottom=('Time', 's'))
         self.canvas_current_trend.showGrid(x=True, y=False)
@@ -262,7 +262,7 @@ class App(GUI):
 
 if __name__ == '__main__':
     app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

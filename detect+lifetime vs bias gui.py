@@ -168,7 +168,7 @@ class App(DetectLifetimeBase):
 
 if __name__ == '__main__':
     app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

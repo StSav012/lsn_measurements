@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import time
 from pathlib import Path
 from threading import Lock, Thread
-from typing import Iterable, List, NamedTuple, TextIO, Union
+from typing import Any, Iterable, NamedTuple, TextIO
 
 import numpy as np
 from numpy.typing import NDArray
 
 __all__ = ['FileWriter']
 
-QueueRecord = NamedTuple('QueueRecord', file_name=Path, file_mode=str, x=Union[NDArray[np.float64], Iterable[float]])
+QueueRecord = NamedTuple('QueueRecord', file_name=Path, file_mode=str, x=(NDArray[np.float64] | Iterable[Any]))
 
 
 class FileWriter(Thread):
@@ -17,7 +19,7 @@ class FileWriter(Thread):
         super().__init__(daemon=True)
         self.daemon = True
 
-        self.queue: List[QueueRecord] = []
+        self.queue: list[QueueRecord] = []
         self.lock: Lock = Lock()
         self.done: bool = False
 
@@ -25,7 +27,7 @@ class FileWriter(Thread):
         self._write_queue()
         self.done = True
 
-    def write(self, file_name: Path, file_mode: str, x: Union[NDArray[np.float64], Iterable[float]]) -> None:
+    def write(self, file_name: Path, file_mode: str, x: NDArray[np.float64] | Iterable[Any]) -> None:
         with self.lock:
             self.queue.append(QueueRecord(file_name, file_mode, x))
 

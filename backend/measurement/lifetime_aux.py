@@ -26,8 +26,8 @@ __all__ = ['LifetimeMeasurement']
 
 class LifetimeMeasurement(Process):
     def __init__(self,
-                 results_queue: 'Queue[Tuple[float, float, float]]',
-                 state_queue: 'Queue[Tuple[int, timedelta]]',
+                 results_queue: 'Queue[tuple[float, float, float]]',
+                 state_queue: 'Queue[tuple[int, timedelta]]',
                  good_to_go: SharedMemory,
                  *,
                  voltage_gain: float,

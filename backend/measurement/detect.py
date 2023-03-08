@@ -25,8 +25,8 @@ fw.start()
 
 class DetectMeasurement(Process):
     def __init__(self,
-                 results_queue: 'Queue[Tuple[float, float]]',
-                 state_queue: 'Queue[Tuple[int, int, int]]',
+                 results_queue: 'Queue[tuple[float, float]]',
+                 state_queue: 'Queue[tuple[int, int, int]]',
                  good_to_go: SharedMemory,
                  *,
                  voltage_gain: float,

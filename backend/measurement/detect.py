@@ -237,8 +237,10 @@ class DetectMeasurement(Process):
             actual_cycles_count: int = 0
 
             for cycle_index in range(self.cycles_count):
-                while not self.good_to_go.buf[0]:
+                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
                     time.sleep(1)
+                if self.good_to_go.buf[127]:
+                    break
 
                 estimated_cycles_count: int
                 if switches_count == 0:
@@ -251,8 +253,11 @@ class DetectMeasurement(Process):
                       f'{self.frequency:.4f} GHz | {self.power_dbm:.2f} dBm | '
                       f'cycle {cycle_index + 1} out of {estimated_cycles_count}:', end=' ')
 
-                while not self.c.loadable:
+                while not self.c.loadable and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
+                if self.good_to_go.buf[127]:
+                    print('user aborted')
+                    break
                 self.c.loaded = False
                 self.pulse_started = False
                 self.pulse_ended = False
@@ -262,8 +267,11 @@ class DetectMeasurement(Process):
                 task_dac.wait_until_done()
                 task_dac.stop()
 
-                while not self.c.loadable or not self.pulse_ended:
+                while not self.c.loadable or not self.pulse_ended and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
+                if self.good_to_go.buf[127]:
+                    print('user aborted')
+                    break
                 self.pulse_started = False
                 self.pulse_ended = False
                 if self.c.loaded:

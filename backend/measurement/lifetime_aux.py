@@ -219,11 +219,10 @@ class LifetimeMeasurement(Process):
             set_bias_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
 
             for cycle_index in range(self.cycles_count):
+                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
+                    time.sleep(1)
                 if self.good_to_go.buf[127]:
                     break
-
-                while not self.good_to_go.buf[0]:
-                    time.sleep(1)
 
                 # set initial state
                 task_dac.write(np.row_stack((
@@ -235,8 +234,10 @@ class LifetimeMeasurement(Process):
                 )), auto_start=True)
                 task_dac.wait_until_done()
                 task_dac.stop()
-                while not self.c.loadable:
+                while not self.c.loadable and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
+                if self.good_to_go.buf[127]:
+                    break
                 self.c.loaded = False
 
                 print(datetime.now(), f'cycle {cycle_index + 1} out of {self.cycles_count}:', end=' ')

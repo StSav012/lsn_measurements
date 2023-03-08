@@ -254,8 +254,10 @@ class SCDMeasurement(Process):
             cycle_index: int = 1
             this_time_cycles_count: int = self.cycles_count
             while cycle_index <= this_time_cycles_count:
-                while not self.good_to_go.buf[0]:
+                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
                     time.sleep(1)
+                if self.good_to_go.buf[127]:
+                    break
 
                 pq.write(f'cycle {cycle_index} out of {this_time_cycles_count}:', end=' ')
 
@@ -270,8 +272,11 @@ class SCDMeasurement(Process):
                 task_dac.write(i_set, auto_start=True)
                 task_dac.wait_until_done(WAIT_INFINITELY)
                 task_dac.stop()
-                while not self.pulse_ended:
+                while not self.pulse_ended and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
+                if self.good_to_go.buf[127]:
+                    print('user aborted')
+                    break
                 self.pulse_ended = False
 
                 this_time_cycles_count = cycle_index + np.count_nonzero(np.isnan(switching_current))

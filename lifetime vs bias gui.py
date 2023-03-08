@@ -64,6 +64,7 @@ class App(LifetimeBase):
         if make_step:
             self.bias_current_index += 1
         while self.check_exists and self._data_file_exists():
+            self._add_plot_point_from_file()
             self.bias_current_index += 1
         if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
             self.bias_current_index = 0
@@ -72,6 +73,7 @@ class App(LifetimeBase):
             if make_step:
                 self.power_index += 1
             while self.synthesizer_output and self.check_exists and self._data_file_exists():
+                self._add_plot_point_from_file()
                 self.power_index += 1
             if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
@@ -80,6 +82,7 @@ class App(LifetimeBase):
                 if make_step:
                     self.frequency_index += 1
                 while self.synthesizer_output and self.check_exists and self._data_file_exists():
+                    self._add_plot_point_from_file()
                     self.frequency_index += 1
                 if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
                     self.frequency_index = 0
@@ -88,6 +91,7 @@ class App(LifetimeBase):
                     if make_step:
                         self.setting_time_index += 1
                     while self.check_exists and self._data_file_exists():
+                        self._add_plot_point_from_file()
                         self.setting_time_index += 1
                     if self.setting_time_index >= len(self.setting_time_values):
                         self.setting_time_index = 0
@@ -96,6 +100,7 @@ class App(LifetimeBase):
                         if make_step:
                             self.temperature_index += 1
                         while self.check_exists and self._data_file_exists():
+                            self._add_plot_point_from_file()
                             self.temperature_index += 1
                         if self.temperature_index >= len(self.temperature_values):
                             self.temperature_index = 0

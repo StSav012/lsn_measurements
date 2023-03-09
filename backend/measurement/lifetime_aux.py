@@ -295,7 +295,8 @@ class LifetimeMeasurement(Process):
                             switching_time[cycle_index] = self.max_waiting_time.total_seconds()
                             self.state_queue.put((cycle_index, self.max_waiting_time))
                             fw.write(self.data_file, 'at',
-                                     [self.bias_current, self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
+                                     [self.frequency, self.bias_current,
+                                      self.max_waiting_time.total_seconds(), i * 1e9, v * 1e3,
                                       (datetime.now() - measurement_start_time).total_seconds(),
                                       bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode()])
 

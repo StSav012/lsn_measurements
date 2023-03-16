@@ -7,6 +7,7 @@ from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (QFormLayout, QGroupBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout,
                             QWidget)
 
+from ui.histogram import Histogram
 from ui.safe_button import SafeButton
 
 __all__ = ['SwitchingCurrentDistributionGUI']
@@ -28,6 +29,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.parameters_layout: QFormLayout = QFormLayout(self.parameters_box)
         self.button_topmost: QPushButton = QPushButton(self.central_widget)
         self.button_drop_measurement: SafeButton = SafeButton('', timeout=4.0, parent=self.central_widget)
+        self.histogram: Histogram = Histogram(self.central_widget)
         self.stop_sings_box: QGroupBox = QGroupBox(self.central_widget)
         self.stop_sings_box.setLayout(QVBoxLayout())
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
@@ -107,7 +109,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.controls_layout.addWidget(self.parameters_box)
         self.controls_layout.addWidget(self.button_topmost)
         self.controls_layout.addWidget(self.button_drop_measurement)
-        self.controls_layout.addStretch(1)
+        self.controls_layout.addWidget(self.histogram)
         self.controls_layout.addWidget(self.stop_sings_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
@@ -124,6 +126,8 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.button_topmost.setCheckable(True)
 
         self.button_drop_measurement.setText('Next Measurement')
+
+        self.histogram.set_label(text='Current', unit='A')
 
         self.stop_key_power.setText('Stop after this Power')
         self.stop_key_frequency.setText('Stop after this Frequency')

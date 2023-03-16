@@ -286,6 +286,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             self.switching_voltage.append(voltage)
             self.label_mean_current.setValue(np.nanmean(self.switching_current) * 1e9)
             self.label_std_current.setValue(np.nanstd(self.switching_current) * 1e9)
+            self.histogram.hist(self.switching_current, pen='white', symbolBrush='white', symbolPen='white')
 
     def _add_plot_point(self, x: float, mean: float, std: float) -> None:
         old_x_data: NDArray[np.float64] = (np.empty(0)

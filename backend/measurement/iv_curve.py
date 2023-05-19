@@ -323,8 +323,8 @@ def fast_iv_curve(limits: tuple[float, float], points: int, two_way: bool = Fals
     i_set: NDArray[np.float64]
     if two_way:
         i_set = np.concatenate((
-                np.linspace(limits_min, limits_max, points, endpoint=True),
-                np.linspace(limits_max, limits_min, points, endpoint=True),
+            np.linspace(limits_min, limits_max, points, endpoint=True),
+            np.linspace(limits_max, limits_min, points, endpoint=True),
         )) * R
     else:
         i_set = np.linspace(limits_min, limits_max, points, endpoint=True) * R
@@ -413,8 +413,8 @@ def iv_curve_of_rate_bak(limits: tuple[float, float], current_rate: float, two_w
         i_set: NDArray[np.float64]
         if two_way:
             i_set = np.concatenate((
-                    np.linspace(limits_min, limits_max, points, endpoint=True),
-                    np.linspace(limits_max, limits_min, points, endpoint=True),
+                np.linspace(limits_min, limits_max, points, endpoint=True),
+                np.linspace(limits_max, limits_min, points, endpoint=True),
             )) * R
         else:
             i_set = np.linspace(limits_min, limits_max, points, endpoint=True) * R

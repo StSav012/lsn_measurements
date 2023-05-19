@@ -230,8 +230,8 @@ class SCDMeasurement(Process):
                     'sine': sine_segments([self.max_bias_current] + self.initial_biases, bias_current_steps_count),
                 }[self.reset_function.casefold()]
             )) * self.r * self.divider * (1. + DIVIDER_RESISTANCE / self.r) * 1e-9,
-                                              trigger_sequence,
-                                              np.full(2 * bias_current_steps_count, self.aux_voltage)))
+                                                       trigger_sequence,
+                                                       np.full(2 * bias_current_steps_count, self.aux_voltage)))
 
             task_adc.start()
 

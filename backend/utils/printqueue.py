@@ -6,7 +6,6 @@ from typing import Any, List, NamedTuple
 
 __all__ = ['PrintQueue']
 
-
 PrintQueueRecord = NamedTuple('PrintQueueRecord', data=str)
 
 

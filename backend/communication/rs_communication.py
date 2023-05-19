@@ -13,7 +13,7 @@ class _AmplitudeModulationPerChannel:
         self._channel: Literal[1, 2] = channel
         if self._channel not in (1, 2):
             raise ValueError(f'Invalid channel: {channel}')
-        
+
     @property
     def state(self) -> bool:
         if self._parent.socket is None:

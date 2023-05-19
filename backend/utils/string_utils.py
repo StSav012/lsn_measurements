@@ -37,7 +37,7 @@ def multi_split(text: str, separators: Sequence[str]) -> list[str]:
         for separator in separators:
             if text.startswith(separator, index):
                 words.append(text[:index])
-                text = text[index+len(separator):]
+                text = text[(index + len(separator)):]
                 index = 0
     words.append(text)
     return words
@@ -45,7 +45,7 @@ def multi_split(text: str, separators: Sequence[str]) -> list[str]:
 
 def nth_occurrence(text: str, substrings: str | Sequence[str], n: int) -> int:
     if isinstance(substrings, str):
-        substrings = (substrings, )
+        substrings = (substrings,)
     index: int
     substring: str
     count: int = 0

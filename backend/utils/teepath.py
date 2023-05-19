@@ -24,12 +24,12 @@ OpenTextModeWriting = Literal["w", "wt", "tw", "a", "at", "ta", "x", "xt", "tx"]
 
 class TeePath(WindowsPath):
     def open(
-        self,
-        mode: OpenTextModeWriting = 'wt',
-        buffering: int = 1,
-        encoding: Optional[str] = 'utf-8',
-        errors: Optional[str] = None,
-        newline: Optional[str] = None,
+            self,
+            mode: OpenTextModeWriting = 'wt',
+            buffering: int = 1,
+            encoding: Optional[str] = 'utf-8',
+            errors: Optional[str] = None,
+            newline: Optional[str] = None,
     ) -> TeeTextIOWrapper:
         return TeeTextIOWrapper(super().open(mode, buffering, encoding, errors, newline))
 

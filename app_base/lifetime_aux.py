@@ -160,7 +160,8 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def stat_file(self) -> Path: ...
+    def stat_file(self) -> Path:
+        ...
 
     @property
     def data_file(self) -> Path:
@@ -183,11 +184,13 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def _line_index(self) -> int: ...
+    def _line_index(self) -> int:
+        ...
 
     @property
     @abc.abstractmethod
-    def _line_name(self) -> str: ...
+    def _line_name(self) -> str:
+        ...
 
     @property
     def plot_line(self) -> pg.PlotDataItem:
@@ -262,7 +265,8 @@ class LifetimeBase(LifetimeGUI):
         return self.config.getboolean('GHz signal', 'on', fallback=False)
 
     @abc.abstractmethod
-    def _next_indices(self, make_step: bool = True) -> bool: ...
+    def _next_indices(self, make_step: bool = True) -> bool:
+        ...
 
     def on_button_start_clicked(self) -> None:
         super(LifetimeBase, self).on_button_start_clicked()
@@ -405,4 +409,5 @@ class LifetimeBase(LifetimeGUI):
                          if row and (row.startswith('nan') or not row[0].isalpha())]).T
 
     @abc.abstractmethod
-    def on_timeout(self) -> None: ...
+    def on_timeout(self) -> None:
+        ...

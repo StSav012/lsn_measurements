@@ -321,13 +321,13 @@ class DetectMeasurement(Process):
                 )) + '\n', encoding='utf-8')
             with self.stat_file.open('at', encoding='utf-8') as f_out:
                 f_out.write('\t'.join((
-                        format_float(self.bias_current),
-                        format_float(self.temperature * 1000),
-                        format_float(self.frequency),
-                        format_float(self.power_dbm),
-                        format_float(prob),
-                        f'{10.0 ** (0.1 * float(self.power_dbm)):.6e}',
-                        str(actual_cycles_count),
-                        str(err),
-                        bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode(),
+                    format_float(self.bias_current),
+                    format_float(self.temperature * 1000),
+                    format_float(self.frequency),
+                    format_float(self.power_dbm),
+                    format_float(prob),
+                    f'{10.0 ** (0.1 * float(self.power_dbm)):.6e}',
+                    str(actual_cycles_count),
+                    str(err),
+                    bytes(self.good_to_go.buf[1:65]).strip(b'\0').decode(),
                 )) + '\n')

@@ -144,7 +144,8 @@ class DetectBase(DetectGUI):
 
     @property
     @abc.abstractmethod
-    def stat_file(self) -> Path: ...
+    def stat_file(self) -> Path:
+        ...
 
     @property
     def data_file(self) -> Path:
@@ -164,11 +165,13 @@ class DetectBase(DetectGUI):
 
     @property
     @abc.abstractmethod
-    def _line_index(self) -> int: ...
+    def _line_index(self) -> int:
+        ...
 
     @property
     @abc.abstractmethod
-    def _line_name(self) -> str: ...
+    def _line_name(self) -> str:
+        ...
 
     @property
     def plot_line(self) -> pg.PlotDataItem:
@@ -233,7 +236,8 @@ class DetectBase(DetectGUI):
         self.timer.start(50)
 
     @abc.abstractmethod
-    def _next_indices(self, make_step: bool = True) -> bool: ...
+    def _next_indices(self, make_step: bool = True) -> bool:
+        ...
 
     def on_button_start_clicked(self) -> None:
         super(DetectBase, self).on_button_start_clicked()
@@ -325,7 +329,8 @@ class DetectBase(DetectGUI):
             self.good_to_measure.buf[0] = True
 
     @abc.abstractmethod
-    def _fill_the_data_from_stat_file(self) -> None: ...
+    def _fill_the_data_from_stat_file(self) -> None:
+        ...
 
     def _stat_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
@@ -341,4 +346,5 @@ class DetectBase(DetectGUI):
         return exists
 
     @abc.abstractmethod
-    def on_timeout(self) -> None: ...
+    def on_timeout(self) -> None:
+        ...

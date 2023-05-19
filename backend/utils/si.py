@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import functools
 import math
+from typing import Any
 
 import numpy as np
 
@@ -64,7 +65,11 @@ def si_factor(unit: str) -> float:
 
 
 @functools.lru_cache(maxsize=128, typed=True)
-def parse_si_number(number_text: str) -> float:
+def parse_si_number(number_text: Any) -> float:
+    if isinstance(number_text, float):
+        return number_text
+    if not isinstance(number_text, str):
+        return math.nan
     leftovers: int = len(number_text)
     while leftovers > 0:
         try:

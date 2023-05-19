@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 from numbers import Real
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy import interpolate
 
 
-def attenuation(attenuation_voltage: Union[Real, NDArray[Real]], cal_source: str = 'psi'):
+def attenuation(attenuation_voltage: Real | NDArray[Real], cal_source: str = 'psi'):
     cal_text_psi: str = """\
 0	8.9
 0.4	8.6

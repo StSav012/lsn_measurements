@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from typing import Callable, Tuple, TypeVar
+from __future__ import annotations
+
+from typing import Callable, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,7 +12,7 @@ __all__ = ['welch', 'moving_mean', 'moving_median']
 _T = TypeVar('_T')
 
 
-def welch(data: NDArray[np.float64], sample_rate: float) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+def welch(data: NDArray[np.float64], sample_rate: float) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     freq: NDArray[np.float64]
     pn_xx: NDArray[np.float64]
     freq, pn_xx = signal.welch(data, fs=sample_rate, nperseg=data.size)

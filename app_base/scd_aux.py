@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import abc
 from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Final, List, Optional, TextIO, Tuple, cast
+from typing import Final, TextIO, cast
 
 import numpy as np
 import pyqtgraph as pg
@@ -31,14 +33,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
 
-        self.results_queue: Queue[Tuple[float, float]] = Queue()
-        self.state_queue: Queue[Tuple[int, timedelta]] = Queue()
-        self.switching_data_queue: Queue[Tuple[np.float64, np.float64]] = Queue()
-        self.switching_current: List[np.float64] = []
-        self.switching_voltage: List[np.float64] = []
+        self.results_queue: Queue[tuple[float, float]] = Queue()
+        self.state_queue: Queue[tuple[int, timedelta]] = Queue()
+        self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = Queue()
+        self.switching_current: list[np.float64] = []
+        self.switching_voltage: list[np.float64] = []
         self.good_to_measure: SharedMemory = SharedMemory(create=True, size=128)
         self.good_to_measure.buf[0] = False
-        self.measurement: Optional[SCDMeasurement] = None
+        self.measurement: SCDMeasurement | None = None
 
         self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=('#', ';'))
         self.config.read('config.ini')
@@ -62,7 +64,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         if self.reset_function.casefold() not in ('linear', 'sine'):
             raise ValueError('Unsupported current reset function:', self.reset_function)
         self.max_bias_current: float = get_float(self.config, self.sample_name, 'scd', 'max bias current [nA]')
-        self.initial_biases: List[float] = get_float_list(self.config, self.sample_name,
+        self.initial_biases: list[float] = get_float_list(self.config, self.sample_name,
                                                           'current', 'initial current [nA]', [0.0])
         self.current_speed_values: Final[SliceSequence] = \
             SliceSequence(get_str(self.config, self.sample_name, 'scd', 'current speed [nA/sec]'))

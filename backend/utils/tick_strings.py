@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import functools
-from typing import Dict, Iterable, List, cast
+from typing import Iterable, cast
 
 import numpy as np
 from pyqtgraph import AxisItem
@@ -10,7 +12,7 @@ __all__ = ['superscript_number', 'tick_strings']
 
 @functools.lru_cache(maxsize=128, typed=True)
 def superscript_number(number: str) -> str:
-    ss_dict: Dict[str, str] = {
+    ss_dict: dict[str, str] = {
         '0': '?',
         '1': '¹',
         '2': '²',
@@ -30,14 +32,14 @@ def superscript_number(number: str) -> str:
     return number
 
 
-def tick_strings(self: AxisItem, values: Iterable[float], scale: float, spacing: float) -> List[str]:
+def tick_strings(self: AxisItem, values: Iterable[float], scale: float, spacing: float) -> list[str]:
     """ improve formatting of `AxisItem.tickStrings` """
 
     if self.logMode:
-        return cast(List[str], self.logTickStrings(values, scale, spacing))
+        return cast(list[str], self.logTickStrings(values, scale, spacing))
 
     places: int = max(0, int(np.ceil(-np.log10(spacing * scale))))
-    strings: List[str] = []
+    strings: list[str] = []
     v: float
     for v in values:
         vs: float = v * scale

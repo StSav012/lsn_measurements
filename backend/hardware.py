@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
-from typing import Dict, Final
+from typing import Final
 
 from nidaqmx.system.device import Device
 from nidaqmx.system.physical_channel import PhysicalChannel
@@ -34,4 +35,4 @@ dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[2]
 dac_synth_pulse: Final[PhysicalChannel] = device_dac.ao_physical_chans[3]
 dac_sync: Final[PhysicalChannel] = device_dac.ao_physical_chans[4]
 
-offsets: Dict[str, float] = {adc_current.name: 0.0, adc_voltage.name: 0.0}
+offsets: dict[str, float] = {adc_current.name: 0.0, adc_voltage.name: 0.0}

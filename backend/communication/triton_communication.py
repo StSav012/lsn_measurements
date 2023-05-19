@@ -1,10 +1,12 @@
 # coding: utf-8
+from __future__ import annotations
+
 import socket
 import time
 from math import nan
 from socket import *
 from threading import Thread
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .port_scanner import port_scanner
 
@@ -30,11 +32,11 @@ class Triton(Thread):
             return False
         return True
 
-    def __init__(self, ip: Optional[str], port: int) -> None:
+    def __init__(self, ip: str | None, port: int) -> None:
         if ip is None:
             from ipaddress import IPv4Address
 
-            connectable_hosts: List[IPv4Address] = port_scanner(port)
+            connectable_hosts: list[IPv4Address] = port_scanner(port)
             if not connectable_hosts:
                 raise RuntimeError('Triton could not be found automatically. Try specifying an IP address.')
             if len(connectable_hosts) > 1:
@@ -46,8 +48,8 @@ class Triton(Thread):
         super().__init__()
         self.daemon = True
 
-        self.conversation: Dict[str, str] = dict()
-        self.socket: Optional[socket] = socket(AF_INET, SOCK_STREAM)
+        self.conversation: dict[str, str] = dict()
+        self.socket: socket | None = socket(AF_INET, SOCK_STREAM)
         try:
             self.socket.connect((ip, port))
         except TimeoutError:
@@ -90,7 +92,7 @@ class Triton(Thread):
             self.conversation[command.strip()] = ''
         return self.conversation[command.strip()]
 
-    def query_value(self, command: str, blocking: bool = False) -> Tuple[float, str]:
+    def query_value(self, command: str, blocking: bool = False) -> tuple[float, str]:
         if not command.startswith('READ:'):
             command = 'READ:' + command
         response: str
@@ -113,7 +115,7 @@ class Triton(Thread):
             return nan, unit
         return float(response), unit
 
-    def query_temperature(self, index: int, blocking: bool = False) -> Tuple[float, str]:
+    def query_temperature(self, index: int, blocking: bool = False) -> tuple[float, str]:
         return self.query_value(f'READ:DEV:T{index}:TEMP:SIG:TEMP', blocking=blocking)
 
     def issue_value(self, command: str, value: Any) -> bool:

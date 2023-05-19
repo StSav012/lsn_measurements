@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import sys
 import time
 from threading import Lock, Thread
-from typing import Any, List, NamedTuple
+from typing import Any, NamedTuple
 
 __all__ = ['PrintQueue']
 
-PrintQueueRecord = NamedTuple('PrintQueueRecord', data=str)
+
+class PrintQueueRecord(NamedTuple):
+    data: str
 
 
 class PrintQueue(Thread):
@@ -14,7 +18,7 @@ class PrintQueue(Thread):
         super().__init__(daemon=True)
         self.daemon = True
 
-        self.queue: List[PrintQueueRecord] = []
+        self.queue: list[PrintQueueRecord] = []
         self.lock: Lock = Lock()
         self.done: bool = False
 

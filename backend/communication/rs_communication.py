@@ -1,6 +1,8 @@
 # coding: utf-8
+from __future__ import annotations
+
 from math import nan
-from typing import Final, Literal, Optional
+from typing import Final, Literal
 
 from .scpi_device import SCPIDevice
 
@@ -317,7 +319,7 @@ class _PulseModulation:
 
 
 class SMA100B(SCPIDevice):
-    def __init__(self, ip: Optional[str], port: int, *, expected: bool = True) -> None:
+    def __init__(self, ip: str | None, port: int, *, expected: bool = True) -> None:
         super().__init__(ip, port, expected=expected)
         self.am: Final[_AmplitudeModulation] = _AmplitudeModulation(self)
         self.lf_output: Final[_LFOutput] = _LFOutput(self)

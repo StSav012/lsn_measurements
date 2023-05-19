@@ -1,6 +1,8 @@
 # coding: utf-8
+from __future__ import annotations
+
 from math import isnan, nan
-from typing import Optional, cast
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -341,7 +343,7 @@ class _Trace:
 
 
 class Spike(SCPIDevice):
-    def __init__(self, ip: Optional[str], port: int) -> None:
+    def __init__(self, ip: str | None, port: int) -> None:
         super().__init__(ip, port, terminator=b'\n')
 
         self.instrument: _Instrument = _Instrument(self)

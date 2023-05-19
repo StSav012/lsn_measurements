@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 from configparser import ConfigParser
 from decimal import Decimal
-from typing import Any, List, Optional, Sequence, Tuple
+from typing import Any, Sequence
 
 from backend.utils.si import parse_si_number
 
@@ -70,26 +72,26 @@ def get_float(config: ConfigParser, sample: str, section: str, key: str, fallbac
 
 
 def get_decimal(config: ConfigParser, sample: str, section: str, key: str,
-                fallback: Optional[float] = __sentinel) -> Decimal:
+                fallback: float = __sentinel) -> Decimal:
     return Decimal.from_float(get_float(config=config, sample=sample, section=section, key=key, fallback=fallback))
 
 
 def get_float_tuple(config: ConfigParser, sample: str, section: str, key: str,
                     fallback: Sequence[float] = __sentinel,
-                    separator: str = ',') -> Tuple[float, ...]:
+                    separator: str = ',') -> tuple[float, ...]:
     return tuple(map(float, get(config=config, sample=sample, section=section, key=key,
                                 fallback=fallback).split(separator)))
 
 
 def get_float_list(config: ConfigParser, sample: str, section: str, key: str,
                    fallback: Sequence[float] = __sentinel,
-                   separator: str = ',') -> List[float]:
+                   separator: str = ',') -> list[float]:
     return list(map(float, get(config=config, sample=sample, section=section, key=key,
                                fallback=fallback).split(separator)))
 
 
 def get_decimal_list(config: ConfigParser, sample: str, section: str, key: str,
                      fallback: Sequence[float] = __sentinel,
-                     separator: str = ',') -> List[Decimal]:
+                     separator: str = ',') -> list[Decimal]:
     return list(map(Decimal, get(config=config, sample=sample, section=section, key=key,
                                  fallback=fallback).split(separator)))

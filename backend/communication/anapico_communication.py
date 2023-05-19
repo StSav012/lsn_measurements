@@ -1,6 +1,8 @@
 # coding: utf-8
+from __future__ import annotations
+
 from math import isnan, nan
-from typing import Final, List, Optional, Tuple, Union
+from typing import Final
 
 from .scpi_device import SCPIDevice
 
@@ -286,7 +288,7 @@ class _TriggerOutput:
         self._parent.issue(':trigger:output:mode', new_value)
 
     @property
-    def source(self) -> Union[None, int, str]:
+    def source(self) -> int | str | None:
         if self._parent.socket is None:
             return None
         value: str = self._parent.query(':trigger:output:source')
@@ -295,7 +297,7 @@ class _TriggerOutput:
         return value
 
     @source.setter
-    def source(self, new_value: Union[int, str]) -> None:
+    def source(self, new_value: int | str) -> None:
         """ Selects the source channel for the trigger output and the RF output valid signal. """
         if isinstance(new_value, str) and new_value.casefold() != 'all':
             raise ValueError(f'Invalid Trigger Output Source: {new_value}')
@@ -435,10 +437,10 @@ class _SystemError:
         self._parent: Final[SCPIDevice] = parent
 
     @property
-    def next(self) -> Tuple[int, str]:
+    def next(self) -> tuple[int, str]:
         if self._parent.socket is None:
             return 0, ''
-        response: List[str] = self._parent.query('system:error:next').split(',', maxsplit=1)
+        response: list[str] = self._parent.query('system:error:next').split(',', maxsplit=1)
         return int(response[0]), response[1].strip('"')
 
     @property
@@ -476,7 +478,7 @@ class _System:
 class APUASYN20(SCPIDevice):
     _PORT: Final[int] = 18  # always port 18
 
-    def __init__(self, ip: Optional[str] = None, *, expected: bool = True) -> None:
+    def __init__(self, ip: str | None = None, *, expected: bool = True) -> None:
         super().__init__(ip, APUASYN20._PORT, terminator=b'\n', expected=expected)
         self.am: Final[_AmplitudeModulation] = _AmplitudeModulation(self)
         self.lf_output: Final[_LFOutput] = _LFOutput(self)

@@ -1,7 +1,9 @@
 # coding: utf-8
+from __future__ import annotations
+
 import socket
 from socket import *
-from typing import Any, List, Optional
+from typing import Any
 
 from backend.communication.port_scanner import port_scanner
 from backend.utils import warning
@@ -10,15 +12,15 @@ __all__ = ['SCPIDevice']
 
 
 class SCPIDevice:
-    def __init__(self, ip: Optional[str], port: int, *, terminator: bytes = b'\r\n', expected: bool = True,
+    def __init__(self, ip: str | None, port: int, *, terminator: bytes = b'\r\n', expected: bool = True,
                  reset: bool = True) -> None:
-        self.socket: Optional[socket] = None
+        self.socket: socket | None = None
         self.terminator: bytes = terminator
 
         if ip is None and expected:
             from ipaddress import IPv4Address
 
-            connectable_hosts: List[IPv4Address] = port_scanner(port)
+            connectable_hosts: list[IPv4Address] = port_scanner(port)
             if not connectable_hosts:
                 raise RuntimeError(f'{self.__class__.__name__} with open port {port} could not be found automatically. '
                                    'Try specifying an IP address.')
@@ -56,7 +58,7 @@ class SCPIDevice:
     def reset(self) -> None:
         self.communicate('*rst')
 
-    def communicate(self, command: str) -> Optional[str]:
+    def communicate(self, command: str) -> str | None:
         if self.socket is None:
             return ''
         self.socket.send((command.strip()).encode() + self.terminator)

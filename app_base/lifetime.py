@@ -84,6 +84,9 @@ class LifetimeBase(LifetimeGUI):
         self.delay_between_cycles: Final[float] = get_float(self.config, self.sample_name,
                                                             'measurement', 'delay between cycles [sec]',
                                                             fallback=0.0)
+        self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
+                                                'measurement', 'adc rate [S/sec]',
+                                                fallback=np.nan)
 
         self.frequency_values: SliceSequence = SliceSequence(self.config.get('GHz signal', 'frequency [GHz]'))
         self.stop_key_frequency.setDisabled(not self.synthesizer_output or len(self.frequency_values) <= 1)
@@ -212,7 +215,8 @@ class LifetimeBase(LifetimeGUI):
                                                ignore_never_switched=self.ignore_never_switched,
                                                max_waiting_time=self.max_waiting_time,
                                                max_reasonable_bias_error=self.max_reasonable_bias_error,
-                                               delay_between_cycles=self.delay_between_cycles)
+                                               delay_between_cycles=self.delay_between_cycles,
+                                               adc_rate=self.adc_rate)
         self.measurement.start()
 
         self.triton.issue_temperature(6, self.temperature)

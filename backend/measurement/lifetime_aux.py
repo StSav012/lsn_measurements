@@ -54,7 +54,9 @@ class LifetimeMeasurement(Process):
                  max_waiting_time: timedelta = timedelta.max,
                  delay_between_cycles: float = 0.0,
                  max_reasonable_bias_error: float = np.inf,
-                 temperature: float = np.nan) -> None:
+                 temperature: float = np.nan,
+
+                 adc_rate: float = np.nan) -> None:
         super(LifetimeMeasurement, self).__init__()
 
         self.results_queue: Queue[tuple[float, float, float]] = results_queue
@@ -86,6 +88,8 @@ class LifetimeMeasurement(Process):
         self.ignore_never_switched: Final[bool] = ignore_never_switched
 
         self.temperature: Final[float] = temperature
+
+        self.adc_rate: float = adc_rate
 
         self.stat_file: Path = stat_file
         self.data_file: Path = data_file
@@ -119,6 +123,8 @@ class LifetimeMeasurement(Process):
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
             task_dac.ao_channels.add_ao_voltage_chan(dac_aux.name)
 
+            if np.isnan(self.adc_rate):
+                self.adc_rate = task_adc.timing.samp_clk_max_rate
             dac_rate: float = task_dac.timing.samp_clk_max_rate
             bias_current_steps_count: int = round(self.setting_time * dac_rate)
 
@@ -135,7 +141,7 @@ class LifetimeMeasurement(Process):
             trigger_on_sequence[-1] = 2.0 * trigger_trigger
             trigger_off_sequence: NDArray[np.float64] = np.zeros(bias_current_steps_count, dtype=np.float64)
 
-            task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
+            task_adc.timing.cfg_samp_clk_timing(rate=self.adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
                                                 samps_per_chan=1000,
                                                 )
@@ -161,7 +167,7 @@ class LifetimeMeasurement(Process):
                             trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).ravel()[0]
                             self.c.payload = (data[0, trig_arg],
                                               data[1, trig_arg],
-                                              int(self.c) / task_adc.timing.samp_clk_rate)
+                                              int(self.c) / self.adc_rate)
                             self.c.loaded = True
                             self.c.reset()
                 else:

@@ -51,7 +51,9 @@ class DetectMeasurement(Process):
                  frequency: float = np.nan,
                  resistance_in_series: float = 0.0,
                  waiting_after_pulse: float = 0.0,
-                 temperature: float = np.nan) -> None:
+                 temperature: float = np.nan,
+
+                 adc_rate: float = np.nan) -> None:
         super(DetectMeasurement, self).__init__()
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
@@ -79,6 +81,8 @@ class DetectMeasurement(Process):
 
         self.temperature: Final[float] = temperature
 
+        self.adc_rate: float = adc_rate
+
         self.stat_file: Path = stat_file
         self.data_file: Path = data_file
 
@@ -101,6 +105,8 @@ class DetectMeasurement(Process):
             task_dac.ao_channels.add_ao_voltage_chan(dac_synth_pulse.name)
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
 
+            if np.isnan(self.adc_rate):
+                self.adc_rate = task_adc.timing.samp_clk_max_rate
             dac_rate: float = task_dac.timing.samp_clk_max_rate
 
             bias_current_steps_count: int = round(self.setting_time * dac_rate)
@@ -137,7 +143,7 @@ class DetectMeasurement(Process):
                 np.zeros(bias_current_steps_count + spare_sample_count)
             ))
 
-            task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
+            task_adc.timing.cfg_samp_clk_timing(rate=self.adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
                                                 samps_per_chan=10000,  # can not set task_adc.input_onboard_buffer_size
                                                 )
@@ -163,7 +169,7 @@ class DetectMeasurement(Process):
                         trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).ravel()[0]
                         self.c.payload = (data[0, trig_arg],
                                           data[1, trig_arg],
-                                          int(self.c) / task_adc.timing.samp_clk_rate)
+                                          int(self.c) / self.adc_rate)
                         self.c.loaded = True
                         self.c.reset()
                 else:

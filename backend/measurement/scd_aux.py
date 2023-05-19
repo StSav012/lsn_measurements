@@ -58,7 +58,9 @@ class SCDMeasurement(Process):
                  max_measurement_time: timedelta = timedelta.max,
                  delay_between_cycles: float = 0.0,
                  max_reasonable_bias_error: float = np.inf,
-                 temperature: float = np.nan) -> None:
+                 temperature: float = np.nan,
+
+                 adc_rate: float = np.nan) -> None:
         super(SCDMeasurement, self).__init__()
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
@@ -90,6 +92,8 @@ class SCDMeasurement(Process):
 
         self.temperature: Final[float] = temperature
 
+        self.adc_rate: float = adc_rate
+
         self.stat_file: Path = stat_file
         self.data_file: Path = data_file
 
@@ -111,6 +115,8 @@ class SCDMeasurement(Process):
             sync_channel = task_dac.ao_channels.add_ao_voltage_chan(dac_sync.name)
             task_dac.ao_channels.add_ao_voltage_chan(dac_aux.name)
 
+            if np.isnan(self.adc_rate):
+                self.adc_rate = task_adc.timing.samp_clk_max_rate
             bias_current_amplitude: float = np.abs(self.max_bias_current - self.initial_biases[-1])
             dac_rate: float = task_dac.timing.samp_clk_max_rate
             bias_current_steps_count: int = round(bias_current_amplitude / self.current_speed * dac_rate)
@@ -146,7 +152,7 @@ class SCDMeasurement(Process):
                 np.zeros(bias_current_steps_count)
             ))
 
-            task_adc.timing.cfg_samp_clk_timing(rate=task_adc.timing.samp_clk_max_rate,
+            task_adc.timing.cfg_samp_clk_timing(rate=self.adc_rate,
                                                 sample_mode=AcquisitionType.CONTINUOUS,
                                                 samps_per_chan=1000,
                                                 )

@@ -80,6 +80,9 @@ class DetectBase(DetectGUI):
         self.max_switching_events_count: Final[int] = self.config.getint('detect', 'number of switches')
         self.minimal_probability_to_measure: Final[float] = \
             get_float(self.config, self.sample_name, 'detect', 'minimal probability to measure [%]', fallback=0.0)
+        self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
+                                                'measurement', 'adc rate [S/sec]',
+                                                fallback=np.nan)
 
         self.frequency_values: SliceSequence = SliceSequence(self.config.get('GHz signal', 'frequency [GHz]'))
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
@@ -204,7 +207,8 @@ class DetectBase(DetectGUI):
                                              stat_file=self.stat_file,
                                              data_file=self.data_file,
                                              frequency=self.frequency,
-                                             waiting_after_pulse=self.waiting_after_pulse)
+                                             waiting_after_pulse=self.waiting_after_pulse,
+                                             adc_rate=self.adc_rate)
         self.measurement.start()
 
         self.triton.issue_temperature(6, self.temperature)

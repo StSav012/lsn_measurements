@@ -79,6 +79,9 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.delay_between_cycles: Final[float] = get_float(self.config, self.sample_name,
                                                             'measurement', 'delay between cycles [sec]',
                                                             fallback=0.0)
+        self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
+                                                'measurement', 'adc rate [S/sec]',
+                                                fallback=np.nan)
 
         synthesizer_output: bool = self.config.getboolean('GHz signal', 'on', fallback=False)
         self.frequency_values: SliceSequence = SliceSequence(self.config.get('GHz signal', 'frequency [GHz]'))
@@ -226,7 +229,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                                           data_file=self.data_file,
                                           max_measurement_time=self.max_measurement_time,
                                           max_reasonable_bias_error=self.max_reasonable_bias_error,
-                                          delay_between_cycles=self.delay_between_cycles)
+                                          delay_between_cycles=self.delay_between_cycles,
+                                          adc_rate=self.adc_rate)
         self.measurement.start()
 
         self.triton.issue_temperature(6, self.temperature)

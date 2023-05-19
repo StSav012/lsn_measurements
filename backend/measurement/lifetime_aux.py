@@ -139,7 +139,7 @@ class LifetimeMeasurement(Process):
                                                 sample_mode=AcquisitionType.CONTINUOUS,
                                                 samps_per_chan=1000,
                                                 )
-            task_dac.timing.cfg_samp_clk_timing(rate=task_dac.timing.samp_clk_max_rate,
+            task_dac.timing.cfg_samp_clk_timing(rate=dac_rate,
                                                 sample_mode=AcquisitionType.FINITE,
                                                 samps_per_chan=bias_current_steps_count,
                                                 )

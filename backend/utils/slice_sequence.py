@@ -4,10 +4,10 @@ from __future__ import annotations
 import math
 from typing import Iterator, Sequence
 
-__all__ = ['SliceSequence']
-
 from .si import parse_si_number
 from .string_utils import multi_split, nth_occurrence
+
+__all__ = ['SliceSequence']
 
 
 def float_range(start: float, stop: float, step: float = 1.0, *,

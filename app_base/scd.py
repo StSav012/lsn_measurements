@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Final, List, Optional, TextIO, Tuple
+from typing import Final, List, Optional, TextIO, Tuple, cast
 
 import numpy as np
 import pyqtgraph as pg
@@ -106,6 +106,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.current_speed_index: int = 0
         self.frequency_index: int = 0
         self.power_index: int = 0
+
+        self.saved_files: set[Path] = set()
 
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
         self.temperature_just_set: bool = False
@@ -267,6 +269,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 self.measurement.join()
         self.timer.stop()
         self.synthesizer.output = False
+        self.saved_files.add(self.data_file)
         super(SwitchingCurrentDistributionBase, self).on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:
@@ -303,6 +306,23 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         std_data: NDArray[np.float64] = np.append(old_std_data, std)
         self.plot_line_mean.setData(x_data, mean_data)
         self.plot_line_std.setData(x_data, std_data)
+
+    def _add_plot_point_from_file(self, x: float) -> None:
+        if self.data_file in self.saved_files:
+            return
+        self.saved_files.add(self.data_file)
+        measured_data: NDArray[float] = self._get_data_file_content()
+        if measured_data.shape[0] == 3:
+            current: NDArray[float] = measured_data[0] * 1e9
+            median_bias_current: float = cast(float, np.nanmedian(current))
+            min_reasonable_bias_current: float = median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
+            max_reasonable_bias_current: float = median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
+            reasonable: NDArray[np.bool_] = ((current >= min_reasonable_bias_current)
+                                             & (current <= max_reasonable_bias_current))
+            current = current[reasonable]
+            self._add_plot_point(x,
+                                 cast(float, np.mean(current)),
+                                 cast(float, np.std(current)))
 
     def _watch_temperature(self) -> None:
         td: timedelta
@@ -352,10 +372,17 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                         and self.frequency_index < len(self.frequency_values)
                         and self.current_speed_index < len(self.current_speed_values)
                         and self.temperature_index < len(self.temperature_values)
-                        and self.data_file.exists())
+                        and self.data_file.exists()
+                        and self._get_data_file_content().size)
         if exists and verbose:
-            warning(f'{self.data_file} already exists')
+            if self.data_file not in self.saved_files:
+                warning(f'{self.data_file} already exists')
         return exists
+
+    def _get_data_file_content(self) -> NDArray[float]:
+        return np.array([[float(cell) for cell in row.split('\t')]
+                         for row in self.data_file.read_text(encoding='utf-8').splitlines()
+                         if row and (row.startswith('nan') or not row[0].isalpha())]).T
 
     @abc.abstractmethod
     def on_timeout(self) -> None: ...

@@ -62,6 +62,7 @@ class App(SwitchingCurrentDistributionBase):
         if make_step:
             self.power_index += 1
         while self.synthesizer_output and self.check_exists and self._data_file_exists():
+            self._add_plot_point_from_file(self.temperature)
             self.power_index += 1
         if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
             self.power_index = 0
@@ -70,6 +71,7 @@ class App(SwitchingCurrentDistributionBase):
             if make_step:
                 self.frequency_index += 1
             while self.synthesizer_output and self.check_exists and self._data_file_exists():
+                self._add_plot_point_from_file(self.temperature)
                 self.frequency_index += 1
             if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
@@ -78,6 +80,7 @@ class App(SwitchingCurrentDistributionBase):
                 if make_step:
                     self.current_speed_index += 1
                 while self.check_exists and self._data_file_exists():
+                    self._add_plot_point_from_file(self.temperature)
                     self.current_speed_index += 1
                 if self.current_speed_index >= len(self.current_speed_values):
                     self.current_speed_index = 0
@@ -86,6 +89,7 @@ class App(SwitchingCurrentDistributionBase):
                     if make_step:
                         self.temperature_index += 1
                     while self.check_exists and self._data_file_exists():
+                        self._add_plot_point_from_file(self.temperature)
                         self.temperature_index += 1
                     if self.temperature_index >= len(self.temperature_values):
                         self.temperature_index = 0

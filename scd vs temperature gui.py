@@ -16,8 +16,10 @@ class App(SwitchingCurrentDistributionBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.canvas_mean.getAxis('bottom').setLabel(text='Temperature', units='mK')
-        self.canvas_std.getAxis('bottom').setLabel(text='Temperature', units='mK')
+        self.canvas_mean.getAxis('bottom').setLabel(text='Temperature', units='K')
+        self.canvas_std.getAxis('bottom').setLabel(text='Temperature', units='K')
+        self.canvas_mean.getAxis('bottom').enableAutoSIPrefix(True)
+        self.canvas_std.getAxis('bottom').enableAutoSIPrefix(True)
 
     @property
     def stat_file(self) -> Path:
@@ -111,7 +113,7 @@ class App(SwitchingCurrentDistributionBase):
         std: float
         while not self.results_queue.empty():
             mean, std = self.results_queue.get(block=True)
-            self._add_plot_point(self.temperature * 1000, mean, std)
+            self._add_plot_point(self.temperature, mean, std)
 
         self._watch_temperature()
 

@@ -170,6 +170,24 @@ class LifetimeBase(LifetimeGUI):
         ))) + '.txt')
 
     @property
+    def hist_file(self) -> Path:
+        return self.saving_location / (' '.join(filter(None, (
+            'lifetimes-hist',
+            self.config.get('output', 'prefix', fallback=''),
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current, suffix='nA'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
+            f'CC{self.cycles_count}',
+            format_float(self.setting_time, prefix='ST', suffix='s'),
+            format_float(self.frequency, suffix='GHz')
+            if not np.isnan(self.frequency) else '',
+            format_float(self.power_dbm, suffix='dBm')
+            if not np.isnan(self.power_dbm) else '',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
+            self.config.get('output', 'suffix', fallback='')
+        ))) + '.txt')
+
+    @property
     @abc.abstractmethod
     def _line_index(self) -> int:
         ...
@@ -280,6 +298,7 @@ class LifetimeBase(LifetimeGUI):
         self.timer.stop()
         self.synthesizer.output = False
         self.saved_files.add(self.data_file)
+        self.histogram.save(self.hist_file)
         super(LifetimeBase, self).on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:

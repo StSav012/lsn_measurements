@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from os import PathLike
 from typing import Iterable
 
 import numpy as np
@@ -11,6 +12,8 @@ from qtpy.QtGui import QBrush, QColor, QPen
 from qtpy.QtWidgets import QWidget
 
 __all__ = ['Histogram']
+
+from backend.utils import warning
 
 
 class Histogram(pg.PlotWidget):
@@ -95,3 +98,14 @@ class Histogram(pg.PlotWidget):
         if y is not None:
             self._y_log = y
         self.plotItem.setLogMode(x=x, y=y)
+
+    def save(self, filename: str | PathLike[str]) -> None:
+        if self._plot_line is None:
+            return
+        dataset: tuple[None, None] | tuple[NDArray[float], NDArray[float]] = self._plot_line.getOriginalDataset()
+        if dataset[0] is not None and dataset[1] is not None:
+            np_dataset: NDArray[float] = np.column_stack(dataset)
+            np_dataset[np.isnan(np_dataset)] = 0.0
+            np.savetxt(filename, np_dataset, delimiter='\t')
+        else:
+            warning('No histogram to save')

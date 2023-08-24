@@ -123,6 +123,7 @@ class App(SwitchingCurrentDistributionBase):
         if not self.measurement.is_alive():
             self.button_drop_measurement.reset()
             self.timer.stop()
+            self.histogram.save(self.hist_file)
             if not self._next_indices():
                 self.on_button_stop_clicked()
                 return

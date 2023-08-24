@@ -174,6 +174,25 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         ))) + '.txt')
 
     @property
+    def hist_file(self) -> Path:
+        return self.saving_location / (' '.join(filter(None, (
+            'I''SCD-hist',
+            self.config.get('output', 'prefix', fallback=''),
+            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.aux_voltage * 1e3, prefix='aux', suffix='mV'),
+            format_float(self.current_speed, prefix='v', suffix='nAps'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
+            f'CC{self.cycles_count}',
+            format_float(self.frequency, suffix='GHz')
+            if self.synthesizer_output else '',
+            format_float(self.power_dbm, suffix='dBm')
+            if self.synthesizer_output else '',
+            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
+            format_float(self.trigger_voltage * 1e3, prefix='threshold', suffix='mV'),
+            self.config.get('output', 'suffix', fallback='')
+        ))) + '.txt')
+
+    @property
     @abc.abstractmethod
     def _line_index(self) -> int:
         ...
@@ -295,6 +314,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.timer.stop()
         self.synthesizer.output = False
         self.saved_files.add(self.data_file)
+        self.histogram.save(self.hist_file)
         super(SwitchingCurrentDistributionBase, self).on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:

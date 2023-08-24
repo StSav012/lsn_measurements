@@ -130,7 +130,7 @@ class GUI(QMainWindow):
         self.parameters_layout.addRow('Maximum current:', self.spin_current_max)
         self.parameters_layout.addRow('Current rate:', self.spin_current_rate)
         self.parameters_layout.addRow('Current divider:', self.spin_current_divider)
-        self.check_two_way.setText('Two way')
+        self.check_two_way.setText('Two-way')
         self.parameters_layout.addWidget(self.check_two_way)
         self.parameters_layout.addRow('Ballast resistance:', self.spin_ballast_resistance)
         self.parameters_layout.addRow('Resistance in series:', self.spin_resistance_in_series)

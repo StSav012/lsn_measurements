@@ -51,6 +51,7 @@ class DetectMeasurement(Process):
                  frequency: float = np.nan,
                  resistance_in_series: float = 0.0,
                  waiting_after_pulse: float = 0.0,
+                 delay_between_cycles: float = 0.0,
                  temperature: float = np.nan,
 
                  adc_rate: float = np.nan) -> None:
@@ -78,6 +79,7 @@ class DetectMeasurement(Process):
         self.trigger_voltage: float = trigger_voltage
         self.cycles_count: Final[int] = cycles_count
         self.max_switching_events_count: Final[int] = max_switching_events_count
+        self.delay_between_cycles: Final[float] = delay_between_cycles
 
         self.temperature: Final[float] = temperature
 
@@ -300,6 +302,8 @@ class DetectMeasurement(Process):
                 actual_cycles_count = cycle_index + 1
                 if switches_count >= self.max_switching_events_count:
                     break
+
+                time.sleep(self.delay_between_cycles)
 
             prob: float = 100.0 * switches_count / actual_cycles_count
             err: float = np.sqrt(prob * (100.0 - prob) / actual_cycles_count)

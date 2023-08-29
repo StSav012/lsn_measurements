@@ -82,6 +82,9 @@ class DetectBase(DetectGUI):
         self.max_switching_events_count: Final[int] = self.config.getint('detect', 'number of switches')
         self.minimal_probability_to_measure: Final[float] = \
             get_float(self.config, self.sample_name, 'detect', 'minimal probability to measure [%]', fallback=0.0)
+        self.delay_between_cycles_values: Final[SliceSequence] = \
+            SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
                                                 'measurement', 'adc rate [S/sec]',
                                                 fallback=np.nan)
@@ -114,6 +117,7 @@ class DetectBase(DetectGUI):
         self.temperature_index: int = 0
         self.frequency_index: int = 0
         self.setting_time_index: int = 0
+        self.delay_between_cycles_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
@@ -145,6 +149,10 @@ class DetectBase(DetectGUI):
         return self.setting_time_values[self.setting_time_index]
 
     @property
+    def delay_between_cycles(self) -> float:
+        return self.delay_between_cycles_values[self.delay_between_cycles_index]
+
+    @property
     @abc.abstractmethod
     def stat_file(self) -> Path:
         ...
@@ -156,6 +164,7 @@ class DetectBase(DetectGUI):
             self.config.get('output', 'prefix', fallback=''),
             format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.bias_current, suffix='nA'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count}',
             format_float(self.frequency, suffix='GHz'),
             format_float(self.power_dbm, suffix='dBm'),
@@ -213,12 +222,14 @@ class DetectBase(DetectGUI):
                                              stat_file=self.stat_file,
                                              data_file=self.data_file,
                                              waiting_after_pulse=self.waiting_after_pulse,
+                                             delay_between_cycles=self.delay_between_cycles,
                                              adc_rate=self.adc_rate)
         self.measurement.start()
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_setting_time.setValue(self.setting_time * 1000)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.label_bias.setValue(self.bias_current)
@@ -341,6 +352,7 @@ class DetectBase(DetectGUI):
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
                         and self.setting_time_index < len(self.setting_time_values)
+                        and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.stat_file.exists())
         if exists and self.plot_line.xData is None:

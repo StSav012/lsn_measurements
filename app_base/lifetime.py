@@ -95,14 +95,14 @@ class LifetimeBase(LifetimeGUI):
 
         self.temperature_values: SliceSequence = SliceSequence(self.config.get('measurement', 'temperature'))
         self.temperature_delay: timedelta = \
-            timedelta(seconds=self.config.getfloat('measurement', 'time to wait for temperature [minutes]',
-                                                   fallback=0.0) * 60.)
+            timedelta(seconds=get_float(self.config, self.sample_name,
+                                        'measurement', 'time to wait for temperature [minutes]', fallback=0.0) * 60.)
+        self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
+        self.temperature_tolerance: Final[float] = \
+            abs(get_float(self.config, self.sample_name, 'measurement', 'temperature tolerance [%]', fallback=0.5))
         self.change_filtered_readings: Final[bool] = self.config.getboolean('measurement',
                                                                             'change filtered readings in Triton',
                                                                             fallback=True)
-        self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
-        self.temperature_tolerance: Final[float] = abs(self.config.getfloat('measurement', 'temperature tolerance [%]',
-                                                                            fallback=1.0))
 
         self.saving_location: Path = Path(self.config.get('output', 'location', fallback=r'd:\ttt\lifetime'))
         self.saving_location /= self.sample_name

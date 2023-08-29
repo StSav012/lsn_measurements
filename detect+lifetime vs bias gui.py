@@ -88,7 +88,7 @@ class App(DetectLifetimeBase):
     @property
     def _line_name_lifetime(self) -> str:
         return ', '.join(filter(None, (
-            f'{self.temperature * 1e3:.6f}'.rstrip('0').rstrip('.') + 'mK',
+            format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
             format_float(self.delay_between_cycles * 1e3, suffix="ms"),
         )))

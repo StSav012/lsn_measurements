@@ -137,7 +137,7 @@ class DetectMeasurement(Process):
                                            + spare_sample_count)
 
             trigger_trigger: float = 0.45 * sync_channel.ao_max
-            trigger_sequence: np.ndarray = np.concatenate((
+            trigger_sequence: NDArray[np.float64] = np.concatenate((
                 np.zeros(bias_current_steps_count),
                 np.full(pulse_duration_points_count + waiting_after_pulse_points_count, 2. * trigger_trigger),
                 np.zeros(bias_current_steps_count + spare_sample_count)
@@ -158,9 +158,9 @@ class DetectMeasurement(Process):
                     -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
-                waiting: NDArray[np.bool] = (data[2] > trigger_trigger)
+                waiting: NDArray[np.bool_] = (data[2] > trigger_trigger)
                 data[1] -= self.r_series / self.r * data[0] * self.voltage_gain
-                not_switched: NDArray[np.bool] = (data[1] < self.trigger_voltage)
+                not_switched: NDArray[np.bool_] = (data[1] < self.trigger_voltage)
                 if np.any(waiting):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]
@@ -187,11 +187,10 @@ class DetectMeasurement(Process):
             task_adc.start()
 
             bias_current_amplitude: float = np.abs(float(self.bias_current) - self.initial_biases[-1])
-            actual_bias_current_steps_count: int = round(bias_current_amplitude * 1e-9
-                                                         * self.r * self.divider
-                                                         / min(((current_channel.ao_max - current_channel.ao_min)
-                                                                / (2 ** current_channel.ao_resolution)),
-                                                               bias_current_steps_count))
+            actual_bias_current_steps_count: int = \
+                round(bias_current_amplitude * 1e-9 * self.r * self.divider
+                      / min(((current_channel.ao_max - current_channel.ao_min) / (2 ** current_channel.ao_resolution)),
+                            bias_current_steps_count))
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
             print(f'\nbias current is set to {self.bias_current} nA')
@@ -202,7 +201,7 @@ class DetectMeasurement(Process):
                 return
 
             # calculate the current sequence
-            i_set: np.ndarray
+            i_set: NDArray[np.float64]
             if self.setting_function.casefold() == 'sine':
                 i_set = np.concatenate((
                     sine_segments([self.initial_biases[-1], self.bias_current], bias_current_steps_count),
@@ -220,15 +219,15 @@ class DetectMeasurement(Process):
             else:
                 raise ValueError('Unsupported current setting function:', self.setting_function)
 
-            am_voltage_sequence: np.ndarray = np.concatenate((
+            am_voltage_sequence: NDArray[np.float64] = np.concatenate((
                 np.full(bias_current_steps_count, 0.0),
                 np.full(pulse_duration_points_count, 1.5),
                 np.full(waiting_after_pulse_points_count, 0.0),
                 np.full(bias_current_steps_count + spare_sample_count, 0.0)
             ))
-            period_sequence: np.ndarray = np.row_stack((i_set * (1. + DIVIDER_RESISTANCE / self.r),
-                                                        am_voltage_sequence,
-                                                        trigger_sequence))
+            period_sequence: NDArray[np.float64] = np.row_stack((i_set * (1. + DIVIDER_RESISTANCE / self.r),
+                                                                 am_voltage_sequence,
+                                                                 trigger_sequence))
 
             # set initial state
             task_dac.write(np.row_stack((

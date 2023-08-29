@@ -281,6 +281,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
+        self.label_setting_time.setValue(self.setting_time * 1000)
         self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)

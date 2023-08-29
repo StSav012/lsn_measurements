@@ -448,6 +448,8 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         actual_temperature: float
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
+        ats: bytes = str(actual_temperature * 1000).encode()
+        self.good_to_measure.buf[1:1 + len(ats)] = ats
         if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
                 < actual_temperature
                 < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):

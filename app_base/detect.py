@@ -95,11 +95,6 @@ class DetectBase(DetectGUI):
         self.waiting_after_pulse: Final[float] = \
             get_float(self.config, self.sample_name, 'detect', 'waiting after GHz pulse [sec]')
 
-        self.saving_location: Path = Path(self.config.get('output', 'location', fallback=r'd:\ttt\detect'))
-        self.saving_location /= self.sample_name
-        self.saving_location /= date.today().isoformat()
-        self.saving_location.mkdir(parents=True, exist_ok=True)
-
         self.temperature_values: SliceSequence = SliceSequence(self.config.get('measurement', 'temperature'))
         self.temperature_delay: timedelta = \
             timedelta(seconds=get_float(self.config, self.sample_name,
@@ -111,9 +106,14 @@ class DetectBase(DetectGUI):
                                                                             'change filtered readings in Triton',
                                                                             fallback=True)
 
+        self.saving_location: Path = Path(self.config.get('output', 'location', fallback=r'd:\ttt\detect'))
+        self.saving_location /= self.sample_name
+        self.saving_location /= date.today().isoformat()
+        self.saving_location.mkdir(parents=True, exist_ok=True)
+
         self.temperature_index: int = 0
-        self.setting_time_index: int = 0
         self.frequency_index: int = 0
+        self.setting_time_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
@@ -202,6 +202,7 @@ class DetectBase(DetectGUI):
                                              initial_biases=self.initial_biases,
                                              cycles_count=self.cycles_count,
                                              bias_current=self.bias_current,
+                                             frequency=self.frequency,
                                              power_dbm=self.power_dbm,
                                              max_switching_events_count=self.max_switching_events_count,
                                              pulse_duration=self.pulse_duration,
@@ -211,7 +212,6 @@ class DetectBase(DetectGUI):
                                              temperature=self.temperature,
                                              stat_file=self.stat_file,
                                              data_file=self.data_file,
-                                             frequency=self.frequency,
                                              waiting_after_pulse=self.waiting_after_pulse,
                                              adc_rate=self.adc_rate)
         self.measurement.start()

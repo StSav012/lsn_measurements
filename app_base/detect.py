@@ -63,6 +63,9 @@ class DetectBase(DetectGUI):
 
         self.setting_function: Final[str] = get_str(self.config, 'current', self.sample_name, 'function',
                                                     fallback='sine')
+        if self.setting_function.casefold() not in ('linear', 'sine'):
+            raise ValueError('Unsupported current setting function:', self.setting_function)
+
         self.bias_current_values: SliceSequence = SliceSequence(get_str(self.config, self.sample_name,
                                                                         'current', 'bias current [nA]'))
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
@@ -72,8 +75,6 @@ class DetectBase(DetectGUI):
         self.setting_time_values: Final[SliceSequence] \
             = SliceSequence(get_str(self.config, self.sample_name, 'current', 'setting time [sec]'))
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
-        if self.setting_function.casefold() not in ('linear', 'sine'):
-            raise ValueError('Unsupported current setting function:', self.setting_function)
 
         self.check_exists: Final[bool] = self.config.getboolean('measurement', 'check whether file exists')
         self.trigger_voltage: float = \

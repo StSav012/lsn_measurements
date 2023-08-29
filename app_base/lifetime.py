@@ -65,6 +65,7 @@ class LifetimeBase(LifetimeGUI):
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
         self.initial_biases: list[float] = get_float_list(self.config, self.sample_name,
                                                           'current', 'initial current [nA]', [0.0])
+
         self.setting_time_values: Final[SliceSequence] \
             = SliceSequence(get_str(self.config, self.sample_name, 'current', 'setting time [sec]'))
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
@@ -81,8 +82,8 @@ class LifetimeBase(LifetimeGUI):
         self.max_mean: Final[float] = self.config.getfloat('lifetime', 'max mean time to measure [sec]',
                                                            fallback=np.inf)
         self.ignore_never_switched: bool = self.config.getboolean('lifetime', 'ignore never switched')
-        self.delay_between_cycles_values: Final[SliceSequence] \
-            = SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
+        self.delay_between_cycles_values: Final[SliceSequence] = \
+            SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
                                                 'measurement', 'adc rate [S/sec]',

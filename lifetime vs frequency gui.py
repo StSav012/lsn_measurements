@@ -53,6 +53,8 @@ class App(LifetimeBase):
         return ', '.join(filter(None, (
             format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.bias_current, suffix='nA'),
+            format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
             format_float(self.power_dbm, suffix='dBm')
             if not self.synthesizer_output else '',
         )))

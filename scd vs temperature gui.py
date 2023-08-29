@@ -54,7 +54,7 @@ class App(SwitchingCurrentDistributionBase):
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
             format_float(self.current_speed, suffix='nA/s'),
-            format_float(self.delay_between_cycles * 1e3, suffix='ms'),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
             format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
             format_float(self.frequency, suffix='GHz')

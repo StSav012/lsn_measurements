@@ -61,7 +61,7 @@ class App(LifetimeBase):
             if self.synthesizer_output else '',
         )))
 
-    def _next_indices(self, make_step=True) -> bool:
+    def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():
             return False
         if make_step:

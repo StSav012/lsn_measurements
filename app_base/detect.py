@@ -218,6 +218,7 @@ class DetectBase(DetectGUI):
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
+        self.label_setting_time.setValue(self.setting_time * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.label_bias.setValue(self.bias_current)

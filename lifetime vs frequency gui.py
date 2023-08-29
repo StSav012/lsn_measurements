@@ -38,10 +38,14 @@ class App(LifetimeBase):
     @property
     def _line_index(self) -> int:
         return (self.temperature_index
-                + (self.bias_current_index
-                   + (self.power_index
-                      ) * len(self.power_dbm_values)
-                   ) * len(self.bias_current_values)
+                + (self.setting_time_index
+                    + (self.delay_between_cycles_index
+                        + (self.bias_current_index
+                           + (self.power_index
+                              ) * len(self.power_dbm_values)
+                           ) * len(self.bias_current_values)
+                       ) * len(self.delay_between_cycles_values)
+                   ) * len(self.setting_time_values)
                 )
 
     @property
@@ -70,30 +74,38 @@ class App(LifetimeBase):
                 self.power_index += 1
             if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
-                if self.stop_key_bias.isChecked():
+                if self.stop_key_delay_between_cycles.isChecked():
                     return False
                 if make_step:
-                    self.bias_current_index += 1
+                    self.delay_between_cycles_index += 1
                 while self.check_exists and self._data_file_exists():
-                    self.bias_current_index += 1
-                if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
-                    self.bias_current_index = 0
-                    if self.stop_key_temperature.isChecked():
+                    self.delay_between_cycles_index += 1
+                if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
+                    self.delay_between_cycles_index = 0
+                    if self.stop_key_bias.isChecked():
                         return False
                     if make_step:
-                        self.temperature_index += 1
+                        self.bias_current_index += 1
                     while self.check_exists and self._data_file_exists():
-                        self.temperature_index += 1
-                    if self.temperature_index >= len(self.temperature_values):
-                        self.temperature_index = 0
-                        return False
-                    actual_temperature: float
-                    temperature_unit: str
-                    actual_temperature, temperature_unit = self.triton.query_temperature(6)
-                    if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                            < actual_temperature
-                            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
-                        self.temperature_just_set = True
+                        self.bias_current_index += 1
+                    if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
+                        self.bias_current_index = 0
+                        if self.stop_key_temperature.isChecked():
+                            return False
+                        if make_step:
+                            self.temperature_index += 1
+                        while self.check_exists and self._data_file_exists():
+                            self.temperature_index += 1
+                        if self.temperature_index >= len(self.temperature_values):
+                            self.temperature_index = 0
+                            return False
+                        actual_temperature: float
+                        temperature_unit: str
+                        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+                        if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                                < actual_temperature
+                                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                            self.temperature_just_set = True
         return True
 
     def on_timeout(self) -> None:

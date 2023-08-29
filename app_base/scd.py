@@ -78,9 +78,9 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.cycles_count: int = self.config.getint('scd', 'number of cycles')
         self.max_measurement_time: timedelta = \
             timedelta(seconds=self.config.getfloat('scd', 'max cycles measurement time [minutes]') * 60)
-        self.delay_between_cycles: Final[float] = get_float(self.config, self.sample_name,
-                                                            'measurement', 'delay between cycles [sec]',
-                                                            fallback=0.0)
+        self.delay_between_cycles_values: Final[SliceSequence] \
+            = SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
                                                 'measurement', 'adc rate [S/sec]',
                                                 fallback=np.nan)
@@ -110,6 +110,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.temperature_index: int = 0
         self.current_speed_index: int = 0
         self.frequency_index: int = 0
+        self.delay_between_cycles_index: int = 0
         self.power_index: int = 0
 
         self.saved_files: set[Path] = set()
@@ -136,6 +137,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     @property
     def current_speed(self) -> float:
         return self.current_speed_values[self.current_speed_index]
+
+    @property
+    def delay_between_cycles(self) -> float:
+        return self.delay_between_cycles_values[self.delay_between_cycles_index]
 
     @property
     @abc.abstractmethod
@@ -245,6 +250,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_current_speed.setValue(self.current_speed)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.synthesizer.power.level = self.power_dbm
@@ -400,6 +406,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         exists: bool = (self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
                         and self.current_speed_index < len(self.current_speed_values)
+                        and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.data_file.exists()
                         and self._get_data_file_content().size)

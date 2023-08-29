@@ -81,9 +81,9 @@ class LifetimeBase(LifetimeGUI):
         self.max_mean: Final[float] = self.config.getfloat('lifetime', 'max mean time to measure [sec]',
                                                            fallback=np.inf)
         self.ignore_never_switched: bool = self.config.getboolean('lifetime', 'ignore never switched')
-        self.delay_between_cycles: Final[float] = get_float(self.config, self.sample_name,
-                                                            'measurement', 'delay between cycles [sec]',
-                                                            fallback=0.0)
+        self.delay_between_cycles_values: Final[SliceSequence] \
+            = SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
                                                 'measurement', 'adc rate [S/sec]',
                                                 fallback=np.nan)
@@ -119,6 +119,7 @@ class LifetimeBase(LifetimeGUI):
         self.aux_voltage_index: int = 0
         self.frequency_index: int = 0
         self.setting_time_index: int = 0
+        self.delay_between_cycles_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
@@ -157,6 +158,10 @@ class LifetimeBase(LifetimeGUI):
     @property
     def setting_time(self) -> float:
         return self.setting_time_values[self.setting_time_index]
+
+    @property
+    def delay_between_cycles(self) -> float:
+        return self.delay_between_cycles_values[self.delay_between_cycles_index]
 
     @property
     @abc.abstractmethod
@@ -259,6 +264,7 @@ class LifetimeBase(LifetimeGUI):
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_aux_voltage.setValue(self.aux_voltage * 1000)
         self.label_setting_time.setValue(self.setting_time * 1000)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.setValue(self.frequency)
         self.label_bias.setValue(self.bias_current)
@@ -414,6 +420,7 @@ class LifetimeBase(LifetimeGUI):
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
                         and self.setting_time_index < len(self.setting_time_values)
+                        and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
                         and self.aux_voltage_index < len(self.aux_voltage_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.data_file.exists()

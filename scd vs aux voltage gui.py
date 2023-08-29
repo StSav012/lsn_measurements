@@ -42,10 +42,12 @@ class App(SwitchingCurrentDistributionBase):
     def _line_index(self) -> int:
         return (self.temperature_index
                 + (self.current_speed_index
-                   + (self.frequency_index
-                      + (self.power_index
-                         ) * len(self.power_dbm_values)
-                      ) * len(self.frequency_values)
+                    + (self.delay_between_cycles_index
+                       + (self.frequency_index
+                          + (self.power_index
+                             ) * len(self.power_dbm_values)
+                          ) * len(self.frequency_values)
+                       ) * len(self.delay_between_cycles_values)
                    ) * len(self.current_speed_values)
                 )
 
@@ -54,6 +56,7 @@ class App(SwitchingCurrentDistributionBase):
         return ', '.join(filter(None, (
             format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.current_speed, suffix='nA/s'),
+            format_float(self.delay_between_cycles * 1e3, suffix='ms'),
             format_float(self.power_dbm, suffix='dBm')
             if not np.isnan(self.power_dbm) else '',
             format_float(self.frequency, suffix='GHz')
@@ -88,35 +91,44 @@ class App(SwitchingCurrentDistributionBase):
                     self.current_speed_index += 1
                 if self.current_speed_index >= len(self.current_speed_values):
                     self.current_speed_index = 0
-                    if self.stop_key_aux_voltage.isChecked():
+                    if self.stop_key_delay_between_cycles.isChecked():
                         return False
                     if make_step:
-                        self.aux_voltage_index += 1
-                        self.bad_aux_voltage_time = datetime.now()
+                        self.delay_between_cycles_index += 1
                     while self.check_exists and self._data_file_exists():
                         self._add_plot_point_from_file(self.aux_voltage)
-                        self.aux_voltage_index += 1
-                        self.bad_aux_voltage_time = datetime.now()
-                    if self.aux_voltage_index >= len(self.aux_voltage_values):
-                        self.aux_voltage_index = 0
-                        self.bad_aux_voltage_time = datetime.now()
-                        if self.stop_key_temperature.isChecked():
+                        self.delay_between_cycles_index += 1
+                    if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
+                        self.delay_between_cycles_index = 0
+                        if self.stop_key_aux_voltage.isChecked():
                             return False
                         if make_step:
-                            self.temperature_index += 1
+                            self.aux_voltage_index += 1
+                            self.bad_aux_voltage_time = datetime.now()
                         while self.check_exists and self._data_file_exists():
                             self._add_plot_point_from_file(self.aux_voltage)
-                            self.temperature_index += 1
-                        if self.temperature_index >= len(self.temperature_values):
-                            self.temperature_index = 0
-                            return False
-                    actual_temperature: float
-                    temperature_unit: str
-                    actual_temperature, temperature_unit = self.triton.query_temperature(6)
-                    if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                            < actual_temperature
-                            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
-                        self.temperature_just_set = True
+                            self.aux_voltage_index += 1
+                            self.bad_aux_voltage_time = datetime.now()
+                        if self.aux_voltage_index >= len(self.aux_voltage_values):
+                            self.aux_voltage_index = 0
+                            self.bad_aux_voltage_time = datetime.now()
+                            if self.stop_key_temperature.isChecked():
+                                return False
+                            if make_step:
+                                self.temperature_index += 1
+                            while self.check_exists and self._data_file_exists():
+                                self._add_plot_point_from_file(self.aux_voltage)
+                                self.temperature_index += 1
+                            if self.temperature_index >= len(self.temperature_values):
+                                self.temperature_index = 0
+                                return False
+                        actual_temperature: float
+                        temperature_unit: str
+                        actual_temperature, temperature_unit = self.triton.query_temperature(6)
+                        if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                                < actual_temperature
+                                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                            self.temperature_just_set = True
         return True
 
     def on_timeout(self) -> None:

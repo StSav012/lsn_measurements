@@ -42,6 +42,7 @@ class LifetimeGUI(QMainWindow):
         self.label_frequency: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_power: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_setting_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_aux_voltage: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
@@ -52,6 +53,7 @@ class LifetimeGUI(QMainWindow):
         self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_frequency: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_setting_time: QPushButton = QPushButton(self.stop_sings_box)
+        self.stop_key_delay_between_cycles: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_aux_voltage: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
@@ -83,6 +85,8 @@ class LifetimeGUI(QMainWindow):
         self.label_power.suffix = 'dBm'
         self.label_setting_time.suffix = 'ms'
         self.label_setting_time.formatStr = '{value:0.1f} {suffix}'
+        self.label_delay_between_cycles.suffix = 'ms'
+        self.label_delay_between_cycles.formatStr = '{value:0.1f} {suffix}'
         self.label_aux_voltage.suffix = 'mV'
         self.label_aux_voltage.formatStr = '{value:0.2f} {suffix}'
         self.label_temperature.suffix = 'mK'
@@ -110,6 +114,7 @@ class LifetimeGUI(QMainWindow):
         self.parameters_layout.addRow('Frequency:', self.label_frequency)
         self.parameters_layout.addRow('Power:', self.label_power)
         self.parameters_layout.addRow('Setting time:', self.label_setting_time)
+        self.parameters_layout.addRow('Delay b/w cycles:', self.label_delay_between_cycles)
         self.parameters_layout.addRow('Aux voltage:', self.label_aux_voltage)
         self.parameters_layout.addRow('Temperature:', self.label_temperature)
         self.parameters_layout.addRow('Loop number:', self.label_loop_number)
@@ -128,6 +133,7 @@ class LifetimeGUI(QMainWindow):
         self.stop_key_power.setText('Stop after this Power')
         self.stop_key_frequency.setText('Stop after this Frequency')
         self.stop_key_setting_time.setText('Stop after this Setting Time')
+        self.stop_key_delay_between_cycles.setText('Stop after this Delay')
         self.stop_key_aux_voltage.setText('Stop after this Aux Voltage')
         self.stop_key_temperature.setText('Stop after this Temperature')
 
@@ -135,6 +141,7 @@ class LifetimeGUI(QMainWindow):
         self.stop_key_power.setCheckable(True)
         self.stop_key_frequency.setCheckable(True)
         self.stop_key_setting_time.setCheckable(True)
+        self.stop_key_delay_between_cycles.setCheckable(True)
         self.stop_key_aux_voltage.setCheckable(True)
         self.stop_key_temperature.setCheckable(True)
 
@@ -142,6 +149,7 @@ class LifetimeGUI(QMainWindow):
         self.stop_sings_box.layout().addWidget(self.stop_key_power)
         self.stop_sings_box.layout().addWidget(self.stop_key_frequency)
         self.stop_sings_box.layout().addWidget(self.stop_key_setting_time)
+        self.stop_sings_box.layout().addWidget(self.stop_key_delay_between_cycles)
         self.stop_sings_box.layout().addWidget(self.stop_key_aux_voltage)
         self.stop_sings_box.layout().addWidget(self.stop_key_temperature)
 

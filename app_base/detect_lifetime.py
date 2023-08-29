@@ -86,9 +86,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.max_mean: Final[float] = self.config.getfloat('lifetime', 'max mean time to measure [sec]',
                                                            fallback=np.inf)
         self.ignore_never_switched: bool = self.config.getboolean('lifetime', 'ignore never switched')
-        self.delay_between_cycles: Final[float] = get_float(self.config, self.sample_name,
-                                                            'measurement', 'delay between cycles [sec]',
-                                                            fallback=0.0)
+        self.delay_between_cycles_values: Final[SliceSequence] \
+            = SliceSequence(get_str(self.config, self.sample_name, 'measurement', 'delay between cycles [sec]'))
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(self.config, self.sample_name,
                                                 'measurement', 'adc rate [S/sec]',
                                                 fallback=np.nan)
@@ -118,6 +118,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.temperature_index: int = 0
         self.frequency_index: int = 0
+        self.delay_between_cycles_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
@@ -148,6 +149,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         return float(self.frequency_values[self.frequency_index])
 
     @property
+    def delay_between_cycles(self) -> float:
+        return self.delay_between_cycles_values[self.delay_between_cycles_index]
+
+    @property
     @abc.abstractmethod
     def stat_file(self) -> Path:
         ...
@@ -163,6 +168,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             self.config.get('output', 'prefix', fallback=''),
             format_float(self.temperature * 1e3, suffix='mK'),
             format_float(self.bias_current, suffix='nA'),
+            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
             f'CC{self.cycles_count_detect}',
             format_float(self.frequency, suffix='GHz')
             if not np.isnan(self.frequency) else '',
@@ -321,6 +327,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.triton.issue_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
         self.synthesizer.frequency = self.frequency * 1e9
         self.label_frequency.clear()
         self.label_bias.setValue(self.bias_current)
@@ -470,6 +477,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
+                        and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
                         and self.temperature_index < len(self.temperature_values)
                         and self.stat_file.exists())
         if exists and verbose:

@@ -208,7 +208,8 @@ class LifetimeBase(LifetimeGUI):
         i: int = self._line_index
         if i not in self.plot_lines:
             color: QColor = pg.intColor(i)
-            self.plot_lines[i] = self.figure.plot(np.empty(0), symbol='o', name=self._line_name or None,
+            self.plot_lines[i] = self.figure.plot(np.empty(0, dtype=np.float64), symbol='o',
+                                                  name=self._line_name or None,
                                                   pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines[i]
 
@@ -328,8 +329,12 @@ class LifetimeBase(LifetimeGUI):
             self.label_lifetime_std.clear()
 
     def _add_plot_point(self, x: float, lifetime: float) -> None:
-        old_x_data: NDArray[np.float64] = np.empty(0) if self.plot_line.xData is None else self.plot_line.xData
-        old_y_data: NDArray[np.float64] = np.empty(0) if self.plot_line.yData is None else self.plot_line.yData
+        old_x_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
+                                           if self.plot_line.xData is None
+                                           else self.plot_line.xData)
+        old_y_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
+                                           if self.plot_line.yData is None
+                                           else self.plot_line.yData)
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, lifetime)
         self.plot_line.setData(x_data, y_data)

@@ -230,7 +230,8 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         i: int = self._line_index_detect
         if i not in self.plot_lines_detect:
             color: QColor = pg.intColor(i)
-            self.plot_lines_detect[i] = self.canvas_detect.plot(np.empty(0), symbol='o',
+            self.plot_lines_detect[i] = self.canvas_detect.plot(np.empty(0, dtype=np.float64),
+                                                                symbol='o',
                                                                 name=self._line_name_detect or None,
                                                                 pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_detect[i]
@@ -240,7 +241,8 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         i: int = self._line_index_lifetime
         if i not in self.plot_lines_lifetime:
             color: QColor = pg.intColor(i)
-            self.plot_lines_lifetime[i] = self.canvas_lifetime.plot(np.empty(0), symbol='o',
+            self.plot_lines_lifetime[i] = self.canvas_lifetime.plot(np.empty(0, dtype=np.float64),
+                                                                    symbol='o',
                                                                     name=self._line_name_lifetime or None,
                                                                     pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_lifetime[i]
@@ -435,10 +437,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             self.label_spent_time.setValue(spent_time.total_seconds())
 
     def _add_plot_point_lifetime(self, x: float, lifetime: float) -> None:
-        old_x_data: NDArray[np.float64] = (np.empty(0)
+        old_x_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
                                            if self.plot_line_lifetime.xData is None
                                            else self.plot_line_lifetime.xData)
-        old_y_data: NDArray[np.float64] = (np.empty(0)
+        old_y_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
                                            if self.plot_line_lifetime.yData is None
                                            else self.plot_line_lifetime.yData)
         x_data: NDArray[np.float64] = np.append(old_x_data, x)

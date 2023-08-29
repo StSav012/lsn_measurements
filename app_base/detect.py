@@ -192,7 +192,8 @@ class DetectBase(DetectGUI):
         i: int = self._line_index
         if i not in self.plot_lines:
             color: QColor = pg.intColor(i)
-            self.plot_lines[i] = self.figure.plot(np.empty(0), symbol='o', name=self._line_name or None,
+            self.plot_lines[i] = self.figure.plot(np.empty(0, dtype=np.float64), symbol='o',
+                                                  name=self._line_name or None,
                                                   pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines[i]
 

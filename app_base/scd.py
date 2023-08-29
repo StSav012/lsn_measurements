@@ -198,7 +198,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         i: int = self._line_index
         if i not in self.plot_lines_mean:
             color: QColor = pg.intColor(i)
-            self.plot_lines_mean[i] = self.canvas_mean.plot(np.empty(0), symbol='o',
+            self.plot_lines_mean[i] = self.canvas_mean.plot(np.empty(0, dtype=np.float64), symbol='o',
                                                             name=self._line_name or None,
                                                             pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_mean[i]
@@ -208,7 +208,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         i: int = self._line_index
         if i not in self.plot_lines_std:
             color: QColor = pg.intColor(i)
-            self.plot_lines_std[i] = self.canvas_std.plot(np.empty(0), symbol='o',
+            self.plot_lines_std[i] = self.canvas_std.plot(np.empty(0, dtype=np.float64), symbol='o',
                                                           name=self._line_name or None,
                                                           pen=color, symbolPen=color, symbolBrush=color)
         return self.plot_lines_std[i]
@@ -327,13 +327,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             self.histogram.hist(self.switching_current, pen='white', symbolBrush='white', symbolPen='white')
 
     def _add_plot_point(self, x: float, mean: float, std: float) -> None:
-        old_x_data: NDArray[np.float64] = (np.empty(0)
+        old_x_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
                                            if self.plot_line_mean.xData is None
                                            else self.plot_line_mean.xData)
-        old_mean_data: NDArray[np.float64] = (np.empty(0)
+        old_mean_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
                                               if self.plot_line_mean.yData is None
                                               else self.plot_line_mean.yData)
-        old_std_data: NDArray[np.float64] = (np.empty(0)
+        old_std_data: NDArray[np.float64] = (np.empty(0, dtype=np.float64)
                                              if self.plot_line_std.yData is None
                                              else self.plot_line_std.yData)
         x_data: NDArray[np.float64] = np.append(old_x_data, x)

@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 from app_base.detect_lifetime import DetectLifetimeBase
+from backend.hardware import dac_aux
 from backend.utils import zero_sources
 from backend.utils.string_utils import format_float
 
@@ -201,4 +202,4 @@ if __name__ == '__main__':
     window: App = App()
     window.show()
     app.exec()
-    zero_sources()
+    zero_sources(reset_dac=False, exceptions=(dac_aux,))

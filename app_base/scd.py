@@ -286,7 +286,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
         if self.stat_file.exists():
             f_out: TextIO
-            with self.stat_file.open('at') as f_out:
+            with self.stat_file.open('at', encoding='utf-8') as f_out:
                 f_out.write('\n')
         self.start_measurement()
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,7 +11,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 from app_base.detect import DetectBase
-from backend.utils import load_txt, zero_sources
+from backend.utils import zero_sources
 from backend.utils.string_utils import format_float
 
 
@@ -55,24 +56,29 @@ class App(DetectBase):
             format_float(self.temperature * 1e3, suffix='mK'),
         )))
 
-    def _fill_the_data_from_stat_file(self) -> None:
-        data: NDArray[float]
-        titles: tuple[str]
-        data, titles = load_txt(self.stat_file, sep='\t', encoding='utf-8')
-        if 'Set Bias Current [nA]' in titles and 'Switch Probability [%]' in titles \
-                and 'Probability Uncertainty [%]' in titles:
-            x_column: int = titles.index('Set Bias Current [nA]')
-            prob_column: int = titles.index('Switch Probability [%]')
-            err_column: int = titles.index('Probability Uncertainty [%]')
-            for x, prob, err in zip(data[..., x_column], data[..., prob_column], data[..., err_column]):
-                self._add_plot_point(x, prob, err)
+    def _add_plot_point_from_file(self) -> None:
+        if self.data_file in self.saved_files:
+            return
+        self.saved_files.add(self.data_file)
+        measured_data: NDArray[float] = self._get_data_file_content()
+        bias_current: NDArray[float] = measured_data[0]
+        median_bias_current: float = cast(float, np.nanmedian(bias_current))
+        min_reasonable_bias_current: float = median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
+        max_reasonable_bias_current: float = median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
+        reasonable: NDArray[np.bool_] = ((bias_current >= min_reasonable_bias_current)
+                                         & (bias_current <= max_reasonable_bias_current))
+        good_count: int = np.count_nonzero(reasonable)
+        prob: float = 100.0 * good_count / self.cycles_count
+        err: float = np.sqrt(prob * (100.0 - prob) / self.cycles_count)
+        self._add_plot_point(cast(float, np.mean(bias_current)), prob, err)
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_power.isChecked():
             return False
         if make_step:
             self.power_index += 1
-        while self.check_exists and self._stat_file_exists():
+        while self.check_exists and self._data_file_exists():
+            self._add_plot_point_from_file()
             self.power_index += 1
         if self.power_index >= len(self.power_dbm_values):
             self.power_index = 0
@@ -80,7 +86,8 @@ class App(DetectBase):
                 return False
             if make_step:
                 self.frequency_index += 1
-            while self.check_exists and self._stat_file_exists():
+            while self.check_exists and self._data_file_exists():
+                self._add_plot_point_from_file()
                 self.frequency_index += 1
             if self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
@@ -88,7 +95,8 @@ class App(DetectBase):
                     return False
                 if make_step:
                     self.setting_time_index += 1
-                while self.check_exists and self._stat_file_exists():
+                while self.check_exists and self._data_file_exists():
+                    self._add_plot_point_from_file()
                     self.setting_time_index += 1
                 if self.setting_time_index >= len(self.setting_time_values):
                     self.setting_time_index = 0
@@ -96,7 +104,8 @@ class App(DetectBase):
                         return False
                     if make_step:
                         self.temperature_index += 1
-                    while self.check_exists and self._stat_file_exists():
+                    while self.check_exists and self._data_file_exists():
+                        self._add_plot_point_from_file()
                         self.temperature_index += 1
                     if self.temperature_index >= len(self.temperature_values):
                         self.temperature_index = 0

@@ -122,6 +122,8 @@ class DetectBase(DetectGUI):
         self.bias_current_index: int = 0
         self.power_index: int = 0
 
+        self.saved_files: set[Path] = set()
+
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
         self.temperature_just_set: bool = False
 
@@ -278,6 +280,7 @@ class DetectBase(DetectGUI):
         self.timer.stop()
         self.synthesizer.pulse_modulation.state = False
         self.synthesizer.output = False
+        self.saved_files.add(self.data_file)
         super(DetectBase, self).on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:
@@ -345,22 +348,27 @@ class DetectBase(DetectGUI):
             self.good_to_measure.buf[0] = True
 
     @abc.abstractmethod
-    def _fill_the_data_from_stat_file(self) -> None:
+    def _add_plot_point_from_file(self) -> None:
         ...
 
-    def _stat_file_exists(self, verbose: bool = True) -> bool:
+    def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (self.bias_current_index < len(self.bias_current_values)
                         and self.power_index < len(self.power_dbm_values)
                         and self.frequency_index < len(self.frequency_values)
                         and self.setting_time_index < len(self.setting_time_values)
                         and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
                         and self.temperature_index < len(self.temperature_values)
-                        and self.stat_file.exists())
-        if exists and self.plot_line.xData is None:
-            self._fill_the_data_from_stat_file()
+                        and self.data_file.exists()
+                        and self._get_data_file_content().size)
         if exists and verbose:
-            warning(f'{self.stat_file} already exists')
+            if self.data_file not in self.saved_files:
+                warning(f'{self.data_file} already exists')
         return exists
+
+    def _get_data_file_content(self) -> NDArray[float]:
+        return np.array([[float(cell) for cell in row.split('\t')]
+                         for row in self.data_file.read_text(encoding='utf-8').splitlines()
+                         if row and (row.startswith('nan') or not row[0].isalpha())]).T
 
     @abc.abstractmethod
     def on_timeout(self) -> None:

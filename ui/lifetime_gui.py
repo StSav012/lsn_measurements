@@ -70,9 +70,8 @@ class LifetimeGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('Lifetime'), units=self.tr('s'))
         y_axis.enableAutoSIPrefix(False)
         self.figure.plotItem.ctrl.averageGroup.setChecked(False)
-        self.figure.plotItem.ctrl.logYCheck.setChecked(True)
-        self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
-        self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
+        self.figure.plotItem.setLogMode(x=False, y=True)
+        self.figure.plotItem.showGrid(x=True, y=True)
 
         self.label_spent_time.suffix = self.tr('s')
         self.label_spent_time.formatStr = '{value:0.5f} {suffix}'

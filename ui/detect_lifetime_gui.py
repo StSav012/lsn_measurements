@@ -74,9 +74,8 @@ class DetectLifetimeGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('Probability'), units='%')
         y_axis.enableAutoSIPrefix(False)
         self.canvas_detect.ctrl.averageGroup.setChecked(False)
-        self.canvas_detect.ctrl.logYCheck.setChecked(True)
-        self.canvas_detect.ctrl.xGridCheck.setChecked(True)
-        self.canvas_detect.ctrl.yGridCheck.setChecked(True)
+        self.canvas_detect.setLogMode(x=False, y=True)
+        self.canvas_detect.showGrid(x=True, y=True)
 
         x_axis = self.canvas_lifetime.getAxis('bottom')
         x_axis.enableAutoSIPrefix(False)
@@ -84,9 +83,8 @@ class DetectLifetimeGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('Lifetime'), units=self.tr('s'))
         y_axis.enableAutoSIPrefix(False)
         self.canvas_lifetime.ctrl.averageGroup.setChecked(False)
-        self.canvas_lifetime.ctrl.logYCheck.setChecked(True)
-        self.canvas_lifetime.ctrl.xGridCheck.setChecked(True)
-        self.canvas_lifetime.ctrl.yGridCheck.setChecked(True)
+        self.canvas_lifetime.ctrl.setLogMode(x=True, y=True)
+        self.canvas_lifetime.showGrid(x=True, y=True)
 
         self.canvas_detect.addLegend(offset=(-30, -30))
         self.canvas_lifetime.addLegend(offset=(30, -30))

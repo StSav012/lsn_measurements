@@ -21,8 +21,7 @@ class Histogram(pg.PlotWidget):
         super().__init__(parent)
 
         self._plot_line: pg.PlotDataItem | None = None
-        self.plotItem.ctrl.xGridCheck.setChecked(True)
-        self.plotItem.ctrl.yGridCheck.setChecked(True)
+        self.plotItem.showGrid(x=True, y=True)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         self._text: str = ''

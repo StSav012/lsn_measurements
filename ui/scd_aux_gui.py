@@ -76,8 +76,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('Mean'), units=self.tr('nA'))
         y_axis.enableAutoSIPrefix(False)
         self.canvas_mean.ctrl.averageGroup.setChecked(False)
-        self.canvas_mean.ctrl.xGridCheck.setChecked(True)
-        self.canvas_mean.ctrl.yGridCheck.setChecked(True)
+        self.canvas_mean.showGrid(x=True, y=True)
 
         x_axis = self.canvas_std.getAxis('bottom')
         x_axis.enableAutoSIPrefix(False)
@@ -85,8 +84,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('StD'), units=self.tr('nA'))
         y_axis.enableAutoSIPrefix(False)
         self.canvas_std.ctrl.averageGroup.setChecked(False)
-        self.canvas_std.ctrl.xGridCheck.setChecked(True)
-        self.canvas_std.ctrl.yGridCheck.setChecked(True)
+        self.canvas_std.showGrid(x=True, y=True)
         self.canvas_std.setXLink(self.canvas_mean)
 
         self.canvas_mean.addLegend()

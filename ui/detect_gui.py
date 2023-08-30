@@ -66,9 +66,8 @@ class DetectGUI(QMainWindow):
         y_axis.setLabel(text=self.tr('Probability'), units='%')
         y_axis.enableAutoSIPrefix(False)
         self.figure.plotItem.ctrl.averageGroup.setChecked(False)
-        self.figure.plotItem.ctrl.logYCheck.setChecked(True)
-        self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
-        self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
+        self.figure.setLogMode(x=False, y=True)
+        self.figure.showGrid(x=True, y=True)
 
         self.label_loop_count.formatStr = '{value:.0f}'
         self.label_loop_number.formatStr = '{value:.0f}'

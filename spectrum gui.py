@@ -20,8 +20,8 @@ _MAX_ADC_SAMPLE_RATE: Final[float] = device_adc.ai_max_multi_chan_rate
 
 
 class GUI(QMainWindow):
-    def __init__(self, flags=Qt.WindowFlags()) -> None:
-        super(GUI, self).__init__(flags=flags)
+    def __init__(self, parent: QWidget | None = None, flags: Qt.WindowFlags = Qt.WindowFlags()) -> None:
+        super().__init__(parent=parent, flags=flags)
 
         self.settings: QSettings = QSettings("SavSoft", "IV Curve", self)
 

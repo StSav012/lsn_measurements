@@ -12,8 +12,8 @@ __all__ = ['DetectLifetimeGUI']
 
 
 class DetectLifetimeGUI(QMainWindow):
-    def __init__(self, flags=Qt.WindowFlags()) -> None:
-        super(DetectLifetimeGUI, self).__init__(flags=flags)
+    def __init__(self, parent: QWidget | None = None, flags: Qt.WindowFlags = Qt.WindowFlags()) -> None:
+        super().__init__(parent=parent, flags=flags)
 
         self.settings: QSettings = QSettings("SavSoft", "Detect+Lifetime", self)
 

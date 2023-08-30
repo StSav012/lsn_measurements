@@ -16,7 +16,7 @@ class App(LifetimeBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis('bottom').setLabel(text='Current', units='nA')
+        self.figure.getAxis('bottom').setLabel(text=self.tr('Current'), units=self.tr('nA'))
 
     @property
     def stat_file(self) -> Path:
@@ -56,13 +56,13 @@ class App(LifetimeBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.aux_voltage * 1e3, prefix='aux ', suffix='mV'),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
-            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
-            format_float(self.frequency, suffix='GHz')
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
+            format_float(self.aux_voltage * 1e3, prefix='aux ', suffix=self.tr('mV')),
+            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix=self.tr('ms')),
+            format_float(self.frequency, suffix=self.tr('GHz'))
             if self.synthesizer_output else '',
-            format_float(self.power_dbm, suffix='dBm')
+            format_float(self.power_dbm, suffix=self.tr('dBm'))
             if self.synthesizer_output else '',
         )))
 

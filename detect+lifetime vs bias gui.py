@@ -16,8 +16,8 @@ class App(DetectLifetimeBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.canvas_detect.getAxis('bottom').setLabel(text='Power', units='dBm')
-        self.canvas_lifetime.getAxis('bottom').setLabel(text='Current', units='nA')
+        self.canvas_detect.getAxis('bottom').setLabel(text=self.tr('Power'), units=self.tr('dBm'))
+        self.canvas_lifetime.getAxis('bottom').setLabel(text=self.tr('Current'), units=self.tr('nA'))
 
     @property
     def stat_file_detect(self) -> Path:
@@ -69,10 +69,10 @@ class App(DetectLifetimeBase):
     @property
     def _line_name_detect(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.bias_current, suffix='nA'),
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.delay_between_cycles * 1e3, suffix='ms'),
-            format_float(self.frequency, suffix='GHz')
+            format_float(self.bias_current, suffix=self.tr('nA')),
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
+            format_float(self.delay_between_cycles * 1e3, suffix=self.tr('ms')),
+            format_float(self.frequency, suffix=self.tr('GHz'))
             if not np.isnan(self.frequency) else '',
         )))
 
@@ -88,9 +88,9 @@ class App(DetectLifetimeBase):
     @property
     def _line_name_lifetime(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
-            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
+            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix=self.tr('ms')),
         )))
 
     def _next_indices(self, make_step: bool = True) -> bool:

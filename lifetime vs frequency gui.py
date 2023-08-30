@@ -15,7 +15,7 @@ class App(LifetimeBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis('bottom').setLabel(text='Frequency', units='GHz')
+        self.figure.getAxis('bottom').setLabel(text=self.tr('Frequency'), units=self.tr('GHz'))
 
     @property
     def stat_file(self) -> Path:
@@ -51,11 +51,11 @@ class App(LifetimeBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.bias_current, suffix='nA'),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
-            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
-            format_float(self.power_dbm, suffix='dBm')
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
+            format_float(self.bias_current, suffix=self.tr('nA')),
+            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix=self.tr('ms')),
+            format_float(self.power_dbm, suffix=self.tr('dBm'))
             if not self.synthesizer_output else '',
         )))
 

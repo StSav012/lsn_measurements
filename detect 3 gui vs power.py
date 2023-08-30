@@ -19,7 +19,7 @@ class App(DetectBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis('bottom').setLabel(text='Power', units='dBm')
+        self.figure.getAxis('bottom').setLabel(text=self.tr('Power'), units=self.tr('dBm'))
 
     @property
     def stat_file(self) -> Path:
@@ -50,10 +50,10 @@ class App(DetectBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.bias_current, suffix='nA'),
-            format_float(self.frequency, suffix='GHz'),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix='ms'),
-            format_float(self.temperature * 1e3, suffix='mK'),
+            format_float(self.bias_current, suffix=self.tr('nA')),
+            format_float(self.frequency, suffix=self.tr('GHz')),
+            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
         )))
 
     def _add_plot_point_from_file(self) -> None:

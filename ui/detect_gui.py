@@ -17,7 +17,7 @@ class DetectGUI(QMainWindow):
 
         self.settings: QSettings = QSettings("SavSoft", "Detect", self)
 
-        self.setWindowTitle('Detect')
+        self.setWindowTitle(self.tr('Detect'))
         self.setWindowIcon(QIcon('lsn.svg'))
 
         self.central_widget: QWidget = QWidget(self)
@@ -63,7 +63,7 @@ class DetectGUI(QMainWindow):
         x_axis: pg.AxisItem = self.figure.getAxis('bottom')
         x_axis.enableAutoSIPrefix(False)
         y_axis: pg.AxisItem = self.figure.getAxis('left')
-        y_axis.setLabel(text='Probability', units='%')
+        y_axis.setLabel(text=self.tr('Probability'), units='%')
         y_axis.enableAutoSIPrefix(False)
         self.figure.plotItem.ctrl.averageGroup.setChecked(False)
         self.figure.plotItem.ctrl.logYCheck.setChecked(True)
@@ -74,16 +74,16 @@ class DetectGUI(QMainWindow):
         self.label_loop_number.formatStr = '{value:.0f}'
         self.label_probability.suffix = '%'
         self.label_probability.formatStr = '{value:0.2f}{suffix}'
-        self.label_power.suffix = 'dBm'
-        self.label_frequency.suffix = 'GHz'
+        self.label_power.suffix = self.tr('dBm')
+        self.label_frequency.suffix = self.tr('GHz')
         self.label_frequency.formatStr = '{value:0.4f} {suffix}'
-        self.label_pulse_duration.suffix = 'ms'
+        self.label_pulse_duration.suffix = self.tr('ms')
         self.label_pulse_duration.formatStr = '{value:0.4f} {suffix}'
-        self.label_bias.suffix = 'nA'
+        self.label_bias.suffix = self.tr('nA')
         self.label_bias.formatStr = '{value:0.2f} {suffix}'
-        self.label_setting_time.suffix = 'ms'
+        self.label_setting_time.suffix = self.tr('ms')
         self.label_setting_time.formatStr = '{value:0.1f} {suffix}'
-        self.label_temperature.suffix = 'mK'
+        self.label_temperature.suffix = self.tr('mK')
         self.label_temperature.formatStr = '{value:0.2f} {suffix}'
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
@@ -98,26 +98,26 @@ class DetectGUI(QMainWindow):
         self.controls_layout.addWidget(self.stop_sings_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
-        self.parameters_layout.addRow('Bias current:', self.label_bias)
-        self.parameters_layout.addRow('Frequency:', self.label_frequency)
-        self.parameters_layout.addRow('Power:', self.label_power)
-        self.parameters_layout.addRow('Pulse duration:', self.label_pulse_duration)
-        self.parameters_layout.addRow('Setting time:', self.label_setting_time)
-        self.parameters_layout.addRow('Temperature:', self.label_temperature)
-        self.parameters_layout.addRow('Loop count:', self.label_loop_count)
-        self.parameters_layout.addRow('Loop number:', self.label_loop_number)
-        self.parameters_layout.addRow('Probability:', self.label_probability)
+        self.parameters_layout.addRow(self.tr('Bias current:'), self.label_bias)
+        self.parameters_layout.addRow(self.tr('Frequency:'), self.label_frequency)
+        self.parameters_layout.addRow(self.tr('Power:'), self.label_power)
+        self.parameters_layout.addRow(self.tr('Pulse duration:'), self.label_pulse_duration)
+        self.parameters_layout.addRow(self.tr('Setting time:'), self.label_setting_time)
+        self.parameters_layout.addRow(self.tr('Temperature:'), self.label_temperature)
+        self.parameters_layout.addRow(self.tr('Loop count:'), self.label_loop_count)
+        self.parameters_layout.addRow(self.tr('Loop number:'), self.label_loop_number)
+        self.parameters_layout.addRow(self.tr('Probability:'), self.label_probability)
 
-        self.button_topmost.setText('Keep the Window Topmost')
+        self.button_topmost.setText(self.tr('Keep the Window Topmost'))
         self.button_topmost.setCheckable(True)
 
-        self.button_drop_measurement.setText('Next Measurement')
+        self.button_drop_measurement.setText(self.tr('Next Measurement'))
 
-        self.stop_key_bias.setText('Stop after this Bias')
-        self.stop_key_power.setText('Stop after this Power')
-        self.stop_key_frequency.setText('Stop after this Frequency')
-        self.stop_key_setting_time.setText('Stop after this Setting Time')
-        self.stop_key_temperature.setText('Stop after this Temperature')
+        self.stop_key_bias.setText(self.tr('Stop after this Bias'))
+        self.stop_key_power.setText(self.tr('Stop after this Power'))
+        self.stop_key_frequency.setText(self.tr('Stop after this Frequency'))
+        self.stop_key_setting_time.setText(self.tr('Stop after this Setting Time'))
+        self.stop_key_temperature.setText(self.tr('Stop after this Temperature'))
 
         self.stop_key_bias.setCheckable(True)
         self.stop_key_power.setCheckable(True)
@@ -135,10 +135,10 @@ class DetectGUI(QMainWindow):
         self.buttons_layout.addWidget(self.button_pause)
         self.buttons_layout.addWidget(self.button_stop)
 
-        self.button_start.setText('Start')
-        self.button_pause.setText('Pause')
+        self.button_start.setText(self.tr('Start'))
+        self.button_pause.setText(self.tr('Pause'))
         self.button_pause.setCheckable(True)
-        self.button_stop.setText('Stop')
+        self.button_stop.setText(self.tr('Stop'))
         self.button_stop.setDisabled(True)
 
         self.setCentralWidget(self.central_widget)

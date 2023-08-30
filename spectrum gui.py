@@ -25,7 +25,7 @@ class GUI(QMainWindow):
 
         self.settings: QSettings = QSettings("SavSoft", "IV Curve", self)
 
-        self.setWindowTitle('Spectrum')
+        self.setWindowTitle(self.tr('Spectrum'))
         self.setWindowIcon(QIcon('lsn.svg'))
 
         self.central_widget: QWidget = QWidget(self, flags=Qt.WindowFlags())
@@ -64,7 +64,7 @@ class GUI(QMainWindow):
     def setup_ui_appearance(self) -> None:
         opts: dict[str, bool | str | int]
         opts = {
-            'suffix': 'S/s',
+            'suffix': self.tr('S/s'),
             'siPrefix': True,
             'decimals': 3,
             'dec': True,
@@ -75,7 +75,7 @@ class GUI(QMainWindow):
         self.spin_sample_rate.setRange(1., _MAX_ADC_SAMPLE_RATE)
 
         opts = {
-            'suffix': 'A',
+            'suffix': self.tr('A'),
             'siPrefix': True,
             'decimals': 3,
             'dec': True,
@@ -85,7 +85,7 @@ class GUI(QMainWindow):
         self.spin_current.setOpts(**opts)
 
         opts = {
-            'suffix': 'Ω',
+            'suffix': self.tr('Ω'),
             'siPrefix': True,
             'decimals': 6,
             'dec': True,
@@ -100,19 +100,23 @@ class GUI(QMainWindow):
 
         self.spin_averaging_time_span.setMinimum(2. / _MAX_ADC_SAMPLE_RATE)
         self.spin_averaging_time_span.setSingleStep(1. / _MAX_ADC_SAMPLE_RATE)
-        self.spin_averaging_time_span.setSuffix(' s')
+        self.spin_averaging_time_span.setSuffix(self.tr(' s'))
 
         self.spin_display_time_span.setMinimum(2. / _MAX_ADC_SAMPLE_RATE)
         self.spin_display_time_span.setSingleStep(1. / _MAX_ADC_SAMPLE_RATE)
-        self.spin_display_time_span.setSuffix(' s')
+        self.spin_display_time_span.setSuffix(self.tr(' s'))
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        self.canvas_current_trend.setLabels(left=('Current', 'A'), bottom=('Time', 's'))
-        self.canvas_voltage_trend.setLabels(left=('Voltage', 'V'), bottom=('Time', 's'))
+        self.canvas_current_trend.setLabels(left=(self.tr('Current'), self.tr('A')),
+                                            bottom=(self.tr('Time'), self.tr('s')))
+        self.canvas_voltage_trend.setLabels(left=(self.tr('Voltage'), self.tr('V')),
+                                            bottom=(self.tr('Time'), self.tr('s')))
         self.canvas_current_trend.showGrid(x=True, y=False)
         self.canvas_voltage_trend.showGrid(x=True, y=False)
-        self.canvas_current_spectrum.setLabels(left=('Current PSD', 'A / sqrt(Hz)'), bottom=('Frequency', 'Hz'))
-        self.canvas_voltage_spectrum.setLabels(left=('Voltage PSD', 'V / sqrt(Hz)'), bottom=('Frequency', 'Hz'))
+        self.canvas_current_spectrum.setLabels(left=(self.tr('Current PSD'), self.tr('A / sqrt(Hz)')),
+                                               bottom=(self.tr('Frequency'), self.tr('Hz')))
+        self.canvas_voltage_spectrum.setLabels(left=(self.tr('Voltage PSD'), self.tr('V / sqrt(Hz)')),
+                                               bottom=(self.tr('Frequency'), self.tr('Hz')))
         self.canvas_current_spectrum.getAxis('left').autoSIPrefix = False
         self.canvas_voltage_spectrum.getAxis('left').autoSIPrefix = False
         self.canvas_current_spectrum.getAxis('bottom').autoSIPrefix = False
@@ -132,20 +136,20 @@ class GUI(QMainWindow):
         self.controls_layout.addWidget(self.parameters_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
-        self.parameters_layout.addRow('Sample rate:', self.spin_sample_rate)
-        self.parameters_layout.addRow('Current:', self.spin_current)
-        self.parameters_layout.addRow('Current divider:', self.combo_current_divider)
-        self.parameters_layout.addRow('Ballast resistance:', self.spin_ballast_resistance)
-        self.parameters_layout.addRow('Resistance in series:', self.spin_resistance_in_series)
-        self.parameters_layout.addRow('Voltage gain:', self.combo_voltage_gain)
-        self.parameters_layout.addRow('Time to average over', self.spin_averaging_time_span)
-        self.parameters_layout.addRow('Time span to show', self.spin_display_time_span)
+        self.parameters_layout.addRow(self.tr('Sample rate:'), self.spin_sample_rate)
+        self.parameters_layout.addRow(self.tr('Current:'), self.spin_current)
+        self.parameters_layout.addRow(self.tr('Current divider:'), self.combo_current_divider)
+        self.parameters_layout.addRow(self.tr('Ballast resistance:'), self.spin_ballast_resistance)
+        self.parameters_layout.addRow(self.tr('Resistance in series:'), self.spin_resistance_in_series)
+        self.parameters_layout.addRow(self.tr('Voltage gain:'), self.combo_voltage_gain)
+        self.parameters_layout.addRow(self.tr('Time to average over'), self.spin_averaging_time_span)
+        self.parameters_layout.addRow(self.tr('Time span to show'), self.spin_display_time_span)
 
         self.buttons_layout.addWidget(self.button_start)
         self.buttons_layout.addWidget(self.button_stop)
 
-        self.button_start.setText('Start')
-        self.button_stop.setText('Stop')
+        self.button_start.setText(self.tr('Start'))
+        self.button_stop.setText(self.tr('Stop'))
         self.button_stop.setDisabled(True)
 
         self.setCentralWidget(self.central_widget)

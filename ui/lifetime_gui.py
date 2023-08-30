@@ -18,7 +18,7 @@ class LifetimeGUI(QMainWindow):
 
         self.settings: QSettings = QSettings("SavSoft", "Lifetime", self)
 
-        self.setWindowTitle('Lifetime')
+        self.setWindowTitle(self.tr('Lifetime'))
         self.setWindowIcon(QIcon('lsn.svg'))
 
         self.central_widget: QWidget = QWidget(self)
@@ -67,30 +67,30 @@ class LifetimeGUI(QMainWindow):
         x_axis: pg.AxisItem = self.figure.getAxis('bottom')
         x_axis.enableAutoSIPrefix(False)
         y_axis: pg.AxisItem = self.figure.getAxis('left')
-        y_axis.setLabel(text='Lifetime', units='s')
+        y_axis.setLabel(text=self.tr('Lifetime'), units=self.tr('s'))
         y_axis.enableAutoSIPrefix(False)
         self.figure.plotItem.ctrl.averageGroup.setChecked(False)
         self.figure.plotItem.ctrl.logYCheck.setChecked(True)
         self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
         self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
 
-        self.label_spent_time.suffix = 's'
+        self.label_spent_time.suffix = self.tr('s')
         self.label_spent_time.formatStr = '{value:0.5f} {suffix}'
-        self.label_bias.suffix = 'nA'
+        self.label_bias.suffix = self.tr('nA')
         self.label_bias.formatStr = '{value:0.2f} {suffix}'
-        self.label_frequency.suffix = 'GHz'
+        self.label_frequency.suffix = self.tr('GHz')
         self.label_frequency.formatStr = '{value:0.4f} {suffix}'
-        self.label_power.suffix = 'dBm'
-        self.label_setting_time.suffix = 'ms'
+        self.label_power.suffix = self.tr('dBm')
+        self.label_setting_time.suffix = self.tr('ms')
         self.label_setting_time.formatStr = '{value:0.1f} {suffix}'
-        self.label_delay_between_cycles.suffix = 'ms'
+        self.label_delay_between_cycles.suffix = self.tr('ms')
         self.label_delay_between_cycles.formatStr = '{value:0.1f} {suffix}'
-        self.label_temperature.suffix = 'mK'
+        self.label_temperature.suffix = self.tr('mK')
         self.label_temperature.formatStr = '{value:0.2f} {suffix}'
         self.label_loop_number.formatStr = '{value:.0f}'
-        self.label_mean_lifetime.suffix = 's'
+        self.label_mean_lifetime.suffix = self.tr('s')
         self.label_mean_lifetime.formatStr = '{value:0.5f} {suffix}'
-        self.label_lifetime_std.suffix = 's'
+        self.label_lifetime_std.suffix = self.tr('s')
         self.label_lifetime_std.formatStr = '{value:0.5f} {suffix}'
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
@@ -105,31 +105,31 @@ class LifetimeGUI(QMainWindow):
         self.controls_layout.addWidget(self.stop_sings_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
-        self.parameters_layout.addRow('Since bias set:', self.label_spent_time)
-        self.parameters_layout.addRow('Bias current:', self.label_bias)
-        self.parameters_layout.addRow('Frequency:', self.label_frequency)
-        self.parameters_layout.addRow('Power:', self.label_power)
-        self.parameters_layout.addRow('Setting time:', self.label_setting_time)
-        self.parameters_layout.addRow('Delay b/w cycles:', self.label_delay_between_cycles)
-        self.parameters_layout.addRow('Temperature:', self.label_temperature)
-        self.parameters_layout.addRow('Loop number:', self.label_loop_number)
-        self.parameters_layout.addRow('Mean lifetime:', self.label_mean_lifetime)
-        self.parameters_layout.addRow('Lifetime std:', self.label_lifetime_std)
+        self.parameters_layout.addRow(self.tr('Since bias set:'), self.label_spent_time)
+        self.parameters_layout.addRow(self.tr('Bias current:'), self.label_bias)
+        self.parameters_layout.addRow(self.tr('Frequency:'), self.label_frequency)
+        self.parameters_layout.addRow(self.tr('Power:'), self.label_power)
+        self.parameters_layout.addRow(self.tr('Setting time:'), self.label_setting_time)
+        self.parameters_layout.addRow(self.tr('Delay b/w cycles:'), self.label_delay_between_cycles)
+        self.parameters_layout.addRow(self.tr('Temperature:'), self.label_temperature)
+        self.parameters_layout.addRow(self.tr('Loop number:'), self.label_loop_number)
+        self.parameters_layout.addRow(self.tr('Mean lifetime:'), self.label_mean_lifetime)
+        self.parameters_layout.addRow(self.tr('Lifetime std:'), self.label_lifetime_std)
 
-        self.button_topmost.setText('Keep the Window Topmost')
+        self.button_topmost.setText(self.tr('Keep the Window Topmost'))
         self.button_topmost.setCheckable(True)
 
-        self.button_drop_measurement.setText('Next Measurement')
+        self.button_drop_measurement.setText(self.tr('Next Measurement'))
 
-        self.histogram.set_label(text='Lifetime', unit='s')
+        self.histogram.set_label(text=self.tr('Lifetime'), unit=self.tr('s'))
         self.histogram.setLogMode(x=True, y=True)
 
-        self.stop_key_bias.setText('Stop after this Bias')
-        self.stop_key_power.setText('Stop after this Power')
-        self.stop_key_frequency.setText('Stop after this Frequency')
-        self.stop_key_setting_time.setText('Stop after this Setting Time')
-        self.stop_key_delay_between_cycles.setText('Stop after this Delay')
-        self.stop_key_temperature.setText('Stop after this Temperature')
+        self.stop_key_bias.setText(self.tr('Stop after this Bias'))
+        self.stop_key_power.setText(self.tr('Stop after this Power'))
+        self.stop_key_frequency.setText(self.tr('Stop after this Frequency'))
+        self.stop_key_setting_time.setText(self.tr('Stop after this Setting Time'))
+        self.stop_key_delay_between_cycles.setText(self.tr('Stop after this Delay'))
+        self.stop_key_temperature.setText(self.tr('Stop after this Temperature'))
 
         self.stop_key_bias.setCheckable(True)
         self.stop_key_power.setCheckable(True)
@@ -149,10 +149,10 @@ class LifetimeGUI(QMainWindow):
         self.buttons_layout.addWidget(self.button_pause)
         self.buttons_layout.addWidget(self.button_stop)
 
-        self.button_start.setText('Start')
-        self.button_pause.setText('Pause')
+        self.button_start.setText(self.tr('Start'))
+        self.button_pause.setText(self.tr('Pause'))
         self.button_pause.setCheckable(True)
-        self.button_stop.setText('Stop')
+        self.button_stop.setText(self.tr('Stop'))
         self.button_stop.setDisabled(True)
 
         self.setCentralWidget(self.central_widget)

@@ -17,8 +17,8 @@ class App(SwitchingCurrentDistributionBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.canvas_mean.getAxis('bottom').setLabel(text='Aux Voltage', units='mV')
-        self.canvas_std.getAxis('bottom').setLabel(text='Aux Voltage', units='mV')
+        self.canvas_mean.getAxis('bottom').setLabel(text=self.tr('Aux Voltage'), units=self.tr('mV'))
+        self.canvas_std.getAxis('bottom').setLabel(text=self.tr('Aux Voltage'), units=self.tr('mV'))
 
     @property
     def stat_file(self) -> Path:
@@ -54,12 +54,12 @@ class App(SwitchingCurrentDistributionBase):
     @property
     def _line_name(self) -> str:
         return ', '.join(filter(None, (
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.current_speed, suffix='nA/s'),
-            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix='ms'),
-            format_float(self.power_dbm, suffix='dBm')
+            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
+            format_float(self.current_speed, suffix=self.tr('nA/s')),
+            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix=self.tr('ms')),
+            format_float(self.power_dbm, suffix=self.tr('dBm'))
             if not np.isnan(self.power_dbm) else '',
-            format_float(self.frequency, suffix='GHz')
+            format_float(self.frequency, suffix=self.tr('GHz'))
             if not np.isnan(self.frequency) else '',
         )))
 

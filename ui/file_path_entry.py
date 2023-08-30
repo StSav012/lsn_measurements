@@ -28,7 +28,7 @@ class FilePathEntry(QWidget):
         self.status: QLabel = QLabel(self)
         layout.addWidget(self.status)
 
-        self.browse_button: QPushButton = QPushButton('Browse…', self)
+        self.browse_button: QPushButton = QPushButton(self.tr('Browse…'), self)
         self.browse_button.clicked.connect(self.on_browse_button_clicked)
         layout.addWidget(self.browse_button)
 

@@ -22,7 +22,7 @@ class GUI(QMainWindow):
 
         self.settings: QSettings = QSettings("SavSoft", "IV Curve", self)
 
-        self.setWindowTitle('IV Curve')
+        self.setWindowTitle(self.tr('IV Curve'))
         self.setWindowIcon(QIcon('lsn.svg'))
 
         self.central_widget: QWidget = QWidget(self, flags=Qt.WindowFlags())
@@ -63,7 +63,7 @@ class GUI(QMainWindow):
     def setup_ui_appearance(self) -> None:
         opts: dict[str, bool | str | int]
         opts = {
-            'suffix': 'A',
+            'suffix': self.tr('A'),
             'siPrefix': True,
             'decimals': 3,
             'dec': True,
@@ -73,7 +73,7 @@ class GUI(QMainWindow):
         self.spin_current_min.setOpts(**opts)
         self.spin_current_max.setOpts(**opts)
         opts = {
-            'suffix': 'A/s',
+            'suffix': self.tr('A/s'),
             'siPrefix': True,
             'decimals': 3,
             'dec': True,
@@ -82,7 +82,7 @@ class GUI(QMainWindow):
         }
         self.spin_current_rate.setOpts(**opts)
         opts = {
-            'suffix': 'Ω',
+            'suffix': self.tr('Ω'),
             'siPrefix': True,
             'decimals': 6,
             'dec': True,
@@ -105,7 +105,7 @@ class GUI(QMainWindow):
 
         opts = {
             'bounds': (device_adc.ai_min_rate, device_adc.ai_max_multi_chan_rate),
-            'suffix': 'Hz',
+            'suffix': self.tr('Hz'),
             'siPrefix': True,
             'decimals': 3,
             'dec': True,
@@ -115,8 +115,8 @@ class GUI(QMainWindow):
         self.spin_adc_rate.setOpts(**opts)
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        self.figure.getAxis('bottom').setLabel(text='Voltage', units='V')
-        self.figure.getAxis('left').setLabel(text='Current', units='A')
+        self.figure.getAxis('bottom').setLabel(text=self.tr('Voltage'), units=self.tr('V'))
+        self.figure.getAxis('left').setLabel(text=self.tr('Current'), units=self.tr('A'))
         self.figure.plotItem.ctrl.xGridCheck.setChecked(True)
         self.figure.plotItem.ctrl.yGridCheck.setChecked(True)
 
@@ -126,31 +126,31 @@ class GUI(QMainWindow):
         self.controls_layout.addWidget(self.parameters_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
-        self.parameters_layout.addRow('Minimum current:', self.spin_current_min)
-        self.parameters_layout.addRow('Maximum current:', self.spin_current_max)
-        self.parameters_layout.addRow('Current rate:', self.spin_current_rate)
-        self.parameters_layout.addRow('Current divider:', self.spin_current_divider)
-        self.check_two_way.setText('Two-way')
+        self.parameters_layout.addRow(self.tr('Minimum current:'), self.spin_current_min)
+        self.parameters_layout.addRow(self.tr('Maximum current:'), self.spin_current_max)
+        self.parameters_layout.addRow(self.tr('Current rate:'), self.spin_current_rate)
+        self.parameters_layout.addRow(self.tr('Current divider:'), self.spin_current_divider)
+        self.check_two_way.setText(self.tr('Two-way'))
         self.parameters_layout.addWidget(self.check_two_way)
-        self.parameters_layout.addRow('Ballast resistance:', self.spin_ballast_resistance)
-        self.parameters_layout.addRow('Resistance in series:', self.spin_resistance_in_series)
-        self.parameters_layout.addRow('Voltage gain:', self.spin_voltage_gain)
-        self.parameters_layout.addRow('ADC rate:', self.spin_adc_rate)
-        self.parameters_layout.addRow('Current mode:', self.frame_current_mode)
+        self.parameters_layout.addRow(self.tr('Ballast resistance:'), self.spin_ballast_resistance)
+        self.parameters_layout.addRow(self.tr('Resistance in series:'), self.spin_resistance_in_series)
+        self.parameters_layout.addRow(self.tr('Voltage gain:'), self.spin_voltage_gain)
+        self.parameters_layout.addRow(self.tr('ADC rate:'), self.spin_adc_rate)
+        self.parameters_layout.addRow(self.tr('Current mode:'), self.frame_current_mode)
 
         self.frame_current_mode.setLayout(QVBoxLayout())
         self.frame_current_mode.layout().addWidget(self.radio_linear_mode)
         self.frame_current_mode.layout().addWidget(self.radio_parabolic_mode)
-        self.radio_linear_mode.setText('Linear')
-        self.radio_parabolic_mode.setText('Parabolic')
+        self.radio_linear_mode.setText(self.tr('Linear'))
+        self.radio_parabolic_mode.setText(self.tr('Parabolic'))
 
         self.buttons_layout.addWidget(self.button_start)
         self.buttons_layout.addWidget(self.button_stop)
         self.buttons_layout.addWidget(self.button_filter)
 
-        self.button_start.setText('Start')
-        self.button_stop.setText('Stop')
-        self.button_filter.setText('Filter')
+        self.button_start.setText(self.tr('Start'))
+        self.button_stop.setText(self.tr('Stop'))
+        self.button_filter.setText(self.tr('Filter'))
         self.button_stop.setDisabled(True)
         self.button_filter.setDisabled(True)
 
@@ -255,7 +255,7 @@ class App(GUI):
             x_data: NDArray[np.float64] = self.plot_line.xData
             y_data: NDArray[np.float64] = self.plot_line.yData
             k, b = list(np.polyfit(y_data, x_data, 1))
-            self.status_bar.showMessage(f'Average resistance is {k} Ω')
+            self.status_bar.showMessage(self.tr(f'Average resistance is {k} Ω'))
         super(App, self).on_button_stop_clicked()
 
     def on_button_filter_clicked(self) -> None:

@@ -1,0 +1,8 @@
+QtPy
+pathvalidate
+scipy
+requests
+pyqtgraph
+pandas
+netifaces
+nidaqmx

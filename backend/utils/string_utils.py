@@ -21,9 +21,7 @@ def decimals(text: str) -> int:
 
 
 @functools.lru_cache(maxsize=128, typed=True)
-def format_float(
-    value: float, precision: int = 10, *, prefix: str = "", suffix: str = ""
-) -> str:
+def format_float(value: float, precision: int = 10, *, prefix: str = "", suffix: str = "") -> str:
     return prefix + f"{value:.{precision}f}".rstrip("0").rstrip(".") + suffix
 
 

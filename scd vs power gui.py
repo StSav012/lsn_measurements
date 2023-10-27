@@ -18,12 +18,8 @@ class App(SwitchingCurrentDistributionBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.canvas_mean.getAxis("bottom").setLabel(
-            text=self.tr("Power"), units=self.tr("dBm")
-        )
-        self.canvas_std.getAxis("bottom").setLabel(
-            text=self.tr("Power"), units=self.tr("dBm")
-        )
+        self.canvas_mean.getAxis("bottom").setLabel(text=self.tr("Power"), units=self.tr("dBm"))
+        self.canvas_std.getAxis("bottom").setLabel(text=self.tr("Power"), units=self.tr("dBm"))
 
     @property
     def stat_file(self) -> Path:
@@ -36,16 +32,12 @@ class App(SwitchingCurrentDistributionBase):
                     format_float(self.current_speed, prefix="v", suffix="nAps"),
                     format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                     f"CC{self.cycles_count}",
-                    format_float(self.frequency, suffix="GHz")
-                    if self.synthesizer_output
-                    else "",
+                    format_float(self.frequency, suffix="GHz") if self.synthesizer_output else "",
                     format_float(self.power_dbm, suffix="dBm")
                     if self.synthesizer_output and len(self.power_dbm_values) == 1
                     else "",
                     format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
-                    format_float(
-                        self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"
-                    ),
+                    format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                     self.config.get("output", "suffix", fallback=""),
                 )
             )
@@ -81,9 +73,7 @@ class App(SwitchingCurrentDistributionBase):
                         prefix="d ",
                         suffix=self.tr("ms"),
                     ),
-                    format_float(self.frequency, suffix=self.tr("GHz"))
-                    if not np.isnan(self.frequency)
-                    else "",
+                    format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
                 ),
             )
         )
@@ -93,29 +83,19 @@ class App(SwitchingCurrentDistributionBase):
             return False
         if make_step:
             self.power_index += 1
-        while (
-            self.synthesizer_output and self.check_exists and self._data_file_exists()
-        ):
+        while self.synthesizer_output and self.check_exists and self._data_file_exists():
             self._add_plot_point_from_file(self.power_dbm)
             self.power_index += 1
-        if not self.synthesizer_output or self.power_index >= len(
-            self.power_dbm_values
-        ):
+        if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
             self.power_index = 0
             if self.stop_key_frequency.isChecked():
                 return False
             if make_step:
                 self.frequency_index += 1
-            while (
-                self.synthesizer_output
-                and self.check_exists
-                and self._data_file_exists()
-            ):
+            while self.synthesizer_output and self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file(self.power_dbm)
                 self.frequency_index += 1
-            if not self.synthesizer_output or self.frequency_index >= len(
-                self.frequency_values
-            ):
+            if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
                 if self.stop_key_current_speed.isChecked():
                     return False
@@ -133,9 +113,7 @@ class App(SwitchingCurrentDistributionBase):
                     while self.check_exists and self._data_file_exists():
                         self._add_plot_point_from_file(self.power_dbm)
                         self.delay_between_cycles_index += 1
-                    if self.delay_between_cycles_index >= len(
-                        self.delay_between_cycles_values
-                    ):
+                    if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
                         self.delay_between_cycles_index = 0
                         if self.stop_key_temperature.isChecked():
                             return False

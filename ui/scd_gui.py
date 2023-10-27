@@ -25,9 +25,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent=parent)
 
-        self.settings: QSettings = QSettings(
-            "SavSoft", "Switching Current Distribution", self
-        )
+        self.settings: QSettings = QSettings("SavSoft", "Switching Current Distribution", self)
 
         self.setWindowTitle(self.tr("Switching Current Distribution"))
         self.setWindowIcon(QIcon("lsn.svg"))
@@ -38,17 +36,13 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.parameters_box: QGroupBox = QGroupBox(self.central_widget)
         self.parameters_layout: QFormLayout = QFormLayout(self.parameters_box)
         self.button_topmost: QPushButton = QPushButton(self.central_widget)
-        self.button_drop_measurement: SafeButton = SafeButton(
-            "", timeout=4.0, parent=self.central_widget
-        )
+        self.button_drop_measurement: SafeButton = SafeButton("", timeout=4.0, parent=self.central_widget)
         self.histogram: Histogram = Histogram(self.central_widget)
         self.stop_sings_box: QGroupBox = QGroupBox(self.central_widget)
         self.stop_sings_box.setLayout(QVBoxLayout())
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
-        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(
-            self.central_widget
-        )
+        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
         self.canvas_mean: pg.PlotItem = self.figure.addPlot(row=0, col=0)
         self.canvas_std: pg.PlotItem = self.figure.addPlot(row=1, col=0)
         self.plot_lines_mean: dict[int, pg.PlotDataItem] = dict()
@@ -61,17 +55,13 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.label_power: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_frequency: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_current_speed: pg.ValueLabel = pg.ValueLabel(self.central_widget)
-        self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(
-            self.central_widget
-        )
+        self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
         self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_frequency: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_current_speed: QPushButton = QPushButton(self.stop_sings_box)
-        self.stop_key_delay_between_cycles: QPushButton = QPushButton(
-            self.stop_sings_box
-        )
+        self.stop_key_delay_between_cycles: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
@@ -133,19 +123,13 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.controls_layout.addWidget(self.stop_sings_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
-        self.parameters_layout.addRow(
-            self.tr("Remaining time:"), self.label_remaining_time
-        )
+        self.parameters_layout.addRow(self.tr("Remaining time:"), self.label_remaining_time)
         self.parameters_layout.addRow(self.tr("Mean current:"), self.label_mean_current)
         self.parameters_layout.addRow(self.tr("Current std:"), self.label_std_current)
         self.parameters_layout.addRow(self.tr("Frequency:"), self.label_frequency)
         self.parameters_layout.addRow(self.tr("Power:"), self.label_power)
-        self.parameters_layout.addRow(
-            self.tr("Current speed:"), self.label_current_speed
-        )
-        self.parameters_layout.addRow(
-            self.tr("Delay b/w cycles:"), self.label_delay_between_cycles
-        )
+        self.parameters_layout.addRow(self.tr("Current speed:"), self.label_current_speed)
+        self.parameters_layout.addRow(self.tr("Delay b/w cycles:"), self.label_delay_between_cycles)
         self.parameters_layout.addRow(self.tr("Temperature:"), self.label_temperature)
         self.parameters_layout.addRow(self.tr("Loop number:"), self.label_loop_number)
 
@@ -208,18 +192,12 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags()
-                | Qt.WindowFlags.CustomizeWindowHint
-                | Qt.WindowFlags.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags()
-                ^ (
-                    Qt.WindowFlags.CustomizeWindowHint
-                    | Qt.WindowFlags.WindowStaysOnTopHint
-                )
+                self.windowFlags() ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
             )
             self.show()
 

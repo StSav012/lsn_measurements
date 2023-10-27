@@ -25,9 +25,7 @@ __all__ = [
 _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
 
 
-def zero_sources(
-    reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()
-) -> None:
+def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
     if reset_dac:
         device_dac.reset_device()
     task_dac: Task
@@ -40,9 +38,7 @@ def zero_sources(
         task_dac.wait_until_done()
 
 
-def measure_offsets(
-    duration: float = 0.04, do_zero_sources: bool = True, reset_adc: bool = True
-) -> None:
+def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_adc: bool = True) -> None:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -67,11 +63,7 @@ def measure_offsets(
 
 def measure_noise_fft(
     length: int, rate: Optional[float] = None, reset_adc: bool = _RESET_ADC_DEFAULT
-) -> tuple[
-    NDArray[np.float64],
-    tuple[NDArray[np.float64], str],
-    tuple[NDArray[np.float64], str],
-]:
+) -> tuple[NDArray[np.float64], tuple[NDArray[np.float64], str], tuple[NDArray[np.float64], str],]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -125,15 +117,11 @@ def measure_noise_welch(
             raise ValueError(f"Averaging shift must be greater than {0.5 / rate}")
 
         length: int = round(rate / resolution) + (averaging - 1) * averaging_step
-        task_adc.timing.cfg_samp_clk_timing(
-            rate=rate, sample_mode=AcquisitionType.CONTINUOUS
-        )
+        task_adc.timing.cfg_samp_clk_timing(rate=rate, sample_mode=AcquisitionType.CONTINUOUS)
         task_adc.start()
         if progress:
             print(progress, end="", flush=True)
-        data: NDArray[np.float64] = np.array(
-            task_adc.read(length, timeout=WAIT_INFINITELY), dtype=np.float64
-        )
+        data: NDArray[np.float64] = np.array(task_adc.read(length, timeout=WAIT_INFINITELY), dtype=np.float64)
         if progress:
             print(progress, end="", flush=True)
         task_adc.stop()
@@ -146,13 +134,7 @@ def measure_noise_welch(
         a: int
         freq, pn_xx = signal.welch(
             np.column_stack(
-                [
-                    data[
-                        a * averaging_step : -((averaging - a - 1) * averaging_step)
-                        or None
-                    ]
-                    for a in range(averaging)
-                ]
+                [data[a * averaging_step : -((averaging - a - 1) * averaging_step) or None] for a in range(averaging)]
             ),
             fs=rate,
             nperseg=data.size - (averaging - 1) * averaging_step,
@@ -235,18 +217,14 @@ def measure_noise_trend(
         else:
             for channel in list(channel):
                 c = task_adc.ai_channels.add_ai_voltage_chan(channel.name)
-                c.ai_enhanced_alias_rejection_enable = (
-                    rate is not None and rate < 1000.0
-                )
+                c.ai_enhanced_alias_rejection_enable = rate is not None and rate < 1000.0
         if out_channel is not None:
             task_dac.ao_channels.add_ao_voltage_chan(out_channel.name)
             task_dac.write(out_value)
         if rate is None:
             rate = task_adc.timing.samp_clk_max_rate
         length: int = round(duration * rate)
-        task_adc.timing.cfg_samp_clk_timing(
-            rate=rate, sample_mode=AcquisitionType.CONTINUOUS
-        )
+        task_adc.timing.cfg_samp_clk_timing(rate=rate, sample_mode=AcquisitionType.CONTINUOUS)
         data: NDArray[np.float64] = task_adc.read(length, timeout=WAIT_INFINITELY)
 
     return np.arange(0, data.size) / rate, data
@@ -350,16 +328,10 @@ def _read_ai_faster(
     read_chan_type: ChannelType = channels_to_read.chan_type
 
     if read_chan_type != ChannelType.ANALOG_INPUT or meas_type == UsageTypeAI.POWER:
-        return (
-            self._read()
-        )  # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
+        return self._read()  # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
 
-    num_samples_not_set: bool = (
-        number_of_samples_per_channel is nidaqmx.task.NUM_SAMPLES_UNSET
-    )
-    number_of_samples_per_channel: int = self._calculate_num_samps_per_chan(
-        number_of_samples_per_channel
-    )
+    num_samples_not_set: bool = number_of_samples_per_channel is nidaqmx.task.NUM_SAMPLES_UNSET
+    number_of_samples_per_channel: int = self._calculate_num_samps_per_chan(number_of_samples_per_channel)
     number_of_channels: int = len(channels_to_read.channel_names)
 
     # Determine the array shape and size to create
@@ -375,9 +347,7 @@ def _read_ai_faster(
 
     # Analog Input Only
     data: NDArray[float] = np.zeros(array_shape, dtype=np.float64)
-    samples_read: int = _read_analog_f_64(
-        self._handle, data, number_of_samples_per_channel, timeout
-    )
+    samples_read: int = _read_analog_f_64(self._handle, data, number_of_samples_per_channel, timeout)
 
     if num_samples_not_set and array_shape == 1:
         return data[0]

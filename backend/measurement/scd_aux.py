@@ -77,9 +77,7 @@ class SCDMeasurement(Process):
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
         self.state_queue: Queue[tuple[int, timedelta | None]] = state_queue
-        self.switching_data_queue: Queue[
-            tuple[np.float64, np.float64]
-        ] = switching_data_queue
+        self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = switching_data_queue
         self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
 
         self.gain: Final[float] = voltage_gain
@@ -131,21 +129,13 @@ class SCDMeasurement(Process):
 
             if np.isnan(self.adc_rate):
                 self.adc_rate = task_adc.timing.samp_clk_max_rate
-            bias_current_amplitude: float = np.abs(
-                self.max_bias_current - self.initial_biases[-1]
-            )
+            bias_current_amplitude: float = np.abs(self.max_bias_current - self.initial_biases[-1])
             dac_rate: float = task_dac.timing.samp_clk_max_rate
-            bias_current_steps_count: int = round(
-                bias_current_amplitude / self.current_speed * dac_rate
-            )
+            bias_current_steps_count: int = round(bias_current_amplitude / self.current_speed * dac_rate)
             samples_per_dac_channel: int = 2 * bias_current_steps_count
             if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                dac_rate /= (
-                    samples_per_dac_channel / task_dac.output_onboard_buffer_size
-                )
-                bias_current_steps_count = round(
-                    bias_current_amplitude / self.current_speed * dac_rate
-                )
+                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+                bias_current_steps_count = round(bias_current_amplitude / self.current_speed * dac_rate)
                 samples_per_dac_channel = 2 * bias_current_steps_count
             # If we get too many samples per channel again, we sacrifice the current steps
             while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
@@ -158,16 +148,11 @@ class SCDMeasurement(Process):
                 * self.r
                 * self.divider
                 / min(
-                    (
-                        (current_channel.ao_max - current_channel.ao_min)
-                        / (2**current_channel.ao_resolution)
-                    ),
+                    ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
                     bias_current_steps_count,
                 )
             )
-            actual_bias_current_step: float = bias_current_amplitude / (
-                actual_bias_current_steps_count - 1
-            )
+            actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
             pq.write(f"\nnumber of current steps = {actual_bias_current_steps_count}")
             pq.write(f"current step = {actual_bias_current_step:.4f} nA\n")
@@ -197,9 +182,7 @@ class SCDMeasurement(Process):
                 samps_per_chan=samples_per_dac_channel,
             )
 
-            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(
-                task_adc.in_stream
-            )
+            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             def reading_task_callback(
                 _task_idx: int, _event_type: int, num_samples: int, _callback_data: Any
@@ -221,20 +204,12 @@ class SCDMeasurement(Process):
                         v = (v - offsets[adc_voltage.name]) / self.gain
                         v -= self.r_series / self.r * data[0]
                         _switching_events_count: int
-                        if (v[0] < self.trigger_voltage) and (
-                            self.trigger_voltage < v[-1]
-                        ):
+                        if (v[0] < self.trigger_voltage) and (self.trigger_voltage < v[-1]):
                             if not self.ignore_switch:
-                                i: NDArray[np.float64] = (
-                                    data[0] - v - offsets[adc_current.name]
-                                ) / self.r
-                                _index: int = cast(
-                                    int, np.searchsorted(v, self.trigger_voltage)
-                                )
+                                i: NDArray[np.float64] = (data[0] - v - offsets[adc_current.name]) / self.r
+                                _index: int = cast(int, np.searchsorted(v, self.trigger_voltage))
 
-                                _switching_events_count = np.count_nonzero(
-                                    ~np.isnan(switching_current)
-                                )
+                                _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = i[_index]
                                 switching_voltage[_switching_events_count] = v[_index]
                                 fw.write(
@@ -252,13 +227,9 @@ class SCDMeasurement(Process):
                         elif not self.switch_registered and v[0] > self.trigger_voltage:
                             if not self.ignore_switch:
                                 _v: np.float64 = v[0]
-                                _i: np.float64 = (
-                                    data[0, 0] - _v - offsets[adc_current.name]
-                                ) / self.r
+                                _i: np.float64 = (data[0, 0] - _v - offsets[adc_current.name]) / self.r
 
-                                _switching_events_count = np.count_nonzero(
-                                    ~np.isnan(switching_current)
-                                )
+                                _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = _i
                                 switching_voltage[_switching_events_count] = _v
                                 fw.write(
@@ -268,8 +239,7 @@ class SCDMeasurement(Process):
                                 )
                                 self.switching_data_queue.put((_i, _v))
                                 pq.write(
-                                    f"switching current is {_i * 1e9:.2f} nA "
-                                    f"(voltage is {_v * 1e6:.3f} uV)",
+                                    f"switching current is {_i * 1e9:.2f} nA " f"(voltage is {_v * 1e6:.3f} uV)",
                                     end="",
                                 )
                             self.switch_registered = True
@@ -341,9 +311,7 @@ class SCDMeasurement(Process):
 
             self.ignore_switch = True
             for iv_curve_number in range(min(2, self.cycles_count)):
-                pq.write(
-                    f"iv curve measurement {iv_curve_number + 1} out of {min(2, self.cycles_count)}"
-                )
+                pq.write(f"iv curve measurement {iv_curve_number + 1} out of {min(2, self.cycles_count)}")
                 t0: datetime = datetime.now()
                 task_dac.write(i_set, auto_start=True)
                 task_dac.wait_until_done(WAIT_INFINITELY)
@@ -371,13 +339,9 @@ class SCDMeasurement(Process):
                 if self.good_to_go.buf[127]:
                     break
 
-                pq.write(
-                    f"cycle {cycle_index} out of {this_time_cycles_count}:", end=" "
-                )
+                pq.write(f"cycle {cycle_index} out of {this_time_cycles_count}:", end=" ")
 
-                switching_events_count: int = np.count_nonzero(
-                    ~np.isnan(switching_current)
-                )
+                switching_events_count: int = np.count_nonzero(~np.isnan(switching_current))
 
                 if switching_events_count == self.cycles_count:
                     break
@@ -395,17 +359,13 @@ class SCDMeasurement(Process):
                     break
                 self.pulse_ended = False
 
-                this_time_cycles_count = cycle_index + np.count_nonzero(
-                    np.isnan(switching_current)
-                )
+                this_time_cycles_count = cycle_index + np.count_nonzero(np.isnan(switching_current))
 
                 time.sleep(self.delay_between_cycles)
                 now: datetime = datetime.now()
 
                 remaining_time: timedelta = (
-                    (now - measurement_start_time)
-                    / cycle_index
-                    * (this_time_cycles_count - cycle_index)
+                    (now - measurement_start_time) / cycle_index * (this_time_cycles_count - cycle_index)
                 )
                 remaining_time = min(
                     remaining_time,
@@ -431,21 +391,15 @@ class SCDMeasurement(Process):
                 max_reasonable_switching_current: float = median_switching_current * (
                     1.0 + 0.01 * self.max_reasonable_bias_error
                 )
-                reasonable: NDArray[np.bool_] = (
-                    switching_current >= min_reasonable_switching_current
-                ) & (switching_current <= max_reasonable_switching_current)
-                reasonable_switching_current: NDArray[np.float64] = switching_current[
-                    reasonable
-                ]
+                reasonable: NDArray[np.bool_] = (switching_current >= min_reasonable_switching_current) & (
+                    switching_current <= max_reasonable_switching_current
+                )
+                reasonable_switching_current: NDArray[np.float64] = switching_current[reasonable]
                 mean_switching_current: np.float64 | NDArray[np.float64]
                 switching_current_std: np.float64 | NDArray[np.float64]
                 if reasonable_switching_current.size:
-                    mean_switching_current = 1e9 * np.nanmean(
-                        reasonable_switching_current
-                    )
-                    switching_current_std = 1e9 * np.nanstd(
-                        reasonable_switching_current
-                    )
+                    mean_switching_current = 1e9 * np.nanmean(reasonable_switching_current)
+                    switching_current_std = 1e9 * np.nanstd(reasonable_switching_current)
                 else:
                     mean_switching_current = np.nan
                     switching_current_std = np.nan

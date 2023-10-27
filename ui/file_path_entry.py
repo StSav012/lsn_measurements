@@ -66,9 +66,7 @@ class FilePathEntry(QWidget):
         path: Path = Path(text).resolve()
         if path.is_dir():
             self.status.setPixmap(
-                self.style()
-                .standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical)
-                .pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
             )
             self.path = None
             if emit:
@@ -76,9 +74,7 @@ class FilePathEntry(QWidget):
             return
         if not path.exists():
             self.status.setPixmap(
-                self.style()
-                .standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical)
-                .pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
             )
             self.path = None
             if emit:
@@ -89,9 +85,7 @@ class FilePathEntry(QWidget):
         except pathvalidate.error.ValidationError as ex:
             print(ex.description)
             self.status.setPixmap(
-                self.style()
-                .standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical)
-                .pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
             )
             self.path = None
             if emit:

@@ -8,12 +8,22 @@ from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.system.system import System
 
 __all__ = [
-    'R', 'R_SERIES', 'VOLTAGE_GAIN', 'DIVIDER', 'DIVIDER_RESISTANCE',
-    'system',
-    'device_dac', 'device_adc',
-    'adc_sync', 'adc_voltage', 'adc_current',
-    'dac_sync', 'dac_current', 'dac_aux', 'dac_synth_pulse',
-    'offsets'
+    "R",
+    "R_SERIES",
+    "VOLTAGE_GAIN",
+    "DIVIDER",
+    "DIVIDER_RESISTANCE",
+    "system",
+    "device_dac",
+    "device_adc",
+    "adc_sync",
+    "adc_voltage",
+    "adc_current",
+    "dac_sync",
+    "dac_current",
+    "dac_aux",
+    "dac_synth_pulse",
+    "offsets",
 ]
 
 R: float = 200.0e3

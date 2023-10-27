@@ -57,9 +57,7 @@ def parabolic_segment(
                     np.linspace(
                         np.sqrt(-start_point),
                         0.0,
-                        round(
-                            points_count * abs(start_point / (end_point - start_point))
-                        ),
+                        round(points_count * abs(start_point / (end_point - start_point))),
                         endpoint=False,
                     )
                 ),
@@ -67,9 +65,7 @@ def parabolic_segment(
                     np.linspace(
                         0.0,
                         np.sqrt(end_point),
-                        round(
-                            points_count * abs(end_point / (end_point - start_point))
-                        ),
+                        round(points_count * abs(end_point / (end_point - start_point))),
                         endpoint=endpoint,
                     )
                 ),
@@ -82,9 +78,7 @@ def parabolic_segment(
                     np.linspace(
                         np.sqrt(start_point),
                         0.0,
-                        round(
-                            points_count * abs(start_point / (end_point - start_point))
-                        ),
+                        round(points_count * abs(start_point / (end_point - start_point))),
                         endpoint=False,
                     )
                 ),
@@ -92,9 +86,7 @@ def parabolic_segment(
                     np.linspace(
                         0.0,
                         np.sqrt(-end_point),
-                        round(
-                            points_count * abs(end_point / (end_point - start_point))
-                        ),
+                        round(points_count * abs(end_point / (end_point - start_point))),
                         endpoint=endpoint,
                     )
                 ),
@@ -124,12 +116,8 @@ def linear_segments(
         (
             np.concatenate(
                 [
-                    linear_segment(
-                        prev_point, next_point, points_per_part, endpoint=False
-                    )
-                    for prev_point, next_point in zip(
-                        current_values, current_values[1:]
-                    )
+                    linear_segment(prev_point, next_point, points_per_part, endpoint=False)
+                    for prev_point, next_point in zip(current_values, current_values[1:])
                 ]
             ),
             [current_values[-1]] * ((points_count - 1) % (len(current_values) - 1)),
@@ -152,12 +140,8 @@ def sine_segments(
         (
             np.concatenate(
                 [
-                    sine_segment(
-                        prev_point, next_point, points_per_part, endpoint=False
-                    )
-                    for prev_point, next_point in zip(
-                        current_values, current_values[1:]
-                    )
+                    sine_segment(prev_point, next_point, points_per_part, endpoint=False)
+                    for prev_point, next_point in zip(current_values, current_values[1:])
                 ]
             ),
             [current_values[-1]] * ((points_count - 1) % (len(current_values) - 1)),

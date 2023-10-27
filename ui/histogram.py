@@ -15,8 +15,6 @@ from backend.utils import warning
 
 __all__ = ["Histogram"]
 
-from backend.utils import warning
-
 
 class Histogram(pg.PlotWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -138,9 +136,7 @@ class Histogram(pg.PlotWidget):
     def save(self, filename: str | PathLike[str]) -> None:
         if self._plot_line is None:
             return
-        dataset: tuple[None, None] | tuple[
-            NDArray[float], NDArray[float]
-        ] = self._plot_line.getOriginalDataset()
+        dataset: tuple[None, None] | tuple[NDArray[float], NDArray[float]] = self._plot_line.getOriginalDataset()
         if dataset[0] is not None and dataset[1] is not None:
             np_dataset: NDArray[float] = np.column_stack(dataset)
             np_dataset[np.isnan(np_dataset)] = 0.0

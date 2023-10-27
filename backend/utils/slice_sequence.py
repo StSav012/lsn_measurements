@@ -18,9 +18,7 @@ def float_range(
     rel_tol: float = 1e-09,
     abs_tol: float = 0.0,
 ) -> list[float]:
-    values: list[float] = [
-        start + index * step for index in range(int((stop - start) // step) + 1)
-    ]
+    values: list[float] = [start + index * step for index in range(int((stop - start) // step) + 1)]
     if not values:
         return values
     if math.isclose(values[-1] + step, stop, rel_tol=rel_tol, abs_tol=abs_tol):
@@ -37,14 +35,10 @@ class SliceSequence:
         items_separator: str | Sequence[str] = (",", ";"),
     ) -> None:
         self._slice_separators: tuple[str] = (
-            (slice_separator,)
-            if isinstance(slice_separator, str)
-            else tuple(slice_separator)
+            (slice_separator,) if isinstance(slice_separator, str) else tuple(slice_separator)
         )
         self._items_separators: tuple[str] = (
-            (items_separator,)
-            if isinstance(items_separator, str)
-            else tuple(items_separator)
+            (items_separator,) if isinstance(items_separator, str) else tuple(items_separator)
         )
 
         self._items: list[float] = self._parse(text)
@@ -66,9 +60,7 @@ class SliceSequence:
                 error_text: str = f"Invalid slice notation: {slice_text}"
                 if any(map(math.isnan, _slice)):
                     nan_index: int = _slice.index(math.nan)
-                    line_length: int = 29 + nth_occurrence(
-                        slice_text, self._slice_separators, nan_index
-                    )
+                    line_length: int = 29 + nth_occurrence(slice_text, self._slice_separators, nan_index)
                     if parts[nan_index]:
                         line_length += 1 + len(parts[nan_index]) // 2
                     error_text += "\n" + "-" * line_length + " here -^"
@@ -101,9 +93,7 @@ class SliceSequence:
         if len(self._items) == 1:
             return f"{self._items[0]:{format_spec}}"
         else:
-            return (
-                "[" + ", ".join(f"{item:{format_spec}}" for item in self._items) + "]"
-            )
+            return "[" + ", ".join(f"{item:{format_spec}}" for item in self._items) + "]"
 
     def __bool__(self) -> bool:
         return bool(self._items)

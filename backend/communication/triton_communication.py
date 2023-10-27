@@ -39,9 +39,7 @@ class Triton(Thread):
 
             connectable_hosts: list[IPv4Address] = port_scanner(port)
             if not connectable_hosts:
-                raise RuntimeError(
-                    "Triton could not be found automatically. Try specifying an IP address."
-                )
+                raise RuntimeError("Triton could not be found automatically. Try specifying an IP address.")
             if len(connectable_hosts) > 1:
                 raise RuntimeError(
                     f"There are numerous devices with open port {port}:\n",
@@ -120,9 +118,7 @@ class Triton(Thread):
             return nan, unit
         return float(response), unit
 
-    def query_temperature(
-        self, index: int, blocking: bool = False
-    ) -> tuple[float, str]:
+    def query_temperature(self, index: int, blocking: bool = False) -> tuple[float, str]:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
 
     def issue_value(self, command: str, value: Any) -> bool:

@@ -57,9 +57,7 @@ def parse_temperature(text: str) -> float:
 
 @functools.lru_cache(maxsize=128, typed=True)
 def si_prefix(unit: str) -> str:
-    matching_prefixes: list[str] = [
-        prefix for prefix in SI_PREFIX_EXPONENTS if unit.startswith(prefix)
-    ]
+    matching_prefixes: list[str] = [prefix for prefix in SI_PREFIX_EXPONENTS if unit.startswith(prefix)]
     if not matching_prefixes:
         return ""
     else:
@@ -84,8 +82,6 @@ def parse_si_number(number_text: Any) -> float:
         except ValueError:
             leftovers -= 1
         else:
-            return float(number_text[:leftovers]) * si_factor(
-                number_text[leftovers:].strip()
-            )
+            return float(number_text[:leftovers]) * si_factor(number_text[leftovers:].strip())
     else:
         return math.nan

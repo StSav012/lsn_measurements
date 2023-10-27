@@ -41,9 +41,7 @@ class App(DetectLifetimeBase):
                         f"CC{self.cycles_count_detect}",
                         format_float(self.frequency, suffix="GHz"),
                         format_float(self.pulse_duration, prefix="P", suffix="s"),
-                        format_float(
-                            self.waiting_after_pulse, prefix="WaP", suffix="s"
-                        ),
+                        format_float(self.waiting_after_pulse, prefix="WaP", suffix="s"),
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
@@ -68,15 +66,9 @@ class App(DetectLifetimeBase):
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count_lifetime}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
-                        format_float(self.frequency, suffix="GHz")
-                        if not np.isnan(self.frequency)
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if not np.isnan(self.power_dbm)
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -111,9 +103,7 @@ class App(DetectLifetimeBase):
                     format_float(self.bias_current, suffix=self.tr("nA")),
                     format_float(self.temperature * 1e3, suffix=self.tr("mK")),
                     format_float(self.delay_between_cycles * 1e3, suffix=self.tr("ms")),
-                    format_float(self.frequency, suffix=self.tr("GHz"))
-                    if not np.isnan(self.frequency)
-                    else "",
+                    format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
                 ),
             )
         )
@@ -181,9 +171,7 @@ class App(DetectLifetimeBase):
                         self.delay_between_cycles_index += 1
                     while self.check_exists and self._stat_file_exists():
                         self.delay_between_cycles_index += 1
-                    if self.delay_between_cycles_index >= len(
-                        self.delay_between_cycles_values
-                    ):
+                    if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
                         self.delay_between_cycles_index = 0
                         if self.stop_key_temperature.isChecked():
                             return False
@@ -201,10 +189,9 @@ class App(DetectLifetimeBase):
                             temperature_unit,
                         ) = self.triton.query_temperature(6)
                         if not (
-                            (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                            (1.0 - self.temperature_tolerance) * self.temperature
                             < actual_temperature
-                            < (1.0 + 0.01 * self.temperature_tolerance)
-                            * self.temperature
+                            < (1.0 + self.temperature_tolerance) * self.temperature
                         ):
                             self.temperature_just_set = True
         return True
@@ -237,10 +224,7 @@ class App(DetectLifetimeBase):
             self.button_drop_measurement.reset()
             self.timer.stop()
 
-            if (
-                self.mode == "detect"
-                and self.power_index == len(self.power_dbm_values) - 1
-            ):
+            if self.mode == "detect" and self.power_index == len(self.power_dbm_values) - 1:
                 sys.stderr.write("switching to lifetime\n".upper())
                 self.mode = "lifetime"
                 self.start_measurement()
@@ -253,9 +237,7 @@ class App(DetectLifetimeBase):
                 self.on_button_stop_clicked()
                 return
             self.power_index += 1
-            if prob < self.minimal_probability_to_measure or self.power_index >= len(
-                self.power_dbm_values
-            ):
+            if prob < self.minimal_probability_to_measure or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
                 if not self._next_indices():
                     self.on_button_stop_clicked()

@@ -50,17 +50,9 @@ class FileWriter(Thread):
                 # look through the records for the ones of the same file name and file mode
                 index: int = 0
                 while index < len(self.queue):
-                    another_qr: QueueRecord = self.queue[
-                        index
-                    ]  # for index == 0, it's qr, so we start with qr
-                    if (
-                        another_qr.file_name == qr.file_name
-                        and another_qr.file_mode == qr.file_mode
-                    ):
-                        if (
-                            isinstance(another_qr.x, np.ndarray)
-                            and another_qr.x.ndim == 2
-                        ):
+                    another_qr: QueueRecord = self.queue[index]  # for index == 0, it's qr, so we start with qr
+                    if another_qr.file_name == qr.file_name and another_qr.file_mode == qr.file_mode:
+                        if isinstance(another_qr.x, np.ndarray) and another_qr.x.ndim == 2:
                             for x in another_qr.x.T:
                                 f_out.write("\t".join(f"{y}" for y in x) + "\n")
                         else:

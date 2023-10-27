@@ -47,9 +47,7 @@ def get_str(
     key: str,
     fallback: str = __sentinel,
 ) -> str:
-    return get(
-        config=config, sample=sample, section=section, key=key, fallback=fallback
-    )
+    return get(config=config, sample=sample, section=section, key=key, fallback=fallback)
 
 
 def get_bool(
@@ -100,9 +98,7 @@ def get_float(
     if f"{section}/{sample}" in config.sections():
         if key in config[f"{section}/{sample}"]:
             if fallback is not __sentinel:
-                return parse_si_number(
-                    config.get(f"{section}/{sample}", key, fallback=fallback)
-                )
+                return parse_si_number(config.get(f"{section}/{sample}", key, fallback=fallback))
             else:
                 return parse_si_number(config.get(f"{section}/{sample}", key))
     if fallback is not __sentinel:
@@ -118,11 +114,7 @@ def get_decimal(
     key: str,
     fallback: float = __sentinel,
 ) -> Decimal:
-    return Decimal.from_float(
-        get_float(
-            config=config, sample=sample, section=section, key=key, fallback=fallback
-        )
-    )
+    return Decimal.from_float(get_float(config=config, sample=sample, section=section, key=key, fallback=fallback))
 
 
 def get_float_tuple(

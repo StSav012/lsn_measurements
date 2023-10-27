@@ -42,26 +42,18 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.good_to_measure.buf[0] = False
         self.measurement: Optional[DetectMeasurement | LifetimeMeasurement] = None
 
-        self.config: ConfigParser = ConfigParser(
-            allow_no_value=True, inline_comment_prefixes=("#", ";")
-        )
+        self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=("#", ";"))
         self.config.read("config.ini")
 
         self.triton: Triton = Triton(None, 33576)
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(
-            expected=self.config.getboolean("GHz signal", "connect", fallback=True)
-        )
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
         self.parameters_box.setTitle(self.sample_name)
-        self.gain: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "voltage gain"
-        )
-        self.divider: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "current divider"
-        )
+        self.gain: Final[float] = get_float(self.config, self.sample_name, "circuitry", "voltage gain")
+        self.divider: Final[float] = get_float(self.config, self.sample_name, "circuitry", "current divider")
         self.r: Final[float] = get_float(
             self.config, self.sample_name, "circuitry", "ballast resistance [Ohm]"
         ) + get_float(
@@ -79,9 +71,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             fallback=0.0,
         )
 
-        self.reset_function: Final[str] = get_str(
-            self.config, "current", self.sample_name, "function", fallback="sine"
-        )
+        self.reset_function: Final[str] = get_str(self.config, "current", self.sample_name, "function", fallback="sine")
         if self.reset_function.casefold() not in ("linear", "sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
         self.bias_current_values: SliceSequence = SliceSequence(
@@ -96,46 +86,26 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         )
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean(
-            "measurement", "check whether file exists"
-        )
+        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
         self.trigger_voltage: float = (
-            get_float(
-                self.config, self.sample_name, "measurement", "voltage trigger [V]"
-            )
-            * self.gain
+            get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
         )
         self.max_reasonable_bias_error: Final[float] = (
-            abs(
-                self.config.getfloat(
-                    "lifetime", "maximal reasonable bias error [%]", fallback=np.inf
-                )
-            )
-            * 0.01
+            abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count_lifetime: int = self.config.getint(
-            "lifetime", "number of cycles"
-        )
-        self.cycles_count_detect: Final[int] = self.config.getint(
-            "detect", "number of cycles"
-        )
-        self.max_switching_events_count: Final[int] = self.config.getint(
-            "detect", "number of switches"
-        )
+        self.cycles_count_lifetime: int = self.config.getint("lifetime", "number of cycles")
+        self.cycles_count_detect: Final[int] = self.config.getint("detect", "number of cycles")
+        self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
         self.minimal_probability_to_measure: Final[float] = self.config.getfloat(
             "detect", "minimal probability to measure [%]", fallback=0.0
         )
         self.max_waiting_time: timedelta = timedelta(
-            seconds=self.config.getfloat(
-                "lifetime", "max time of waiting for switching [sec]"
-            )
+            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]")
         )
         self.max_mean: Final[float] = self.config.getfloat(
             "lifetime", "max mean time to measure [sec]", fallback=np.inf
         )
-        self.ignore_never_switched: bool = self.config.getboolean(
-            "lifetime", "ignore never switched"
-        )
+        self.ignore_never_switched: bool = self.config.getboolean("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
             get_str(
                 self.config,
@@ -144,9 +114,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 "delay between cycles [sec]",
             )
         )
-        self.stop_key_delay_between_cycles.setDisabled(
-            len(self.delay_between_cycles_values) <= 1
-        )
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -155,43 +123,26 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             fallback=np.nan,
         )
 
-        self.frequency_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "frequency [GHz]")
-        )
+        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
-        self.power_dbm_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "power [dBm]")
-        )
+        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
-        self.pulse_duration: Final[float] = self.config.getfloat(
-            "detect", "GHz pulse duration [sec]"
-        )
-        self.waiting_after_pulse: Final[float] = self.config.getfloat(
-            "detect", "waiting after GHz pulse [sec]"
-        )
+        self.pulse_duration: Final[float] = self.config.getfloat("detect", "GHz pulse duration [sec]")
+        self.waiting_after_pulse: Final[float] = self.config.getfloat("detect", "waiting after GHz pulse [sec]")
 
-        self.temperature_values: SliceSequence = SliceSequence(
-            self.config.get("measurement", "temperature")
-        )
+        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
         self.temperature_delay: timedelta = timedelta(
-            seconds=self.config.getfloat(
-                "measurement", "time to wait for temperature [minutes]", fallback=0.0
-            )
-            * 60.0
+            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
             "measurement", "change filtered readings in Triton", fallback=True
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
-        self.temperature_tolerance: Final[float] = abs(
-            self.config.getfloat(
-                "measurement", "temperature tolerance [%]", fallback=1.0
-            )
+        self.temperature_tolerance: Final[float] = (
+            abs(self.config.getfloat("measurement", "temperature tolerance [%]", fallback=1.0)) * 0.01
         )
 
-        self.saving_location: Path = Path(
-            self.config.get("output", "location", fallback=r"d:\ttt\detect+lifetime")
-        )
+        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"d:\ttt\detect+lifetime"))
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)
@@ -244,9 +195,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     @property
     def data_file(self) -> Path:
-        return {"detect": self.data_file_detect, "lifetime": self.data_file_lifetime}[
-            self.mode
-        ]
+        return {"detect": self.data_file_detect, "lifetime": self.data_file_lifetime}[self.mode]
 
     @property
     def data_file_detect(self) -> Path:
@@ -261,16 +210,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                         format_float(self.bias_current, suffix="nA"),
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count_detect}",
-                        format_float(self.frequency, suffix="GHz")
-                        if not np.isnan(self.frequency)
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if not np.isnan(self.power_dbm)
-                        else "",
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
                         format_float(self.pulse_duration, prefix="P", suffix="s"),
-                        format_float(
-                            self.waiting_after_pulse, prefix="WaP", suffix="s"
-                        ),
+                        format_float(self.waiting_after_pulse, prefix="WaP", suffix="s"),
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
@@ -293,15 +236,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count_lifetime}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
-                        format_float(self.frequency, suffix="GHz")
-                        if not np.isnan(self.frequency)
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if not np.isnan(self.power_dbm)
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -411,9 +348,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
         self.temperature_just_set = not (
-            (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+            (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature
-            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature
+            < (1.0 + self.temperature_tolerance) * self.temperature
         )
 
         print(f"saving to {self.stat_file}")
@@ -470,9 +407,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         temperature_unit: str
         actual_temperature, temperature_unit = self.triton.query_temperature(6)
         self.temperature_just_set = not (
-            (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+            (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature
-            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature
+            < (1.0 + self.temperature_tolerance) * self.temperature
         )
 
         print(f"saving to {self.stat_file}")
@@ -544,14 +481,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     def _add_plot_point_detect(self, x: float, prob: float, err: float) -> None:
         old_x_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_detect.xData is None
-            else self.plot_line_detect.xData
+            np.empty(0, dtype=np.float64) if self.plot_line_detect.xData is None else self.plot_line_detect.xData
         )
         old_y_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_detect.yData is None
-            else self.plot_line_detect.yData
+            np.empty(0, dtype=np.float64) if self.plot_line_detect.yData is None else self.plot_line_detect.yData
         )
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, prob)
@@ -567,14 +500,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     def _add_plot_point_lifetime(self, x: float, lifetime: float) -> None:
         old_x_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_lifetime.xData is None
-            else self.plot_line_lifetime.xData
+            np.empty(0, dtype=np.float64) if self.plot_line_lifetime.xData is None else self.plot_line_lifetime.xData
         )
         old_y_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_lifetime.yData is None
-            else self.plot_line_lifetime.yData
+            np.empty(0, dtype=np.float64) if self.plot_line_lifetime.yData is None else self.plot_line_lifetime.yData
         )
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, lifetime)
@@ -588,31 +517,24 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         ats: bytes = str(actual_temperature * 1000).encode()
         self.good_to_measure.buf[1 : 1 + len(ats)] = ats
         if not (
-            (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+            (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature
-            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature
+            < (1.0 + self.temperature_tolerance) * self.temperature
         ):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(
-                f"temperature {actual_temperature} {temperature_unit} "
-                f"is too far from {self.temperature:.3f} K"
-            )
+            print(f"temperature {actual_temperature} {temperature_unit} " f"is too far from {self.temperature:.3f} K")
             if not self.triton.issue_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
             if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(
-                    6, self.triton.filter_readings(self.temperature)
-                ):
+                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
                     error("failed to change the state of filtered readings")
                     self.timer.stop()
                     self.measurement.terminate()
-            if not self.triton.issue_heater_range(
-                6, self.triton.heater_range(self.temperature)
-            ):
+            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
                 self.measurement.terminate()

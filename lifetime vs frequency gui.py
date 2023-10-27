@@ -17,9 +17,7 @@ class App(LifetimeBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis("bottom").setLabel(
-            text=self.tr("Frequency"), units=self.tr("GHz")
-        )
+        self.figure.getAxis("bottom").setLabel(text=self.tr("Frequency"), units=self.tr("GHz"))
 
     @property
     def stat_file(self) -> Path:
@@ -38,12 +36,8 @@ class App(LifetimeBase):
                         format_float(self.frequency, suffix="GHz")
                         if self.synthesizer_output and len(self.frequency_values) == 1
                         else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if self.synthesizer_output
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
+                        format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -74,17 +68,13 @@ class App(LifetimeBase):
                 (
                     format_float(self.temperature * 1e3, suffix=self.tr("mK")),
                     format_float(self.bias_current, suffix=self.tr("nA")),
-                    format_float(
-                        self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")
-                    ),
+                    format_float(self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")),
                     format_float(
                         self.delay_between_cycles * 1e3,
                         prefix="d ",
                         suffix=self.tr("ms"),
                     ),
-                    format_float(self.power_dbm, suffix=self.tr("dBm"))
-                    if not self.synthesizer_output
-                    else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not self.synthesizer_output else "",
                 ),
             )
         )
@@ -94,27 +84,17 @@ class App(LifetimeBase):
             return False
         if make_step:
             self.frequency_index += 1
-        while (
-            self.synthesizer_output and self.check_exists and self._data_file_exists()
-        ):
+        while self.synthesizer_output and self.check_exists and self._data_file_exists():
             self.frequency_index += 1
-        if not self.synthesizer_output or self.frequency_index >= len(
-            self.frequency_values
-        ):
+        if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
             self.frequency_index = 0
             if self.stop_key_power.isChecked():
                 return False
             if make_step:
                 self.power_index += 1
-            while (
-                self.synthesizer_output
-                and self.check_exists
-                and self._data_file_exists()
-            ):
+            while self.synthesizer_output and self.check_exists and self._data_file_exists():
                 self.power_index += 1
-            if not self.synthesizer_output or self.power_index >= len(
-                self.power_dbm_values
-            ):
+            if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
                 if self.stop_key_delay_between_cycles.isChecked():
                     return False
@@ -122,9 +102,7 @@ class App(LifetimeBase):
                     self.delay_between_cycles_index += 1
                 while self.check_exists and self._data_file_exists():
                     self.delay_between_cycles_index += 1
-                if self.delay_between_cycles_index >= len(
-                    self.delay_between_cycles_values
-                ):
+                if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
                     self.delay_between_cycles_index = 0
                     if self.stop_key_bias.isChecked():
                         return False
@@ -132,10 +110,7 @@ class App(LifetimeBase):
                         self.bias_current_index += 1
                     while self.check_exists and self._data_file_exists():
                         self.bias_current_index += 1
-                    if (
-                        self.last_lifetime_0 > self.max_mean
-                        or self.bias_current_index >= len(self.bias_current_values)
-                    ):
+                    if self.last_lifetime_0 > self.max_mean or self.bias_current_index >= len(self.bias_current_values):
                         self.bias_current_index = 0
                         if self.stop_key_temperature.isChecked():
                             return False

@@ -1,3 +1,16 @@
 [tool.black]
 target-versions = ["py38", "py311", "py312"]
-line-length = 88
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

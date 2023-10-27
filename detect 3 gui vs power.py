@@ -20,9 +20,7 @@ class App(DetectBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis("bottom").setLabel(
-            text=self.tr("Power"), units=self.tr("dBm")
-        )
+        self.figure.getAxis("bottom").setLabel(text=self.tr("Power"), units=self.tr("dBm"))
 
     @property
     def stat_file(self) -> Path:
@@ -38,9 +36,7 @@ class App(DetectBase):
                         f"CC{self.cycles_count}",
                         format_float(self.frequency, suffix="GHz"),
                         format_float(self.pulse_duration, prefix="P", suffix="s"),
-                        format_float(
-                            self.waiting_after_pulse, prefix="WaP", suffix="s"
-                        ),
+                        format_float(self.waiting_after_pulse, prefix="WaP", suffix="s"),
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
@@ -54,10 +50,10 @@ class App(DetectBase):
     def _line_index(self) -> int:
         return (self.bias_current_index
                 + (self.setting_time_index
-                   + (self.frequency_index
-                      * len(self.bias_current_values)
-                      + self.temperature_index
-                      ) * len(self.frequency_values)
+                   + (self.temperature_index
+                      + (self.frequency_index
+                         ) * len(self.frequency_values)
+                      ) * len(self.temperature_values)
                    ) * len(self.setting_time_values)
                 )
     # fmt: on
@@ -70,9 +66,7 @@ class App(DetectBase):
                 (
                     format_float(self.bias_current, suffix=self.tr("nA")),
                     format_float(self.frequency, suffix=self.tr("GHz")),
-                    format_float(
-                        self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")
-                    ),
+                    format_float(self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")),
                     format_float(self.temperature * 1e3, suffix=self.tr("mK")),
                 ),
             )
@@ -85,15 +79,11 @@ class App(DetectBase):
         measured_data: NDArray[float] = self._get_data_file_content()
         bias_current: NDArray[float] = measured_data[0]
         median_bias_current: float = cast(float, np.nanmedian(bias_current))
-        min_reasonable_bias_current: float = median_bias_current * (
-            1.0 - self.max_reasonable_bias_error
+        min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
+        max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
+        reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
+            bias_current <= max_reasonable_bias_current
         )
-        max_reasonable_bias_current: float = median_bias_current * (
-            1.0 + self.max_reasonable_bias_error
-        )
-        reasonable: NDArray[np.bool_] = (
-            bias_current >= min_reasonable_bias_current
-        ) & (bias_current <= max_reasonable_bias_current)
         good_count: int = np.count_nonzero(reasonable)
         prob: float = 100.0 * good_count / self.cycles_count
         err: float = np.sqrt(prob * (100.0 - prob) / self.cycles_count)

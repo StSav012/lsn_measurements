@@ -160,9 +160,7 @@ def save_txt(
                 try:
                     fh.write(row_pack_fmt % tuple(x[row : row + row_pack, ...].ravel()))
                 except TypeError:
-                    raise TypeError(
-                        "Mismatch between array data type and format specifier"
-                    )
+                    raise TypeError("Mismatch between array data type and format specifier")
             row_pack = x.shape[0] % row_pack
             row_pack_fmt = "\n".join([fmt] * row_pack) + "\n"
             try:
@@ -215,9 +213,7 @@ def load_txt(
 
     filename = Path(filename)
     data: list[list[str]] = [
-        word.split(sep=sep)
-        for word in filename.read_text(encoding=encoding, errors=errors).splitlines()
-        if word
+        word.split(sep=sep) for word in filename.read_text(encoding=encoding, errors=errors).splitlines() if word
     ]
     if not data:
         return np.empty(0, float), tuple()

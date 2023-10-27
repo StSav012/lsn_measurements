@@ -6,7 +6,7 @@ import time
 from threading import Lock, Thread
 from typing import Any, NamedTuple
 
-__all__ = ['PrintQueue']
+__all__ = ["PrintQueue"]
 
 
 class PrintQueueRecord(NamedTuple):
@@ -26,7 +26,7 @@ class PrintQueue(Thread):
         self._write_queue()
         self.done = True
 
-    def write(self, *data: Any, sep: str = ' ', end: str = '\n') -> None:
+    def write(self, *data: Any, sep: str = " ", end: str = "\n") -> None:
         with self.lock:
             self.queue.append(PrintQueueRecord(sep.join(map(str, data)) + end))
 

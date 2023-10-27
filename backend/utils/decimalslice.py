@@ -2,7 +2,7 @@
 from decimal import Decimal
 from typing import Final, Iterator
 
-__all__ = ['DecimalSlice']
+__all__ = ["DecimalSlice"]
 
 
 class DecimalSlice:
@@ -57,21 +57,21 @@ class DecimalSlice:
         return int((self.stop - self.start) // self.step) + 1
 
     def __str__(self) -> str:
-        return f'{self.start} to {self.stop} by {self.step}'
+        return f"{self.start} to {self.stop} by {self.step}"
 
     @staticmethod
-    def from_string(text: str) -> 'DecimalSlice':
+    def from_string(text: str) -> "DecimalSlice":
         start: Decimal
         stop: Decimal
         step: Decimal
-        if '..' not in text:
+        if ".." not in text:
             start = stop = Decimal(text)
             step = Decimal(0.0)
-        elif text.count('..') == 1:
-            start, stop = map(Decimal, text.split('..', maxsplit=1))
+        elif text.count("..") == 1:
+            start, stop = map(Decimal, text.split("..", maxsplit=1))
             step = Decimal(1.0)
-        elif text.count('..') == 2:
-            start, step, stop = map(Decimal, text.split('..', maxsplit=2))
+        elif text.count("..") == 2:
+            start, step, stop = map(Decimal, text.split("..", maxsplit=2))
         else:
             raise ValueError
         return DecimalSlice(start, stop, step)

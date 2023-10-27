@@ -122,9 +122,7 @@ class GSM7(SCPIDevice):
     _PORT: Final[int] = 80
 
     def __init__(self, ip: str | None = None, *, expected: bool = True) -> None:
-        super().__init__(
-            ip, GSM7._PORT, terminator=b"\n", expected=expected, reset=False
-        )
+        super().__init__(ip, GSM7._PORT, terminator=b"\n", expected=expected, reset=False)
         self._session: requests.Session = requests.session()
 
         self.calculate: Final[_Calculate] = _Calculate(self)
@@ -153,9 +151,7 @@ class GSM7(SCPIDevice):
         )
         if not command.endswith("?"):
             return
-        resp: requests.Response = self._session.get(
-            f"http://{self.socket.getpeername()[0]}/info?scpi"
-        )
+        resp: requests.Response = self._session.get(f"http://{self.socket.getpeername()[0]}/info?scpi")
         while not resp.json()["result"]:
             resp = self._session.get(f"http://{self.socket.getpeername()[0]}/info?scpi")
         return resp.json()["result"]

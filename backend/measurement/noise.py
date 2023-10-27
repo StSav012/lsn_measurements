@@ -52,11 +52,7 @@ class NoiseMeasurement(Process):
             task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
             task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
             task_dac.ao_channels.add_ao_voltage_chan(dac_current.name)
-            task_dac.write(
-                self.current
-                * self.current_divider
-                * (DIVIDER_RESISTANCE + self.ballast_resistance)
-            )
+            task_dac.write(self.current * self.current_divider * (DIVIDER_RESISTANCE + self.ballast_resistance))
             time.sleep(0.01)
 
             task_adc.timing.cfg_samp_clk_timing(
@@ -65,23 +61,15 @@ class NoiseMeasurement(Process):
                 samps_per_chan=task_adc.input_onboard_buffer_size,
             )
 
-            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(
-                task_adc.in_stream
-            )
+            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             task_adc.start()
 
             while adc_stream.verify_array_shape:
-                data: np.ndarray = np.empty(
-                    (2, task_adc.timing.samp_quant_samp_per_chan)
-                )
-                adc_stream.read_many_sample(
-                    data, task_adc.timing.samp_quant_samp_per_chan
-                )
+                data: np.ndarray = np.empty((2, task_adc.timing.samp_quant_samp_per_chan))
+                adc_stream.read_many_sample(data, task_adc.timing.samp_quant_samp_per_chan)
                 data[1] = (data[1] - offsets[adc_voltage.name]) / self.voltage_gain
-                data[0] = (
-                    data[0] - offsets[adc_current.name] - data[1]
-                ) / self.ballast_resistance
+                data[0] = (data[0] - offsets[adc_current.name] - data[1]) / self.ballast_resistance
                 data[1] -= data[0] * self.resistance_in_series
                 self.results_queue.put((task_adc.timing.samp_clk_rate, data))
 

@@ -25,9 +25,7 @@ def port_scanner(port: int, timeout: float = 0.1) -> list[ipaddress.IPv4Address]
         finally:
             sock.close()
 
-    local_ip: ipaddress.IPv4Address = ipaddress.ip_address(
-        socket.gethostbyname(socket.gethostname())
-    )
+    local_ip: ipaddress.IPv4Address = ipaddress.ip_address(socket.gethostbyname(socket.gethostname()))
 
     interface: str
     for interface in netifaces.interfaces():

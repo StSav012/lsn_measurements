@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Final, Iterator
 
-__all__ = ['FloatSlice']
+__all__ = ["FloatSlice"]
 
 
 class FloatSlice:
@@ -56,21 +56,21 @@ class FloatSlice:
         return int((self.stop - self.start) // self.step) + 1
 
     def __str__(self) -> str:
-        return f'{self.start} to {self.stop} by {self.step}'
+        return f"{self.start} to {self.stop} by {self.step}"
 
     @staticmethod
-    def from_string(text: str) -> 'FloatSlice':
+    def from_string(text: str) -> "FloatSlice":
         start: float
         stop: float
         step: float
-        if '..' not in text:
+        if ".." not in text:
             start = stop = float(text)
             step = 0.0
-        elif text.count('..') == 1:
-            start, stop = map(float, text.split('..', maxsplit=1))
+        elif text.count("..") == 1:
+            start, stop = map(float, text.split("..", maxsplit=1))
             step = 1.0
-        elif text.count('..') == 2:
-            start, step, stop = map(float, text.split('..', maxsplit=2))
+        elif text.count("..") == 2:
+            start, step, stop = map(float, text.split("..", maxsplit=2))
         else:
             raise ValueError
         return FloatSlice(start, stop, step)

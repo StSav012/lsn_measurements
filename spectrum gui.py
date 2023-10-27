@@ -44,25 +44,15 @@ class GUI(QMainWindow):
         self.parameters_layout: QFormLayout = QFormLayout(self.parameters_box)
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
-        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(
-            self.central_widget
-        )
+        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
         self.canvas_current_trend: pg.PlotItem = self.figure.addPlot(row=0, col=0)
         self.canvas_voltage_trend: pg.PlotItem = self.figure.addPlot(row=1, col=0)
         self.canvas_current_spectrum: pg.PlotItem = self.figure.addPlot(row=0, col=1)
         self.canvas_voltage_spectrum: pg.PlotItem = self.figure.addPlot(row=1, col=1)
-        self.current_trend_plot_line: pg.PlotDataItem = self.canvas_current_trend.plot(
-            np.empty(0), name=""
-        )
-        self.voltage_trend_plot_line: pg.PlotDataItem = self.canvas_voltage_trend.plot(
-            np.empty(0), name=""
-        )
-        self.current_spectrum_plot_line: pg.PlotDataItem = (
-            self.canvas_current_spectrum.plot(np.empty(0), name="")
-        )
-        self.voltage_spectrum_plot_line: pg.PlotDataItem = (
-            self.canvas_voltage_spectrum.plot(np.empty(0), name="")
-        )
+        self.current_trend_plot_line: pg.PlotDataItem = self.canvas_current_trend.plot(np.empty(0), name="")
+        self.voltage_trend_plot_line: pg.PlotDataItem = self.canvas_voltage_trend.plot(np.empty(0), name="")
+        self.current_spectrum_plot_line: pg.PlotDataItem = self.canvas_current_spectrum.plot(np.empty(0), name="")
+        self.voltage_spectrum_plot_line: pg.PlotDataItem = self.canvas_voltage_spectrum.plot(np.empty(0), name="")
 
         self.spin_sample_rate: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_current: pg.SpinBox = pg.SpinBox(self.central_widget)
@@ -70,12 +60,8 @@ class GUI(QMainWindow):
         self.spin_ballast_resistance: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.spin_resistance_in_series: pg.SpinBox = pg.SpinBox(self.central_widget)
         self.combo_voltage_gain: pg.ComboBox = pg.ComboBox(self.central_widget)
-        self.spin_averaging_time_span: QDoubleSpinBox = QDoubleSpinBox(
-            self.central_widget
-        )
-        self.spin_display_time_span: QDoubleSpinBox = QDoubleSpinBox(
-            self.central_widget
-        )
+        self.spin_averaging_time_span: QDoubleSpinBox = QDoubleSpinBox(self.central_widget)
+        self.spin_display_time_span: QDoubleSpinBox = QDoubleSpinBox(self.central_widget)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
         self.button_stop: QPushButton = QPushButton(self.central_widget)
@@ -169,22 +155,12 @@ class GUI(QMainWindow):
 
         self.parameters_layout.addRow(self.tr("Sample rate:"), self.spin_sample_rate)
         self.parameters_layout.addRow(self.tr("Current:"), self.spin_current)
-        self.parameters_layout.addRow(
-            self.tr("Current divider:"), self.combo_current_divider
-        )
-        self.parameters_layout.addRow(
-            self.tr("Ballast resistance:"), self.spin_ballast_resistance
-        )
-        self.parameters_layout.addRow(
-            self.tr("Resistance in series:"), self.spin_resistance_in_series
-        )
+        self.parameters_layout.addRow(self.tr("Current divider:"), self.combo_current_divider)
+        self.parameters_layout.addRow(self.tr("Ballast resistance:"), self.spin_ballast_resistance)
+        self.parameters_layout.addRow(self.tr("Resistance in series:"), self.spin_resistance_in_series)
         self.parameters_layout.addRow(self.tr("Voltage gain:"), self.combo_voltage_gain)
-        self.parameters_layout.addRow(
-            self.tr("Time to average over"), self.spin_averaging_time_span
-        )
-        self.parameters_layout.addRow(
-            self.tr("Time span to show"), self.spin_display_time_span
-        )
+        self.parameters_layout.addRow(self.tr("Time to average over"), self.spin_averaging_time_span)
+        self.parameters_layout.addRow(self.tr("Time span to show"), self.spin_display_time_span)
 
         self.buttons_layout.addWidget(self.button_start)
         self.buttons_layout.addWidget(self.button_stop)
@@ -204,28 +180,14 @@ class GUI(QMainWindow):
         self.restoreState(self.settings.value("windowState", b""))
 
         self.settings.beginGroup("parameters")
-        self.spin_sample_rate.setValue(
-            self.settings.value("sampleRate", 32678.0, float)
-        )
+        self.spin_sample_rate.setValue(self.settings.value("sampleRate", 32678.0, float))
         self.spin_current.setValue(self.settings.value("current", 0.0, float))
-        self.combo_current_divider.setValue(
-            self.settings.value("currentDivider", 1.0, float)
-        )
-        self.spin_ballast_resistance.setValue(
-            self.settings.value("ballastResistance", 2e6, float)
-        )
-        self.spin_resistance_in_series.setValue(
-            self.settings.value("resistanceInSeries", 0.0, float)
-        )
-        self.combo_voltage_gain.setValue(
-            self.settings.value("voltageGain", 100.0, float)
-        )
-        self.spin_averaging_time_span.setValue(
-            self.settings.value("averagingTimeSpan", 20.0, float)
-        )
-        self.spin_display_time_span.setValue(
-            self.settings.value("displayTimeSpan", 2.0, float)
-        )
+        self.combo_current_divider.setValue(self.settings.value("currentDivider", 1.0, float))
+        self.spin_ballast_resistance.setValue(self.settings.value("ballastResistance", 2e6, float))
+        self.spin_resistance_in_series.setValue(self.settings.value("resistanceInSeries", 0.0, float))
+        self.combo_voltage_gain.setValue(self.settings.value("voltageGain", 100.0, float))
+        self.spin_averaging_time_span.setValue(self.settings.value("averagingTimeSpan", 20.0, float))
+        self.spin_display_time_span.setValue(self.settings.value("displayTimeSpan", 2.0, float))
         self.settings.endGroup()
 
     def save_settings(self) -> None:
@@ -236,16 +198,10 @@ class GUI(QMainWindow):
         self.settings.setValue("sampleRate", self.spin_sample_rate.value())
         self.settings.setValue("current", self.spin_current.value())
         self.settings.setValue("currentDivider", self.combo_current_divider.value())
-        self.settings.setValue(
-            "ballastResistance", self.spin_ballast_resistance.value()
-        )
-        self.settings.setValue(
-            "resistanceInSeries", self.spin_resistance_in_series.value()
-        )
+        self.settings.setValue("ballastResistance", self.spin_ballast_resistance.value())
+        self.settings.setValue("resistanceInSeries", self.spin_resistance_in_series.value())
         self.settings.setValue("voltageGain", self.combo_voltage_gain.value())
-        self.settings.setValue(
-            "averagingTimeSpan", self.spin_averaging_time_span.value()
-        )
+        self.settings.setValue("averagingTimeSpan", self.spin_averaging_time_span.value())
         self.settings.setValue("displayTimeSpan", self.spin_display_time_span.value())
         self.settings.endGroup()
 
@@ -310,24 +266,16 @@ class App(GUI):
         while not self.results_queue.empty():
             sample_rate, (i, v) = self.results_queue.get()
             points_to_display = round(sample_rate * self.spin_display_time_span.value())
-            points_for_spectrum = round(
-                sample_rate * self.spin_averaging_time_span.value()
-            )
+            points_for_spectrum = round(sample_rate * self.spin_averaging_time_span.value())
             # v /= self.spin_voltage_gain.value()
             # i -= v
             # i /= self.spin_resistance.value()
             # v -= self.spin_resistance_in_series.value() * i
-            self.i = np.concatenate((self.i, i))[
-                -max(points_to_display, points_for_spectrum) :
-            ]
-            self.v = np.concatenate((self.v, v))[
-                -max(points_to_display, points_for_spectrum) :
-            ]
+            self.i = np.concatenate((self.i, i))[-max(points_to_display, points_for_spectrum) :]
+            self.v = np.concatenate((self.v, v))[-max(points_to_display, points_for_spectrum) :]
         if sample_rate > 0.0:
             points_to_display = round(sample_rate * self.spin_display_time_span.value())
-            points_for_spectrum = round(
-                sample_rate * self.spin_averaging_time_span.value()
-            )
+            points_for_spectrum = round(sample_rate * self.spin_averaging_time_span.value())
             self.current_trend_plot_line.setData(
                 np.arange(min(self.i.size, points_to_display)) / sample_rate,
                 self.i[-points_to_display:],
@@ -336,12 +284,8 @@ class App(GUI):
                 np.arange(min(self.v.size, points_to_display)) / sample_rate,
                 self.v[-points_to_display:],
             )
-            self.current_spectrum_plot_line.setData(
-                *welch(self.i[-points_for_spectrum:], sample_rate=sample_rate)
-            )
-            self.voltage_spectrum_plot_line.setData(
-                *welch(self.v[-points_for_spectrum:], sample_rate=sample_rate)
-            )
+            self.current_spectrum_plot_line.setData(*welch(self.i[-points_for_spectrum:], sample_rate=sample_rate))
+            self.voltage_spectrum_plot_line.setData(*welch(self.v[-points_for_spectrum:], sample_rate=sample_rate))
 
 
 if __name__ == "__main__":

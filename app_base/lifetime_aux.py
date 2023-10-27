@@ -39,26 +39,18 @@ class LifetimeBase(LifetimeGUI):
         self.good_to_measure.buf[0] = False
         self.measurement: LifetimeMeasurement | None = None
 
-        self.config: ConfigParser = ConfigParser(
-            allow_no_value=True, inline_comment_prefixes=("#", ";")
-        )
+        self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=("#", ";"))
         self.config.read("config.ini")
 
         self.triton: Triton = Triton(None, 33576)
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(
-            expected=self.config.getboolean("GHz signal", "connect", fallback=True)
-        )
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
         self.parameters_box.setTitle(self.sample_name)
-        self.gain: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "voltage gain"
-        )
-        self.divider: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "current divider"
-        )
+        self.gain: Final[float] = get_float(self.config, self.sample_name, "circuitry", "voltage gain")
+        self.divider: Final[float] = get_float(self.config, self.sample_name, "circuitry", "current divider")
         self.r: Final[float] = get_float(
             self.config, self.sample_name, "circuitry", "ballast resistance [Ohm]"
         ) + get_float(
@@ -76,9 +68,7 @@ class LifetimeBase(LifetimeGUI):
             fallback=0.0,
         )
 
-        self.reset_function: Final[str] = get_str(
-            self.config, "current", self.sample_name, "function", fallback="sine"
-        )
+        self.reset_function: Final[str] = get_str(self.config, "current", self.sample_name, "function", fallback="sine")
         if self.reset_function.casefold() not in ("linear", "sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
         self.bias_current_values: SliceSequence = SliceSequence(
@@ -93,35 +83,21 @@ class LifetimeBase(LifetimeGUI):
         )
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean(
-            "measurement", "check whether file exists"
-        )
+        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
         self.trigger_voltage: float = (
-            get_float(
-                self.config, self.sample_name, "measurement", "voltage trigger [V]"
-            )
-            * self.gain
+            get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
         )
         self.max_reasonable_bias_error: Final[float] = (
-            abs(
-                self.config.getfloat(
-                    "lifetime", "maximal reasonable bias error [%]", fallback=np.inf
-                )
-            )
-            * 0.01
+            abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
         self.cycles_count: int = self.config.getint("lifetime", "number of cycles")
         self.max_waiting_time: timedelta = timedelta(
-            seconds=self.config.getfloat(
-                "lifetime", "max time of waiting for switching [sec]"
-            )
+            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]")
         )
         self.max_mean: Final[float] = self.config.getfloat(
             "lifetime", "max mean time to measure [sec]", fallback=np.inf
         )
-        self.ignore_never_switched: bool = self.config.getboolean(
-            "lifetime", "ignore never switched"
-        )
+        self.ignore_never_switched: bool = self.config.getboolean("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
             get_str(
                 self.config,
@@ -130,9 +106,7 @@ class LifetimeBase(LifetimeGUI):
                 "delay between cycles [sec]",
             )
         )
-        self.stop_key_delay_between_cycles.setDisabled(
-            len(self.delay_between_cycles_values) <= 1
-        )
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -141,22 +115,12 @@ class LifetimeBase(LifetimeGUI):
             fallback=np.nan,
         )
 
-        self.frequency_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "frequency [GHz]")
-        )
-        self.stop_key_frequency.setDisabled(
-            not self.synthesizer_output or len(self.frequency_values) <= 1
-        )
-        self.power_dbm_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "power [dBm]")
-        )
-        self.stop_key_power.setDisabled(
-            not self.synthesizer_output or len(self.power_dbm_values) <= 1
-        )
+        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
+        self.stop_key_frequency.setDisabled(not self.synthesizer_output or len(self.frequency_values) <= 1)
+        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
+        self.stop_key_power.setDisabled(not self.synthesizer_output or len(self.power_dbm_values) <= 1)
 
-        self.aux_voltage_values: SliceSequence = SliceSequence(
-            self.config.get("measurement", "aux voltage [V]")
-        )
+        self.aux_voltage_values: SliceSequence = SliceSequence(self.config.get("measurement", "aux voltage [V]"))
         self.aux_voltage_delay: timedelta = timedelta(
             seconds=self.config.getfloat(
                 "measurement",
@@ -167,9 +131,7 @@ class LifetimeBase(LifetimeGUI):
         )
         self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
 
-        self.temperature_values: SliceSequence = SliceSequence(
-            self.config.get("measurement", "temperature")
-        )
+        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
         self.temperature_delay: timedelta = timedelta(
             seconds=get_float(
                 self.config,
@@ -197,9 +159,7 @@ class LifetimeBase(LifetimeGUI):
             "measurement", "change filtered readings in Triton", fallback=True
         )
 
-        self.saving_location: Path = Path(
-            self.config.get("output", "location", fallback=r"d:\ttt\lifetime")
-        )
+        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"d:\ttt\lifetime"))
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)
@@ -238,19 +198,11 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     def power_dbm(self) -> float:
-        return (
-            float(self.power_dbm_values[self.power_index])
-            if self.synthesizer_output
-            else np.nan
-        )
+        return float(self.power_dbm_values[self.power_index]) if self.synthesizer_output else np.nan
 
     @property
     def frequency(self) -> float:
-        return (
-            float(self.frequency_values[self.frequency_index])
-            if self.synthesizer_output
-            else np.nan
-        )
+        return float(self.frequency_values[self.frequency_index]) if self.synthesizer_output else np.nan
 
     @property
     def setting_time(self) -> float:
@@ -280,15 +232,9 @@ class LifetimeBase(LifetimeGUI):
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
-                        format_float(self.frequency, suffix="GHz")
-                        if not np.isnan(self.frequency)
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if not np.isnan(self.power_dbm)
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -311,15 +257,9 @@ class LifetimeBase(LifetimeGUI):
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
-                        format_float(self.frequency, suffix="GHz")
-                        if not np.isnan(self.frequency)
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if not np.isnan(self.power_dbm)
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -462,12 +402,8 @@ class LifetimeBase(LifetimeGUI):
             self.label_loop_number.setValue(cycle_index + 1)
             self.label_spent_time.setValue(spent_time.total_seconds())
             self.loop_data[cycle_index] = spent_time
-        finished_data: list[float] = list(
-            v.total_seconds() for v in self.loop_data.values()
-        )[:-1]
-        self.histogram.hist(
-            finished_data, pen="white", symbolBrush="white", symbolPen="white"
-        )
+        finished_data: list[float] = list(v.total_seconds() for v in self.loop_data.values())[:-1]
+        self.histogram.hist(finished_data, pen="white", symbolBrush="white", symbolPen="white")
         if finished_data:
             self.label_mean_lifetime.setValue(np.mean(finished_data))
         else:
@@ -479,14 +415,10 @@ class LifetimeBase(LifetimeGUI):
 
     def _add_plot_point(self, x: float, lifetime: float) -> None:
         old_x_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line.xData is None
-            else self.plot_line.xData
+            np.empty(0, dtype=np.float64) if self.plot_line.xData is None else self.plot_line.xData
         )
         old_y_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line.yData is None
-            else self.plot_line.yData
+            np.empty(0, dtype=np.float64) if self.plot_line.yData is None else self.plot_line.yData
         )
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, lifetime)
@@ -501,15 +433,11 @@ class LifetimeBase(LifetimeGUI):
             bias_current: NDArray[float] = measured_data[3]
             lifetime: NDArray[float] = measured_data[2]
             median_bias_current: float = cast(float, np.nanmedian(bias_current))
-            min_reasonable_bias_current: float = median_bias_current * (
-                1.0 - self.max_reasonable_bias_error
+            min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
+            max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
+            reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
+                bias_current <= max_reasonable_bias_current
             )
-            max_reasonable_bias_current: float = median_bias_current * (
-                1.0 + self.max_reasonable_bias_error
-            )
-            reasonable: NDArray[np.bool_] = (
-                bias_current >= min_reasonable_bias_current
-            ) & (bias_current <= max_reasonable_bias_current)
             bias_current = bias_current[reasonable]
             lifetime = lifetime[reasonable]
             self._add_plot_point(
@@ -532,24 +460,17 @@ class LifetimeBase(LifetimeGUI):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(
-                f"temperature {actual_temperature} {temperature_unit} "
-                f"is too far from {self.temperature:.3f} K"
-            )
+            print(f"temperature {actual_temperature} {temperature_unit} " f"is too far from {self.temperature:.3f} K")
             if not self.triton.issue_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
             if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(
-                    6, self.triton.filter_readings(self.temperature)
-                ):
+                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
                     error("failed to change the state of filtered readings")
                     self.timer.stop()
                     self.measurement.terminate()
-            if not self.triton.issue_heater_range(
-                6, self.triton.heater_range(self.temperature)
-            ):
+            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
                 self.measurement.terminate()
@@ -574,9 +495,7 @@ class LifetimeBase(LifetimeGUI):
             td = datetime.now() - self.bad_aux_voltage_time
             if td <= self.aux_voltage_delay:
                 self.good_to_measure.buf[0] = False
-                print(
-                    f"wait for {self.aux_voltage_delay - td} after the aux voltage change"
-                )
+                print(f"wait for {self.aux_voltage_delay - td} after the aux voltage change")
 
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (

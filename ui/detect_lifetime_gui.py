@@ -34,16 +34,12 @@ class DetectLifetimeGUI(QMainWindow):
         self.parameters_box: QGroupBox = QGroupBox(self.central_widget)
         self.parameters_layout: QFormLayout = QFormLayout(self.parameters_box)
         self.button_topmost: QPushButton = QPushButton(self.central_widget)
-        self.button_drop_measurement: SafeButton = SafeButton(
-            "", timeout=4.0, parent=self.central_widget
-        )
+        self.button_drop_measurement: SafeButton = SafeButton("", timeout=4.0, parent=self.central_widget)
         self.stop_sings_box: QGroupBox = QGroupBox(self.central_widget)
         self.stop_sings_box.setLayout(QVBoxLayout())
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
-        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(
-            self.central_widget
-        )
+        self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
         self.canvas_detect: pg.PlotItem = self.figure.addPlot(row=0, col=0)
         self.canvas_lifetime: pg.PlotItem = self.figure.addPlot(row=0, col=1)
         self.plot_lines_detect: dict[int, pg.PlotDataItem] = dict()
@@ -58,18 +54,14 @@ class DetectLifetimeGUI(QMainWindow):
         self.label_frequency: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_pulse_duration: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_setting_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
-        self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(
-            self.central_widget
-        )
+        self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
         self.stop_key_bias: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_frequency: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_setting_time: QPushButton = QPushButton(self.stop_sings_box)
-        self.stop_key_delay_between_cycles: QPushButton = QPushButton(
-            self.stop_sings_box
-        )
+        self.stop_key_delay_between_cycles: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
@@ -139,13 +131,9 @@ class DetectLifetimeGUI(QMainWindow):
         self.parameters_layout.addRow(self.tr("Bias current:"), self.label_bias)
         self.parameters_layout.addRow(self.tr("Frequency:"), self.label_frequency)
         self.parameters_layout.addRow(self.tr("Power:"), self.label_power)
-        self.parameters_layout.addRow(
-            self.tr("Pulse duration:"), self.label_pulse_duration
-        )
+        self.parameters_layout.addRow(self.tr("Pulse duration:"), self.label_pulse_duration)
         self.parameters_layout.addRow(self.tr("Setting time:"), self.label_setting_time)
-        self.parameters_layout.addRow(
-            self.tr("Delay b/w cycles:"), self.label_delay_between_cycles
-        )
+        self.parameters_layout.addRow(self.tr("Delay b/w cycles:"), self.label_delay_between_cycles)
         self.parameters_layout.addRow(self.tr("Temperature:"), self.label_temperature)
         self.parameters_layout.addRow(self.tr("Loop count:"), self.label_loop_count)
         self.parameters_layout.addRow(self.tr("Loop number:"), self.label_loop_number)
@@ -211,18 +199,12 @@ class DetectLifetimeGUI(QMainWindow):
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags()
-                | Qt.WindowFlags.CustomizeWindowHint
-                | Qt.WindowFlags.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags()
-                ^ (
-                    Qt.WindowFlags.CustomizeWindowHint
-                    | Qt.WindowFlags.WindowStaysOnTopHint
-                )
+                self.windowFlags() ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
             )
             self.show()
 

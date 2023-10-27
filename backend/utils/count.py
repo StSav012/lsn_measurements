@@ -3,7 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
-__all__ = ['Count']
+__all__ = ["Count"]
 
 
 class Count:

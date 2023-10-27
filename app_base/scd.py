@@ -42,26 +42,18 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.good_to_measure.buf[0] = False
         self.measurement: SCDMeasurement | None = None
 
-        self.config: ConfigParser = ConfigParser(
-            allow_no_value=True, inline_comment_prefixes=("#", ";")
-        )
+        self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=("#", ";"))
         self.config.read("config.ini")
 
         self.triton: Triton = Triton(None, 33576)
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(
-            expected=self.config.getboolean("GHz signal", "connect", fallback=True)
-        )
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
         self.parameters_box.setTitle(self.sample_name)
-        self.gain: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "voltage gain"
-        )
-        self.divider: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "current divider"
-        )
+        self.gain: Final[float] = get_float(self.config, self.sample_name, "circuitry", "voltage gain")
+        self.divider: Final[float] = get_float(self.config, self.sample_name, "circuitry", "current divider")
         self.r: Final[float] = get_float(
             self.config, self.sample_name, "circuitry", "ballast resistance [Ohm]"
         ) + get_float(
@@ -79,14 +71,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             fallback=0.0,
         )
 
-        self.reset_function: Final[str] = get_str(
-            self.config, "current", self.sample_name, "function", fallback="sine"
-        )
+        self.reset_function: Final[str] = get_str(self.config, "current", self.sample_name, "function", fallback="sine")
         if self.reset_function.casefold() not in ("linear", "sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
-        self.max_bias_current: float = get_float(
-            self.config, self.sample_name, "scd", "max bias current [nA]"
-        )
+        self.max_bias_current: float = get_float(self.config, self.sample_name, "scd", "max bias current [nA]")
         self.initial_biases: list[float] = get_float_list(
             self.config, self.sample_name, "current", "initial current [nA]", [0.0]
         )
@@ -95,24 +83,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         )
         self.stop_key_current_speed.setDisabled(len(self.current_speed_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean(
-            "measurement", "check whether file exists"
-        )
-        self.trigger_voltage: float = get_float(
-            self.config, self.sample_name, "measurement", "voltage trigger [V]"
-        )
+        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
+        self.trigger_voltage: float = get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]")
         self.max_reasonable_bias_error: Final[float] = (
-            abs(
-                self.config.getfloat(
-                    "scd", "maximal reasonable bias error [%]", fallback=np.inf
-                )
-            )
-            * 0.01
+            abs(self.config.getfloat("scd", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
         self.cycles_count: int = self.config.getint("scd", "number of cycles")
         self.max_measurement_time: timedelta = timedelta(
-            seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]")
-            * 60
+            seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]") * 60
         )
         self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
             get_str(
@@ -122,9 +100,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 "delay between cycles [sec]",
             )
         )
-        self.stop_key_delay_between_cycles.setDisabled(
-            len(self.delay_between_cycles_values) <= 1
-        )
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -133,47 +109,25 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             fallback=np.nan,
         )
 
-        synthesizer_output: bool = self.config.getboolean(
-            "GHz signal", "on", fallback=False
-        )
-        self.frequency_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "frequency [GHz]")
-        )
-        self.stop_key_frequency.setDisabled(
-            not synthesizer_output or len(self.frequency_values) <= 1
-        )
-        self.power_dbm_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "power [dBm]")
-        )
-        self.stop_key_power.setDisabled(
-            not synthesizer_output or len(self.power_dbm_values) <= 1
-        )
+        synthesizer_output: bool = self.config.getboolean("GHz signal", "on", fallback=False)
+        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
+        self.stop_key_frequency.setDisabled(not synthesizer_output or len(self.frequency_values) <= 1)
+        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
+        self.stop_key_power.setDisabled(not synthesizer_output or len(self.power_dbm_values) <= 1)
 
-        self.temperature_values: SliceSequence = SliceSequence(
-            self.config.get("measurement", "temperature")
-        )
+        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
         self.temperature_delay: timedelta = timedelta(
-            seconds=self.config.getfloat(
-                "measurement", "time to wait for temperature [minutes]", fallback=0.0
-            )
-            * 60.0
+            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
             "measurement", "change filtered readings in Triton", fallback=True
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
-            abs(
-                self.config.getfloat(
-                    "measurement", "temperature tolerance [%]", fallback=1.0
-                )
-            )
-            * 0.01
+            abs(self.config.getfloat("measurement", "temperature tolerance [%]", fallback=1.0)) * 0.01
         )
 
-        self.saving_location: Path = Path(
-            self.config.get("output", "location", fallback=r"d:\ttt\scd")
-        )
+        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"d:\ttt\scd"))
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)
@@ -199,19 +153,11 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
     @property
     def power_dbm(self) -> float:
-        return (
-            float(self.power_dbm_values[self.power_index])
-            if self.synthesizer_output
-            else np.nan
-        )
+        return float(self.power_dbm_values[self.power_index]) if self.synthesizer_output else np.nan
 
     @property
     def frequency(self) -> float:
-        return (
-            float(self.frequency_values[self.frequency_index])
-            if self.synthesizer_output
-            else np.nan
-        )
+        return float(self.frequency_values[self.frequency_index]) if self.synthesizer_output else np.nan
 
     @property
     def current_speed(self) -> float:
@@ -239,18 +185,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                         format_float(self.current_speed, prefix="v", suffix="nAps"),
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count}",
-                        format_float(self.frequency, suffix="GHz")
-                        if self.synthesizer_output
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if self.synthesizer_output
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
-                        format_float(
-                            self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if self.synthesizer_output else "",
+                        format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
+                        format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -271,18 +209,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                         format_float(self.current_speed, prefix="v", suffix="nAps"),
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count}",
-                        format_float(self.frequency, suffix="GHz")
-                        if self.synthesizer_output
-                        else "",
-                        format_float(self.power_dbm, suffix="dBm")
-                        if self.synthesizer_output
-                        else "",
-                        format_float(
-                            self.initial_biases[-1], prefix="from ", suffix="nA"
-                        ),
-                        format_float(
-                            self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"
-                        ),
+                        format_float(self.frequency, suffix="GHz") if self.synthesizer_output else "",
+                        format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                        format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
+                        format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
                 )
@@ -454,19 +384,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
     def _add_plot_point(self, x: float, mean: float, std: float) -> None:
         old_x_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_mean.xData is None
-            else self.plot_line_mean.xData
+            np.empty(0, dtype=np.float64) if self.plot_line_mean.xData is None else self.plot_line_mean.xData
         )
         old_mean_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_mean.yData is None
-            else self.plot_line_mean.yData
+            np.empty(0, dtype=np.float64) if self.plot_line_mean.yData is None else self.plot_line_mean.yData
         )
         old_std_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line_std.yData is None
-            else self.plot_line_std.yData
+            np.empty(0, dtype=np.float64) if self.plot_line_std.yData is None else self.plot_line_std.yData
         )
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         mean_data: NDArray[np.float64] = np.append(old_mean_data, mean)
@@ -482,19 +406,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         if measured_data.shape[0] == 3:
             current: NDArray[float] = measured_data[0] * 1e9
             median_bias_current: float = cast(float, np.nanmedian(current))
-            min_reasonable_bias_current: float = median_bias_current * (
-                1.0 - self.max_reasonable_bias_error
-            )
-            max_reasonable_bias_current: float = median_bias_current * (
-                1.0 + self.max_reasonable_bias_error
-            )
+            min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
+            max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (current >= min_reasonable_bias_current) & (
                 current <= max_reasonable_bias_current
             )
             current = current[reasonable]
-            self._add_plot_point(
-                x, cast(float, np.mean(current)), cast(float, np.std(current))
-            )
+            self._add_plot_point(x, cast(float, np.mean(current)), cast(float, np.std(current)))
 
     def _watch_temperature(self) -> None:
         td: timedelta
@@ -511,24 +429,17 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(
-                f"temperature {actual_temperature} {temperature_unit} "
-                f"is too far from {self.temperature:.3f} K"
-            )
+            print(f"temperature {actual_temperature} {temperature_unit} " f"is too far from {self.temperature:.3f} K")
             if not self.triton.issue_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
             if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(
-                    6, self.triton.filter_readings(self.temperature)
-                ):
+                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
                     error("failed to change the state of filtered readings")
                     self.timer.stop()
                     self.measurement.terminate()
-            if not self.triton.issue_heater_range(
-                6, self.triton.heater_range(self.temperature)
-            ):
+            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
                 self.measurement.terminate()

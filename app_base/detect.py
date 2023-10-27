@@ -56,12 +56,8 @@ class DetectBase(DetectGUI):
 
         self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
         self.parameters_box.setTitle(self.sample_name)
-        self.gain: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "voltage gain"
-        )
-        self.divider: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "current divider"
-        )
+        self.gain: Final[float] = get_float(self.config, self.sample_name, "circuitry", "voltage gain")
+        self.divider: Final[float] = get_float(self.config, self.sample_name, "circuitry", "current divider")
         self.r: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -86,9 +82,7 @@ class DetectBase(DetectGUI):
             self.config, "current", self.sample_name, "function", fallback="sine"
         )
         if self.setting_function.casefold() not in ("linear", "sine"):
-            raise ValueError(
-                "Unsupported current setting function:", self.setting_function
-            )
+            raise ValueError("Unsupported current setting function:", self.setting_function)
 
         self.bias_current_values: SliceSequence = SliceSequence(
             get_str(self.config, self.sample_name, "current", "bias current [nA]")
@@ -103,27 +97,15 @@ class DetectBase(DetectGUI):
         )
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean(
-            "measurement", "check whether file exists"
-        )
+        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
         self.trigger_voltage: float = (
-            get_float(
-                self.config, self.sample_name, "measurement", "voltage trigger [V]"
-            )
-            * self.gain
+            get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
         )
         self.max_reasonable_bias_error: Final[float] = (
-            abs(
-                self.config.getfloat(
-                    "detect", "maximal reasonable bias error [%]", fallback=np.inf
-                )
-            )
-            * 0.01
+            abs(self.config.getfloat("detect", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
         self.cycles_count: Final[int] = self.config.getint("detect", "number of cycles")
-        self.max_switching_events_count: Final[int] = self.config.getint(
-            "detect", "number of switches"
-        )
+        self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
         self.minimal_probability_to_measure: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -139,9 +121,7 @@ class DetectBase(DetectGUI):
                 "delay between cycles [sec]",
             )
         )
-        self.stop_key_delay_between_cycles.setDisabled(
-            len(self.delay_between_cycles_values) <= 1
-        )
+        self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = get_float(
             self.config,
             self.sample_name,
@@ -150,13 +130,9 @@ class DetectBase(DetectGUI):
             fallback=np.nan,
         )
 
-        self.frequency_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "frequency [GHz]")
-        )
+        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
-        self.power_dbm_values: SliceSequence = SliceSequence(
-            self.config.get("GHz signal", "power [dBm]")
-        )
+        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
         self.pulse_duration: Final[float] = get_float(
             self.config, self.sample_name, "detect", "GHz pulse duration [sec]"
@@ -165,9 +141,7 @@ class DetectBase(DetectGUI):
             self.config, self.sample_name, "detect", "waiting after GHz pulse [sec]"
         )
 
-        self.temperature_values: SliceSequence = SliceSequence(
-            self.config.get("measurement", "temperature")
-        )
+        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
         self.temperature_delay: timedelta = timedelta(
             seconds=get_float(
                 self.config,
@@ -195,9 +169,7 @@ class DetectBase(DetectGUI):
             "measurement", "change filtered readings in Triton", fallback=True
         )
 
-        self.saving_location: Path = Path(
-            self.config.get("output", "location", fallback=r"d:\ttt\detect")
-        )
+        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"d:\ttt\detect"))
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)
@@ -263,9 +235,7 @@ class DetectBase(DetectGUI):
                         format_float(self.frequency, suffix="GHz"),
                         format_float(self.power_dbm, suffix="dBm"),
                         format_float(self.pulse_duration, prefix="P", suffix="s"),
-                        format_float(
-                            self.waiting_after_pulse, prefix="WaP", suffix="s"
-                        ),
+                        format_float(self.waiting_after_pulse, prefix="WaP", suffix="s"),
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
@@ -395,23 +365,17 @@ class DetectBase(DetectGUI):
         estimated_cycles_count: int
         switches_count: int
         while not self.state_queue.empty():
-            cycle_index, estimated_cycles_count, switches_count = self.state_queue.get(
-                block=True
-            )
+            cycle_index, estimated_cycles_count, switches_count = self.state_queue.get(block=True)
             self.label_loop_number.setValue(cycle_index + 1)
             self.label_loop_count.setValue(estimated_cycles_count)
             self.label_probability.setValue(switches_count / (cycle_index + 1) * 100)
 
     def _add_plot_point(self, x: float, prob: float, err: float) -> None:
         old_x_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line.xData is None
-            else self.plot_line.xData
+            np.empty(0, dtype=np.float64) if self.plot_line.xData is None else self.plot_line.xData
         )
         old_y_data: NDArray[np.float64] = (
-            np.empty(0, dtype=np.float64)
-            if self.plot_line.yData is None
-            else self.plot_line.yData
+            np.empty(0, dtype=np.float64) if self.plot_line.yData is None else self.plot_line.yData
         )
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, prob)
@@ -432,24 +396,17 @@ class DetectBase(DetectGUI):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(
-                f"temperature {actual_temperature} {temperature_unit} "
-                f"is too far from {self.temperature:.3f} K"
-            )
+            print(f"temperature {actual_temperature} {temperature_unit} " f"is too far from {self.temperature:.3f} K")
             if not self.triton.issue_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
             if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(
-                    6, self.triton.filter_readings(self.temperature)
-                ):
+                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
                     error("failed to change the state of filtered readings")
                     self.timer.stop()
                     self.measurement.terminate()
-            if not self.triton.issue_heater_range(
-                6, self.triton.heater_range(self.temperature)
-            ):
+            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
                 self.measurement.terminate()

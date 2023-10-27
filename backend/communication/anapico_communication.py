@@ -162,9 +162,7 @@ class _PulseModulationInternal:
 class _PulseModulation:
     def __init__(self, parent: SCPIDevice) -> None:
         self._parent: Final[SCPIDevice] = parent
-        self.internal: Final[_PulseModulationInternal] = _PulseModulationInternal(
-            parent
-        )
+        self.internal: Final[_PulseModulationInternal] = _PulseModulationInternal(parent)
 
     def __bool__(self) -> bool:
         return self.state
@@ -444,9 +442,7 @@ class _SystemError:
     def next(self) -> tuple[int, str]:
         if self._parent.socket is None:
             return 0, ""
-        response: list[str] = self._parent.query("system:error:next").split(
-            ",", maxsplit=1
-        )
+        response: list[str] = self._parent.query("system:error:next").split(",", maxsplit=1)
         return int(response[0]), response[1].strip('"')
 
     @property

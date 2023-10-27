@@ -110,12 +110,8 @@ class _AmplitudeModulationPerChannel:
 class _AmplitudeModulation:
     def __init__(self, parent: SCPIDevice) -> None:
         self._parent: Final[SCPIDevice] = parent
-        self.channel1: Final[
-            _AmplitudeModulationPerChannel
-        ] = _AmplitudeModulationPerChannel(parent, 1)
-        self.channel2: Final[
-            _AmplitudeModulationPerChannel
-        ] = _AmplitudeModulationPerChannel(parent, 2)
+        self.channel1: Final[_AmplitudeModulationPerChannel] = _AmplitudeModulationPerChannel(parent, 1)
+        self.channel2: Final[_AmplitudeModulationPerChannel] = _AmplitudeModulationPerChannel(parent, 2)
 
     @property
     def am_mode(self) -> str:
@@ -230,20 +226,14 @@ class _ExternalModulationPerChannel:
 class _ExternalModulation:
     def __init__(self, parent: SCPIDevice) -> None:
         self._parent: Final[SCPIDevice] = parent
-        self.channel1: Final[
-            _ExternalModulationPerChannel
-        ] = _ExternalModulationPerChannel(parent, 1)
-        self.channel2: Final[
-            _ExternalModulationPerChannel
-        ] = _ExternalModulationPerChannel(parent, 2)
+        self.channel1: Final[_ExternalModulationPerChannel] = _ExternalModulationPerChannel(parent, 1)
+        self.channel2: Final[_ExternalModulationPerChannel] = _ExternalModulationPerChannel(parent, 2)
 
 
 class _Input:
     def __init__(self, parent: SCPIDevice) -> None:
         self._parent: Final[SCPIDevice] = parent
-        self.external_modulation: Final[_ExternalModulation] = _ExternalModulation(
-            parent
-        )
+        self.external_modulation: Final[_ExternalModulation] = _ExternalModulation(parent)
 
 
 class _PulseModulation:

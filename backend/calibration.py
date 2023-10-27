@@ -8,9 +8,7 @@ from numpy.typing import NDArray
 from scipy import interpolate
 
 
-def attenuation(
-    attenuation_voltage: Real | NDArray[Real], cal_source: str = "psi"
-) -> Real | NDArray[Real]:
+def attenuation(attenuation_voltage: Real | NDArray[Real], cal_source: str = "psi") -> Real | NDArray[Real]:
     cal_text_psi: str = """\
 0	8.9
 0.4	8.6
@@ -135,15 +133,8 @@ def attenuation(
     else:
         raise ValueError("Invalid calibration source:", cal_source)
     cal_data: NDArray[np.float64] = np.array(
-        [
-            [float(i) for i in line.split()[:2]]
-            for line in cal_text.strip().splitlines()
-            if line.strip()
-        ]
+        [[float(i) for i in line.split()[:2]] for line in cal_text.strip().splitlines() if line.strip()]
     ).T
     cal_x: NDArray[np.float64] = cal_data[0]
     cal_y: NDArray[np.float64] = cal_data[1]
-    return (
-        interpolate.interp1d(cal_x, cal_y, kind="quadratic")(attenuation_voltage)
-        - cal_y[0]
-    )
+    return interpolate.interp1d(cal_x, cal_y, kind="quadratic")(attenuation_voltage) - cal_y[0]

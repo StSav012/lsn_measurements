@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 
 from .scpi_device import SCPIDevice
 
-__all__ = ['Spike']
+__all__ = ["Spike"]
 
 
 class _Instrument:
@@ -19,14 +19,14 @@ class _Instrument:
     @property
     def select(self) -> str:
         if self._parent.socket is None:
-            return ''
-        return self._parent.query(':instrument:select')
+            return ""
+        return self._parent.query(":instrument:select")
 
     @select.setter
     def select(self, new_value: str) -> None:
         if not new_value:
             return
-        self._parent.issue(':instrument:select', new_value)
+        self._parent.issue(":instrument:select", new_value)
 
 
 class _Initiate:
@@ -37,11 +37,11 @@ class _Initiate:
     def continuous(self) -> bool:
         if self._parent.socket is None:
             return False
-        return bool(int(self._parent.query(':init:continuous')))
+        return bool(int(self._parent.query(":init:continuous")))
 
     @continuous.setter
     def continuous(self, new_value: bool) -> None:
-        self._parent.issue(':init:continuous', bool(new_value))
+        self._parent.issue(":init:continuous", bool(new_value))
 
 
 class _Bandwidth:
@@ -55,46 +55,46 @@ class _Bandwidth:
     def resolution(self) -> float:
         if self._parent.socket is None:
             return nan
-        if self._parent.query(':bandwidth:resolution:auto'):
+        if self._parent.query(":bandwidth:resolution:auto"):
             return nan
-        return float(self._parent.query(':bandwidth:resolution'))
+        return float(self._parent.query(":bandwidth:resolution"))
 
     @resolution.setter
     def resolution(self, new_value: float) -> None:
         if isnan(new_value):
-            self._parent.issue(':bandwidth:resolution:auto', True)
+            self._parent.issue(":bandwidth:resolution:auto", True)
         else:
-            self._parent.issue(':bandwidth:resolution:auto', False)
-            self._parent.issue(':bandwidth:resolution', new_value)
+            self._parent.issue(":bandwidth:resolution:auto", False)
+            self._parent.issue(":bandwidth:resolution", new_value)
 
     @property
     def video(self) -> float:
         if self._parent.socket is None:
             return nan
-        if self._parent.query(':bandwidth:video:auto'):
+        if self._parent.query(":bandwidth:video:auto"):
             return nan
-        return float(self._parent.query(':bandwidth:video'))
+        return float(self._parent.query(":bandwidth:video"))
 
     @video.setter
     def video(self, new_value: float) -> None:
         if isnan(new_value):
-            self._parent.issue(':bandwidth:video:auto', True)
+            self._parent.issue(":bandwidth:video:auto", True)
         else:
-            self._parent.issue(':bandwidth:video:auto', False)
-            self._parent.issue(':bandwidth:video', new_value)
+            self._parent.issue(":bandwidth:video:auto", False)
+            self._parent.issue(":bandwidth:video", new_value)
 
     @property
     def shape(self) -> str:
         if self._parent.socket is None:
-            return ''
-        return self._parent.query(':bandwidth:shape')
+            return ""
+        return self._parent.query(":bandwidth:shape")
 
     @shape.setter
     def shape(self, new_value: str) -> None:
         # FLATtop|NUTTall|GAUSsian
         if not new_value:
             return
-        self._parent.issue(':bandwidth:shape', new_value)
+        self._parent.issue(":bandwidth:shape", new_value)
 
 
 class _Frequency:
@@ -105,49 +105,49 @@ class _Frequency:
     def center(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':frequency:center'))
+        return float(self._parent.query(":frequency:center"))
 
     @center.setter
     def center(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':frequency:center', new_value)
+        self._parent.issue(":frequency:center", new_value)
 
     @property
     def span(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':frequency:span'))
+        return float(self._parent.query(":frequency:span"))
 
     @span.setter
     def span(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':frequency:span', new_value)
+        self._parent.issue(":frequency:span", new_value)
 
     @property
     def start(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':frequency:start'))
+        return float(self._parent.query(":frequency:start"))
 
     @start.setter
     def start(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':frequency:start', new_value)
+        self._parent.issue(":frequency:start", new_value)
 
     @property
     def stop(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':frequency:stop'))
+        return float(self._parent.query(":frequency:stop"))
 
     @stop.setter
     def stop(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':frequency:stop', new_value)
+        self._parent.issue(":frequency:stop", new_value)
 
 
 class _Power:
@@ -161,25 +161,25 @@ class _Power:
     def reference_level(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':power:r''level'))
+        return float(self._parent.query(":power:r" "level"))
 
     @reference_level.setter
     def reference_level(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':power:r''level', f'{new_value}dbm')
+        self._parent.issue(":power:r" "level", f"{new_value}dbm")
 
     @property
     def division(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':power:p''division'))
+        return float(self._parent.query(":power:p" "division"))
 
     @division.setter
     def division(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':power:p''division', new_value)
+        self._parent.issue(":power:p" "division", new_value)
 
 
 class _Detector:
@@ -189,34 +189,34 @@ class _Detector:
     @property
     def function(self) -> str:
         if self._parent.socket is None:
-            return ''
-        return self._parent.query(':sweep:detector:function')
+            return ""
+        return self._parent.query(":sweep:detector:function")
 
     @function.setter
     def function(self, new_value: str) -> None:
-        if new_value.casefold() == 'aver':
-            new_value = 'average'
-        elif new_value.casefold() not in ('average', 'min''max', 'min', 'max'):
-            raise ValueError(f'Invalid Sweep Detector Function: {new_value}')
-        self._parent.issue(':sweep:detector:function', new_value)
+        if new_value.casefold() == "aver":
+            new_value = "average"
+        elif new_value.casefold() not in ("average", "min" "max", "min", "max"):
+            raise ValueError(f"Invalid Sweep Detector Function: {new_value}")
+        self._parent.issue(":sweep:detector:function", new_value)
 
     @property
     def units(self) -> str:
         if self._parent.socket is None:
-            return ''
-        return self._parent.query(':sweep:detector:units')
+            return ""
+        return self._parent.query(":sweep:detector:units")
 
     @units.setter
     def units(self, new_value: str) -> None:
-        if new_value.casefold() == 'pow':
-            new_value = 'power'
-        if new_value.casefold() == 'sam''pl':
-            new_value = 'sample'
-        if new_value.casefold() == 'volt':
-            new_value = 'voltage'
-        elif new_value.casefold() not in ('power', 'sample', 'voltage', 'log'):
-            raise ValueError(f'Invalid Sweep Detector Units: {new_value}')
-        self._parent.issue(':sweep:detector:units', new_value)
+        if new_value.casefold() == "pow":
+            new_value = "power"
+        if new_value.casefold() == "sam" "pl":
+            new_value = "sample"
+        if new_value.casefold() == "volt":
+            new_value = "voltage"
+        elif new_value.casefold() not in ("power", "sample", "voltage", "log"):
+            raise ValueError(f"Invalid Sweep Detector Units: {new_value}")
+        self._parent.issue(":sweep:detector:units", new_value)
 
 
 class _Sweep:
@@ -228,13 +228,13 @@ class _Sweep:
     def time(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':sweep:time'))
+        return float(self._parent.query(":sweep:time"))
 
     @time.setter
     def time(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':sweep:time', new_value)
+        self._parent.issue(":sweep:time", new_value)
 
 
 class _Average:
@@ -245,19 +245,19 @@ class _Average:
     def count(self) -> int:
         if self._parent.socket is None:
             return -1
-        return int(self._parent.query(':trace:average:count'))
+        return int(self._parent.query(":trace:average:count"))
 
     @count.setter
     def count(self, new_value: int) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':trace:average:count', int(new_value))
+        self._parent.issue(":trace:average:count", int(new_value))
 
     @property
     def current(self) -> int:
         if self._parent.socket is None:
             return -1
-        return int(self._parent.query(':trace:average:current'))
+        return int(self._parent.query(":trace:average:current"))
 
 
 class _Trace:
@@ -269,82 +269,82 @@ class _Trace:
     def select(self) -> int:
         if self._parent.socket is None:
             return -1
-        return int(self._parent.query(':trace:select'))
+        return int(self._parent.query(":trace:select"))
 
     @select.setter
     def select(self, new_value: int) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(':trace:select', int(new_value))
+        self._parent.issue(":trace:select", int(new_value))
 
     @property
     def type(self) -> str:
         if self._parent.socket is None:
-            return ''
-        return self._parent.query(':trace:type')
+            return ""
+        return self._parent.query(":trace:type")
 
     @type.setter
     def type(self, new_value: str) -> None:
-        if new_value.casefold() == 'wr''it':
-            new_value = 'write'
-        if new_value.casefold() == 'aver':
-            new_value = 'average'
-        if new_value.casefold() == 'max':
-            new_value = 'max''hold'
-        if new_value.casefold() == 'min':
-            new_value = 'min''hold'
-        elif new_value.casefold() not in ('off', 'write', 'average', 'max''hold', 'min''hold', 'min''max'):
-            raise ValueError(f'Invalid Sweep Detector Units: {new_value}')
-        self._parent.issue(':trace:type', new_value)
+        if new_value.casefold() == "wr" "it":
+            new_value = "write"
+        if new_value.casefold() == "aver":
+            new_value = "average"
+        if new_value.casefold() == "max":
+            new_value = "max" "hold"
+        if new_value.casefold() == "min":
+            new_value = "min" "hold"
+        elif new_value.casefold() not in ("off", "write", "average", "max" "hold", "min" "hold", "min" "max"):
+            raise ValueError(f"Invalid Sweep Detector Units: {new_value}")
+        self._parent.issue(":trace:type", new_value)
 
     @property
     def update(self) -> bool:
         if self._parent.socket is None:
             return False
-        return bool(int(self._parent.query(':trace:update')))
+        return bool(int(self._parent.query(":trace:update")))
 
     @update.setter
     def update(self, new_value: bool) -> None:
-        self._parent.issue(':trace:update', bool(new_value))
+        self._parent.issue(":trace:update", bool(new_value))
 
     @property
     def display(self) -> bool:
         if self._parent.socket is None:
             return False
-        return bool(int(self._parent.query(':trace:display')))
+        return bool(int(self._parent.query(":trace:display")))
 
     @display.setter
     def display(self, new_value: bool) -> None:
-        self._parent.issue(':trace:display', bool(new_value))
+        self._parent.issue(":trace:display", bool(new_value))
 
     @property
     def points(self) -> int:
         if self._parent.socket is None:
             return -1
-        return int(self._parent.query(':trace:points'))
+        return int(self._parent.query(":trace:points"))
 
     @property
     def data(self) -> NDArray[np.float64]:
         if self._parent.socket is None:
             return np.empty(0)
-        return np.fromiter(map(float, self._parent.query(':trace:data').split(',')), dtype=np.float64)
+        return np.fromiter(map(float, self._parent.query(":trace:data").split(",")), dtype=np.float64)
 
     @property
     def start_frequency(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':trace:x''start'))
+        return float(self._parent.query(":trace:x" "start"))
 
     @property
     def frequency_step(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(':trace:x''increment'))
+        return float(self._parent.query(":trace:x" "increment"))
 
 
 class Spike(SCPIDevice):
     def __init__(self, ip: str | None, port: int) -> None:
-        super().__init__(ip, port, terminator=b'\n')
+        super().__init__(ip, port, terminator=b"\n")
 
         self.instrument: _Instrument = _Instrument(self)
         self.initiate: _Initiate = _Initiate(self)
@@ -355,17 +355,17 @@ class Spike(SCPIDevice):
         self.trace: _Trace = _Trace(self)
 
     def init(self) -> None:
-        self.communicate(':init')
+        self.communicate(":init")
 
 
-if __name__ == '__main__':
-    s: Spike = Spike('localhost', 5025)
+if __name__ == "__main__":
+    s: Spike = Spike("localhost", 5025)
     if s.socket is None:
-        print('no socket')
+        print("no socket")
         exit(0)
-    print(f'{s.idn = }')
+    print(f"{s.idn = }")
     # Set the measurement mode to sweep
-    s.instrument.select = 'SA'
+    s.instrument.select = "SA"
     # Disable continuous measurement operation
     s.initiate.continuous = False
 
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     # Set the RBW/VBW to auto
     s.bandwidth.resolution = nan
     s.bandwidth.video = nan
-    s.bandwidth.shape = 'flattop'
+    s.bandwidth.shape = "flattop"
 
     # Center/span
     s.frequency.span = 2e6
@@ -382,15 +382,15 @@ if __name__ == '__main__':
     s.power.reference_level = -20  # dbm
     s.power.division = 10
     # Peak detector
-    s.sweep.detector.function = 'minmax'
-    s.sweep.detector.units = 'power'
+    s.sweep.detector.function = "minmax"
+    s.sweep.detector.units = "power"
 
     # Configure the trace. Ensures trace 1 is active and enabled for clear-and-write.
     # These commands are not required to be sent everytime, this is for illustrative purposes only.
     # Select trace 1
     s.trace.select = 1
     # Set clear and write mode
-    s.trace.type = 'write'
+    s.trace.type = "write"
     # Set update state to on
     s.trace.update = True
     # Set un-hidden

@@ -93,9 +93,7 @@ class DetectMeasurement(Process):
         self.cycles_count: Final[int] = cycles_count
         self.max_switching_events_count: Final[int] = max_switching_events_count
         self.delay_between_cycles: Final[float] = delay_between_cycles
-        self.max_reasonable_bias_error: Final[
-            float
-        ] = max_reasonable_bias_error  # not used
+        self.max_reasonable_bias_error: Final[float] = max_reasonable_bias_error  # not used
 
         self.temperature: Final[float] = temperature
 
@@ -129,34 +127,22 @@ class DetectMeasurement(Process):
 
             bias_current_steps_count: int = round(self.setting_time * dac_rate)
             pulse_duration_points_count: int = round(self.pulse_duration * dac_rate)
-            waiting_after_pulse_points_count: int = round(
-                self.waiting_after_pulse * dac_rate
-            )
+            waiting_after_pulse_points_count: int = round(self.waiting_after_pulse * dac_rate)
 
             samples_per_dac_channel: int = (
-                2 * bias_current_steps_count
-                + pulse_duration_points_count
-                + waiting_after_pulse_points_count
+                2 * bias_current_steps_count + pulse_duration_points_count + waiting_after_pulse_points_count
             )
             if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                dac_rate /= (
-                    samples_per_dac_channel / task_dac.output_onboard_buffer_size
-                )
+                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
                 bias_current_steps_count = round(self.setting_time * dac_rate)
                 pulse_duration_points_count = round(self.pulse_duration * dac_rate)
-                waiting_after_pulse_points_count = round(
-                    self.waiting_after_pulse * dac_rate
-                )
+                waiting_after_pulse_points_count = round(self.waiting_after_pulse * dac_rate)
                 samples_per_dac_channel = (
-                    2 * bias_current_steps_count
-                    + pulse_duration_points_count
-                    + waiting_after_pulse_points_count
+                    2 * bias_current_steps_count + pulse_duration_points_count + waiting_after_pulse_points_count
                 )
             # Number of samples per channel to write multiplied by the number of channels in the task
             # cannot be an odd number for this device.
-            spare_sample_count: int = (
-                task_dac.number_of_channels * samples_per_dac_channel
-            ) % 2
+            spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
             samples_per_dac_channel += spare_sample_count
             # If we get too many samples per channel again, we sacrifice the current steps
             while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
@@ -191,9 +177,7 @@ class DetectMeasurement(Process):
                 samps_per_chan=samples_per_dac_channel,
             )
 
-            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(
-                task_adc.in_stream
-            )
+            adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             def reading_task_callback(
                 _task_idx: int, _event_type: int, num_samples: int, _callback_data: Any
@@ -207,14 +191,8 @@ class DetectMeasurement(Process):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]
                     self.c.inc(np.count_nonzero(waiting & not_switched))
-                    if (
-                        self.c.loadable
-                        and not self.c.loaded
-                        and np.any(data[1] > self.trigger_voltage)
-                    ):
-                        trig_arg: int = np.argwhere(
-                            data[1] > self.trigger_voltage
-                        ).flat[0]
+                    if self.c.loadable and not self.c.loaded and np.any(data[1] > self.trigger_voltage):
+                        trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).flat[0]
                         self.c.payload = (
                             data[0, trig_arg],
                             data[1, trig_arg],
@@ -227,9 +205,7 @@ class DetectMeasurement(Process):
                         self.pulse_ended = True
                         self.pulse_started = False
                     self.c.reset()
-                self.c.loadable = np.any(
-                    data[1] < 0.5 * self.trigger_voltage
-                ) and not np.any(waiting)
+                self.c.loadable = np.any(data[1] < 0.5 * self.trigger_voltage) and not np.any(waiting)
                 return 0
 
             # noinspection PyTypeChecker
@@ -239,25 +215,18 @@ class DetectMeasurement(Process):
 
             task_adc.start()
 
-            bias_current_amplitude: float = np.abs(
-                float(self.bias_current) - self.initial_biases[-1]
-            )
+            bias_current_amplitude: float = np.abs(float(self.bias_current) - self.initial_biases[-1])
             actual_bias_current_steps_count: int = round(
                 bias_current_amplitude
                 * 1e-9
                 * self.r
                 * self.divider
                 / min(
-                    (
-                        (current_channel.ao_max - current_channel.ao_min)
-                        / (2**current_channel.ao_resolution)
-                    ),
+                    ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
                     bias_current_steps_count,
                 )
             )
-            actual_bias_current_step: float = bias_current_amplitude / (
-                actual_bias_current_steps_count - 1
-            )
+            actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
             print(f"\nbias current is set to {self.bias_current} nA")
             print(f"number of current steps is {actual_bias_current_steps_count}")
@@ -277,8 +246,7 @@ class DetectMeasurement(Process):
                                 bias_current_steps_count,
                             ),
                             np.full(
-                                pulse_duration_points_count
-                                + waiting_after_pulse_points_count,
+                                pulse_duration_points_count + waiting_after_pulse_points_count,
                                 self.bias_current,
                             ),
                             sine_segments(
@@ -301,8 +269,7 @@ class DetectMeasurement(Process):
                                 bias_current_steps_count,
                             ),
                             np.full(
-                                pulse_duration_points_count
-                                + waiting_after_pulse_points_count,
+                                pulse_duration_points_count + waiting_after_pulse_points_count,
                                 self.bias_current,
                             ),
                             linear_segments(
@@ -317,9 +284,7 @@ class DetectMeasurement(Process):
                     * self.divider
                 )
             else:
-                raise ValueError(
-                    "Unsupported current setting function:", self.setting_function
-                )
+                raise ValueError("Unsupported current setting function:", self.setting_function)
 
             am_voltage_sequence: NDArray[np.float64] = np.concatenate(
                 (
@@ -346,10 +311,7 @@ class DetectMeasurement(Process):
                             (
                                 min(
                                     0.0,
-                                    self.initial_biases[-1]
-                                    * 1e-9
-                                    * self.r
-                                    * self.divider,
+                                    self.initial_biases[-1] * 1e-9 * self.r * self.divider,
                                 )
                                 * (1.0 + DIVIDER_RESISTANCE / self.r)
                             ),
@@ -378,11 +340,7 @@ class DetectMeasurement(Process):
                 else:
                     estimated_cycles_count = min(
                         self.cycles_count,
-                        round(
-                            self.max_switching_events_count
-                            * actual_cycles_count
-                            / switches_count
-                        ),
+                        round(self.max_switching_events_count * actual_cycles_count / switches_count),
                     )
                 print(
                     f"{self.temperature * 1000:.1f} mK | {self.bias_current:.2f} nA | "
@@ -405,11 +363,7 @@ class DetectMeasurement(Process):
                 task_dac.wait_until_done()
                 task_dac.stop()
 
-                while (
-                    not self.c.loadable
-                    or not self.pulse_ended
-                    and not self.good_to_go.buf[127]
-                ):
+                while not self.c.loadable or not self.pulse_ended and not self.good_to_go.buf[127]:
                     time.sleep(0.01)
                 if self.good_to_go.buf[127]:
                     print("user aborted")
@@ -424,18 +378,13 @@ class DetectMeasurement(Process):
                     i = (i - v - offsets[adc_current.name]) / self.r
 
                     switches_count += 1
-                    print(
-                        "switching at"
-                        f" t = {t:.5f} s, {i * 1e9:.4f} nA, {v * 1e3:.4f} mV"
-                    )
+                    print("switching at" f" t = {t:.5f} s, {i * 1e9:.4f} nA, {v * 1e3:.4f} mV")
                     fw.write(self.data_file, "at", (i * 1e9, v * 1e3, t))
                 else:
                     print("no switching events detected")
                     self.c.reset()
 
-                self.state_queue.put(
-                    (cycle_index, estimated_cycles_count, switches_count)
-                )
+                self.state_queue.put((cycle_index, estimated_cycles_count, switches_count))
 
                 actual_cycles_count = cycle_index + 1
                 if switches_count >= self.max_switching_events_count:

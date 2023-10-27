@@ -9,7 +9,7 @@ from typing import Any, Iterable, NamedTuple, TextIO, Union
 import numpy as np
 from numpy.typing import NDArray
 
-__all__ = ['FileWriter']
+__all__ = ["FileWriter"]
 
 
 class QueueRecord(NamedTuple):
@@ -31,7 +31,12 @@ class FileWriter(Thread):
         self._write_queue()
         self.done = True
 
-    def write(self, file_name: Path, file_mode: str, x: NDArray[np.float64] | Iterable[Any]) -> None:
+    def write(
+        self,
+        file_name: Path,
+        file_mode: str,
+        x: NDArray[np.float64] | Iterable[Any],
+    ) -> None:
         with self.lock:
             self.queue.append(QueueRecord(file_name, file_mode, x))
 
@@ -45,13 +50,21 @@ class FileWriter(Thread):
                 # look through the records for the ones of the same file name and file mode
                 index: int = 0
                 while index < len(self.queue):
-                    another_qr: QueueRecord = self.queue[index]  # for index == 0, it's qr, so we start with qr
-                    if another_qr.file_name == qr.file_name and another_qr.file_mode == qr.file_mode:
-                        if isinstance(another_qr.x, np.ndarray) and another_qr.x.ndim == 2:
+                    another_qr: QueueRecord = self.queue[
+                        index
+                    ]  # for index == 0, it's qr, so we start with qr
+                    if (
+                        another_qr.file_name == qr.file_name
+                        and another_qr.file_mode == qr.file_mode
+                    ):
+                        if (
+                            isinstance(another_qr.x, np.ndarray)
+                            and another_qr.x.ndim == 2
+                        ):
                             for x in another_qr.x.T:
-                                f_out.write('\t'.join(f'{y}' for y in x) + '\n')
+                                f_out.write("\t".join(f"{y}" for y in x) + "\n")
                         else:
-                            f_out.write('\t'.join(f'{x}' for x in another_qr.x) + '\n')
+                            f_out.write("\t".join(f"{x}" for x in another_qr.x) + "\n")
                         with self.lock:
                             self.queue.pop(index)
                     else:

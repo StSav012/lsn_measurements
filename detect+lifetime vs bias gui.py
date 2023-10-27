@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
+from typing import final
 
 import numpy as np
 from qtpy.QtCore import Qt
@@ -12,51 +13,85 @@ from backend.utils import zero_sources
 from backend.utils.string_utils import format_float
 
 
+@final
 class App(DetectLifetimeBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.canvas_detect.getAxis('bottom').setLabel(text=self.tr('Power'), units=self.tr('dBm'))
-        self.canvas_lifetime.getAxis('bottom').setLabel(text=self.tr('Current'), units=self.tr('nA'))
+        self.canvas_detect.getAxis("bottom").setLabel(
+            text=self.tr("Power"),
+            units=self.tr("dBm"),
+        )
+        self.canvas_lifetime.getAxis("bottom").setLabel(
+            text=self.tr("Current"),
+            units=self.tr("nA"),
+        )
 
     @property
     def stat_file_detect(self) -> Path:
-        return self.saving_location / (' '.join(filter(None, (
-            'detect',
-            self.config.get('output', 'prefix', fallback=''),
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.bias_current, suffix='nA'),
-            f'CC{self.cycles_count_detect}',
-            format_float(self.frequency, suffix='GHz'),
-            format_float(self.pulse_duration, prefix='P', suffix='s'),
-            format_float(self.waiting_after_pulse, prefix='WaP', suffix='s'),
-            format_float(self.setting_time, prefix='ST', suffix='s'),
-            self.config.get('output', 'suffix', fallback='')
-        ))) + '.txt')
+        return self.saving_location / (
+            " ".join(
+                filter(
+                    None,
+                    (
+                        "detect",
+                        self.config.get("output", "prefix", fallback=""),
+                        format_float(self.temperature * 1e3, suffix="mK"),
+                        format_float(self.bias_current, suffix="nA"),
+                        f"CC{self.cycles_count_detect}",
+                        format_float(self.frequency, suffix="GHz"),
+                        format_float(self.pulse_duration, prefix="P", suffix="s"),
+                        format_float(
+                            self.waiting_after_pulse, prefix="WaP", suffix="s"
+                        ),
+                        format_float(self.setting_time, prefix="ST", suffix="s"),
+                        self.config.get("output", "suffix", fallback=""),
+                    ),
+                )
+            )
+            + ".txt"
+        )
 
     @property
     def stat_file_lifetime(self) -> Path:
-        return self.saving_location / (' '.join(filter(None, (
-            'lifetime',
-            self.config.get('output', 'prefix', fallback=''),
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.bias_current_values[0], suffix='nA')
-            if len(self.bias_current_values) == 1 else '',
-            format_float(self.delay_between_cycles, prefix='d', suffix='s'),
-            f'CC{self.cycles_count_lifetime}',
-            format_float(self.setting_time, prefix='ST', suffix='s'),
-            format_float(self.frequency, suffix='GHz')
-            if not np.isnan(self.frequency) else '',
-            format_float(self.power_dbm, suffix='dBm')
-            if not np.isnan(self.power_dbm) else '',
-            format_float(self.initial_biases[-1], prefix='from ', suffix='nA'),
-            self.config.get('output', 'suffix', fallback=''),
-        ))) + '.txt')
+        return self.saving_location / (
+            " ".join(
+                filter(
+                    None,
+                    (
+                        "lifetime",
+                        self.config.get("output", "prefix", fallback=""),
+                        format_float(self.temperature * 1e3, suffix="mK"),
+                        format_float(self.bias_current_values[0], suffix="nA")
+                        if len(self.bias_current_values) == 1
+                        else "",
+                        format_float(self.delay_between_cycles, prefix="d", suffix="s"),
+                        f"CC{self.cycles_count_lifetime}",
+                        format_float(self.setting_time, prefix="ST", suffix="s"),
+                        format_float(self.frequency, suffix="GHz")
+                        if not np.isnan(self.frequency)
+                        else "",
+                        format_float(self.power_dbm, suffix="dBm")
+                        if not np.isnan(self.power_dbm)
+                        else "",
+                        format_float(
+                            self.initial_biases[-1], prefix="from ", suffix="nA"
+                        ),
+                        self.config.get("output", "suffix", fallback=""),
+                    ),
+                )
+            )
+            + ".txt"
+        )
 
     @property
     def stat_file(self) -> Path:
-        return {'detect': self.stat_file_detect, 'lifetime': self.stat_file_lifetime}[self.mode]
+        return {
+            "detect": self.stat_file_detect,
+            "lifetime": self.stat_file_lifetime,
+        }[self.mode]
 
+    # fmt: off
     @property
     def _line_index_detect(self) -> int:
         return (self.bias_current_index
@@ -65,17 +100,25 @@ class App(DetectLifetimeBase):
                       ) * len(self.frequency_values)
                    ) * len(self.temperature_values)
                 )
+    # fmt: on
 
     @property
     def _line_name_detect(self) -> str:
-        return ', '.join(filter(None, (
-            format_float(self.bias_current, suffix=self.tr('nA')),
-            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
-            format_float(self.delay_between_cycles * 1e3, suffix=self.tr('ms')),
-            format_float(self.frequency, suffix=self.tr('GHz'))
-            if not np.isnan(self.frequency) else '',
-        )))
+        return ", ".join(
+            filter(
+                None,
+                (
+                    format_float(self.bias_current, suffix=self.tr("nA")),
+                    format_float(self.temperature * 1e3, suffix=self.tr("mK")),
+                    format_float(self.delay_between_cycles * 1e3, suffix=self.tr("ms")),
+                    format_float(self.frequency, suffix=self.tr("GHz"))
+                    if not np.isnan(self.frequency)
+                    else "",
+                ),
+            )
+        )
 
+    # fmt: off
     @property
     def _line_index_lifetime(self) -> int:
         return (self.temperature_index
@@ -84,14 +127,28 @@ class App(DetectLifetimeBase):
                        ) * len(self.delay_between_cycles_values)
                    ) * len(self.setting_time_values)
                 )
+    # fmt: on
 
     @property
     def _line_name_lifetime(self) -> str:
-        return ', '.join(filter(None, (
-            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
-            format_float(self.delay_between_cycles * 1e3, prefix='d ', suffix=self.tr('ms')),
-        )))
+        return ", ".join(
+            filter(
+                None,
+                (
+                    format_float(self.temperature * 1e3, suffix=self.tr("mK")),
+                    format_float(
+                        self.setting_time * 1e3,
+                        prefix="ST ",
+                        suffix=self.tr("ms"),
+                    ),
+                    format_float(
+                        self.delay_between_cycles * 1e3,
+                        prefix="d ",
+                        suffix=self.tr("ms"),
+                    ),
+                ),
+            )
+        )
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_bias.isChecked():
@@ -124,7 +181,9 @@ class App(DetectLifetimeBase):
                         self.delay_between_cycles_index += 1
                     while self.check_exists and self._stat_file_exists():
                         self.delay_between_cycles_index += 1
-                    if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
+                    if self.delay_between_cycles_index >= len(
+                        self.delay_between_cycles_values
+                    ):
                         self.delay_between_cycles_index = 0
                         if self.stop_key_temperature.isChecked():
                             return False
@@ -137,17 +196,23 @@ class App(DetectLifetimeBase):
                             return False
                         actual_temperature: float
                         temperature_unit: str
-                        actual_temperature, temperature_unit = self.triton.query_temperature(6)
-                        if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                                < actual_temperature
-                                < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                        (
+                            actual_temperature,
+                            temperature_unit,
+                        ) = self.triton.query_temperature(6)
+                        if not (
+                            (1.0 - 0.01 * self.temperature_tolerance) * self.temperature
+                            < actual_temperature
+                            < (1.0 + 0.01 * self.temperature_tolerance)
+                            * self.temperature
+                        ):
                             self.temperature_just_set = True
         return True
 
     def on_timeout(self) -> None:
         self._read_state_queue_detect()
 
-        prob: float = 146.
+        prob: float = 146.0
         err: float
         while not self.results_queue_detect.empty():
             prob, err = self.results_queue_detect.get(block=True)
@@ -172,20 +237,25 @@ class App(DetectLifetimeBase):
             self.button_drop_measurement.reset()
             self.timer.stop()
 
-            if self.mode == 'detect' and self.power_index == len(self.power_dbm_values) - 1:
-                sys.stderr.write('switching to lifetime\n'.upper())
-                self.mode = 'lifetime'
+            if (
+                self.mode == "detect"
+                and self.power_index == len(self.power_dbm_values) - 1
+            ):
+                sys.stderr.write("switching to lifetime\n".upper())
+                self.mode = "lifetime"
                 self.start_measurement()
                 return
-            elif self.mode == 'lifetime':
-                sys.stderr.write('switching to detect\n'.upper())
-                self.mode = 'detect'
+            elif self.mode == "lifetime":
+                sys.stderr.write("switching to detect\n".upper())
+                self.mode = "detect"
 
             if self.stop_key_power.isChecked():
                 self.on_button_stop_clicked()
                 return
             self.power_index += 1
-            if prob < self.minimal_probability_to_measure or self.power_index >= len(self.power_dbm_values):
+            if prob < self.minimal_probability_to_measure or self.power_index >= len(
+                self.power_dbm_values
+            ):
                 self.power_index = 0
                 if not self._next_indices():
                     self.on_button_stop_clicked()
@@ -196,7 +266,7 @@ class App(DetectLifetimeBase):
             self.timer.setInterval(50)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app: QApplication = QApplication(sys.argv)
     app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()

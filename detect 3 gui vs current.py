@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import cast
+from typing import cast, final
 
 import numpy as np
 from numpy.typing import NDArray
@@ -15,46 +15,67 @@ from backend.utils import zero_sources
 from backend.utils.string_utils import format_float
 
 
+@final
 class App(DetectBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis('bottom').setLabel(text=self.tr('Current'), units=self.tr('nA'))
+        self.figure.getAxis("bottom").setLabel(
+            text=self.tr("Current"),
+            units=self.tr("nA"),
+        )
 
     @property
     def stat_file(self) -> Path:
-        return self.saving_location / (' '.join(filter(None, (
-            'detect',
-            self.config.get('output', 'prefix', fallback=''),
-            format_float(self.temperature * 1e3, suffix='mK'),
-            format_float(self.power_dbm, suffix='dBm'),
-            f'CC{self.cycles_count}',
-            format_float(self.frequency, suffix='GHz'),
-            format_float(self.pulse_duration, prefix='P', suffix='s'),
-            format_float(self.waiting_after_pulse, prefix='WaP', suffix='s'),
-            format_float(self.setting_time, prefix='ST', suffix='s'),
-            self.config.get('output', 'suffix', fallback='')
-        ))) + '.txt')
+        return self.saving_location / (
+            " ".join(
+                filter(
+                    None,
+                    (
+                        "detect",
+                        self.config.get("output", "prefix", fallback=""),
+                        format_float(self.temperature * 1e3, suffix="mK"),
+                        format_float(self.power_dbm, suffix="dBm"),
+                        f"CC{self.cycles_count}",
+                        format_float(self.frequency, suffix="GHz"),
+                        format_float(self.pulse_duration, prefix="P", suffix="s"),
+                        format_float(
+                            self.waiting_after_pulse, prefix="WaP", suffix="s"
+                        ),
+                        format_float(self.setting_time, prefix="ST", suffix="s"),
+                        self.config.get("output", "suffix", fallback=""),
+                    ),
+                )
+            )
+            + ".txt"
+        )
 
     @property
     def _line_index(self) -> int:
-        return (self.power_index
-                + (self.setting_time_index
-                   + (self.frequency_index
-                      * len(self.frequency_values)
-                      + self.temperature_index
-                      ) * len(self.temperature_values)
-                   ) * len(self.setting_time_values)
-                )
+        return self.power_index + (
+            self.setting_time_index
+            + (
+                self.frequency_index * len(self.frequency_values)
+                + self.temperature_index
+            )
+            * len(self.temperature_values)
+        ) * len(self.setting_time_values)
 
     @property
     def _line_name(self) -> str:
-        return ', '.join(filter(None, (
-            format_float(self.power_dbm, suffix=self.tr('dBm')),
-            format_float(self.frequency, suffix=self.tr('GHz')),
-            format_float(self.setting_time * 1e3, prefix='ST ', suffix=self.tr('ms')),
-            format_float(self.temperature * 1e3, suffix=self.tr('mK')),
-        )))
+        return ", ".join(
+            filter(
+                None,
+                (
+                    format_float(self.power_dbm, suffix=self.tr("dBm")),
+                    format_float(self.frequency, suffix=self.tr("GHz")),
+                    format_float(
+                        self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")
+                    ),
+                    format_float(self.temperature * 1e3, suffix=self.tr("mK")),
+                ),
+            )
+        )
 
     def _add_plot_point_from_file(self) -> None:
         if self.data_file in self.saved_files:
@@ -63,10 +84,15 @@ class App(DetectBase):
         measured_data: NDArray[float] = self._get_data_file_content()
         bias_current: NDArray[float] = measured_data[0]
         median_bias_current: float = cast(float, np.nanmedian(bias_current))
-        min_reasonable_bias_current: float = median_bias_current * (1. - .01 * self.max_reasonable_bias_error)
-        max_reasonable_bias_current: float = median_bias_current * (1. + .01 * self.max_reasonable_bias_error)
-        reasonable: NDArray[np.bool_] = ((bias_current >= min_reasonable_bias_current)
-                                         & (bias_current <= max_reasonable_bias_current))
+        min_reasonable_bias_current: float = median_bias_current * (
+            1.0 - self.max_reasonable_bias_error
+        )
+        max_reasonable_bias_current: float = median_bias_current * (
+            1.0 + self.max_reasonable_bias_error
+        )
+        reasonable: NDArray[np.bool_] = (
+            bias_current >= min_reasonable_bias_current
+        ) & (bias_current <= max_reasonable_bias_current)
         good_count: int = np.count_nonzero(reasonable)
         prob: float = 100.0 * good_count / self.cycles_count
         err: float = np.sqrt(prob * (100.0 - prob) / self.cycles_count)
@@ -112,10 +138,15 @@ class App(DetectBase):
                         return False
                     actual_temperature: float
                     temperature_unit: str
-                    actual_temperature, temperature_unit = self.triton.query_temperature(6)
-                    if not ((1.0 - 0.01 * self.temperature_tolerance) * self.temperature
-                            < actual_temperature
-                            < (1.0 + 0.01 * self.temperature_tolerance) * self.temperature):
+                    (
+                        actual_temperature,
+                        temperature_unit,
+                    ) = self.triton.query_temperature(6)
+                    if not (
+                        (1.0 - self.temperature_tolerance) * self.temperature
+                        < actual_temperature
+                        < (1.0 + self.temperature_tolerance) * self.temperature
+                    ):
                         self.temperature_just_set = True
         return True
 
@@ -157,7 +188,7 @@ class App(DetectBase):
             self.timer.setInterval(50)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app: QApplication = QApplication(sys.argv)
     app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()

@@ -5,4 +5,4 @@ from .rs_communication import SMA100B
 from .spike_communication import Spike
 from .triton_communication import Triton
 
-__all__ = ['APUASYN20', 'SMA100B', 'Spike', 'Triton']
+__all__ = ["APUASYN20", "SMA100B", "Spike", "Triton"]

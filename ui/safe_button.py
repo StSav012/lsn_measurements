@@ -6,13 +6,18 @@ import math
 from qtpy.QtCore import QTimer, Signal
 from qtpy.QtWidgets import QGroupBox, QPushButton, QVBoxLayout, QWidget
 
-__all__ = ['SafeButton']
+__all__ = ["SafeButton"]
 
 
 class SafeButton(QGroupBox):
-    clicked: Signal = Signal(name='clicked')
+    clicked: Signal = Signal(name="clicked")
 
-    def __init__(self, text: str, timeout: float = math.inf, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        text: str,
+        timeout: float = math.inf,
+        parent: QWidget | None = None,
+    ) -> None:
         super().__init__(parent)
 
         self.timeout: float = timeout

@@ -11,7 +11,7 @@ try:
 except ImportError:
     from scpi_device import SCPIDevice
 
-__all__ = ['GSM7']
+__all__ = ["GSM7"]
 
 
 class ReadResult(NamedTuple):
@@ -27,8 +27,8 @@ class ReadResult(NamedTuple):
         return self.voltage * self.current
 
     @classmethod
-    def from_string(cls, string: str) -> 'ReadResult':
-        parts: list[str] = string.split(',')
+    def from_string(cls, string: str) -> "ReadResult":
+        parts: list[str] = string.split(",")
         length: int = len(cls())
         if len(parts) < length:
             parts += [nan] * (length - len(parts))
@@ -71,11 +71,11 @@ class _Output:
     def state(self) -> bool:
         if self._parent.socket is None:
             return False
-        return bool(int(self._parent.query(f':output')))
+        return bool(int(self._parent.query(":output")))
 
     @state.setter
     def state(self, new_value: bool) -> None:
-        self._parent.issue(f':output', bool(new_value))
+        self._parent.issue(":output", bool(new_value))
 
 
 class _Route:
@@ -122,7 +122,9 @@ class GSM7(SCPIDevice):
     _PORT: Final[int] = 80
 
     def __init__(self, ip: str | None = None, *, expected: bool = True) -> None:
-        super().__init__(ip, GSM7._PORT, terminator=b'\n', expected=expected, reset=False)
+        super().__init__(
+            ip, GSM7._PORT, terminator=b"\n", expected=expected, reset=False
+        )
         self._session: requests.Session = requests.session()
 
         self.calculate: Final[_Calculate] = _Calculate(self)
@@ -144,20 +146,25 @@ class GSM7(SCPIDevice):
 
     def communicate(self, command: str) -> str | None:
         if self.socket is None:
-            return ''
-        self._session.post(url=f'http://{self.socket.getpeername()[0]}/info?scpiForm', data=command.strip())
-        if not command.endswith('?'):
+            return ""
+        self._session.post(
+            url=f"http://{self.socket.getpeername()[0]}/info?scpiForm",
+            data=command.strip(),
+        )
+        if not command.endswith("?"):
             return
-        resp: requests.Response = self._session.get(f'http://{self.socket.getpeername()[0]}/info?scpi')
-        while not resp.json()['result']:
-            resp = self._session.get(f'http://{self.socket.getpeername()[0]}/info?scpi')
-        return resp.json()['result']
+        resp: requests.Response = self._session.get(
+            f"http://{self.socket.getpeername()[0]}/info?scpi"
+        )
+        while not resp.json()["result"]:
+            resp = self._session.get(f"http://{self.socket.getpeername()[0]}/info?scpi")
+        return resp.json()["result"]
 
     @property
     def read(self) -> ReadResult:
         if not self.output:
             return ReadResult()
-        return ReadResult.from_string(self.communicate(':read?'))
+        return ReadResult.from_string(self.communicate(":read?"))
 
     @property
     def current(self) -> float:
@@ -176,6 +183,6 @@ class GSM7(SCPIDevice):
         return self.read.power
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     g: GSM7 = GSM7()
     print(g.idn)

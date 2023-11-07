@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import annotations
-
 from os import PathLike
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 import numpy as np
 import pyqtgraph as pg
@@ -14,6 +12,39 @@ from qtpy.QtWidgets import QWidget
 from backend.utils import warning
 
 __all__ = ["Histogram"]
+
+
+if TYPE_CHECKING:
+    PenType = (
+        None
+        | int
+        | float
+        | str
+        | tuple[int, int]
+        | tuple[int, int, int]
+        | tuple[int, int, int, int]
+        | QColor
+        | QPen
+        | dict[
+            str,
+            None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
+        ]
+    )
+    BrushType = (
+        None
+        | int
+        | float
+        | str
+        | tuple[int, int]
+        | tuple[int, int, int]
+        | tuple[int, int, int, int]
+        | QColor
+        | QBrush
+        | dict[
+            str,
+            None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
+        ]
+    )
 
 
 class Histogram(pg.PlotWidget):
@@ -44,39 +75,9 @@ class Histogram(pg.PlotWidget):
         bins: int | Iterable[float] | str = "auto",
         symbol: str = "o",
         name: str | None = None,
-        pen: (
-            None
-            | int
-            | float
-            | str
-            | tuple[int, int]
-            | tuple[int, int, int]
-            | tuple[int, int, int, int]
-            | QColor
-            | QPen
-        ) = 0,
-        symbolPen: (
-            None
-            | int
-            | float
-            | str
-            | tuple[int, int]
-            | tuple[int, int, int]
-            | tuple[int, int, int, int]
-            | QColor
-            | QPen
-        ) = 0,
-        symbolBrush: (
-            None
-            | int
-            | float
-            | str
-            | tuple[int, int]
-            | tuple[int, int, int]
-            | tuple[int, int, int, int]
-            | QColor
-            | QBrush
-        ) = 0,
+        pen: PenType = 0,
+        symbolPen: PenType = 0,
+        symbolBrush: BrushType = 0,
     ) -> pg.PlotDataItem | None:
         if self._plot_line is not None:
             self.removeItem(self._plot_line)
@@ -111,7 +112,7 @@ class Histogram(pg.PlotWidget):
         if np.all(np.isnan(bin_centers)) or np.all(np.isnan(hist)):
             self._plot_line = None
         else:
-            self._plot_line = self.plot(
+            self._plot_line = self.plotItem.plot(
                 bin_centers,
                 hist,
                 name=name,

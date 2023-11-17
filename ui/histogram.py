@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from os import PathLike
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, NamedTuple
 
 import numpy as np
 import pyqtgraph as pg
@@ -47,6 +47,16 @@ if TYPE_CHECKING:
     )
 
 
+class LastHistParams(NamedTuple):
+    data: NDArray[float] | Iterable[float]
+    bins: int | Iterable[float] | str = "auto"
+    symbol: str = "o"
+    name: str | None = None
+    pen: PenType = 0
+    symbolPen: PenType = 0
+    symbolBrush: BrushType = 0
+
+
 class Histogram(pg.PlotWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -64,6 +74,8 @@ class Histogram(pg.PlotWidget):
         self._bin_centers: NDArray[float] = np.empty(0)
         self._p_err: NDArray[float] = np.empty(0)
         self._n_err: NDArray[float] = np.empty(0)
+
+        self._last_hist: LastHistParams | None = None
 
     def set_label(self, text: str, unit: str) -> None:
         self._text = str(text)
@@ -84,6 +96,16 @@ class Histogram(pg.PlotWidget):
         symbolPen: PenType = 0,
         symbolBrush: BrushType = 0,
     ) -> pg.PlotDataItem | None:
+        self._last_hist = LastHistParams(
+            data=data,
+            bins=bins,
+            symbol=symbol,
+            name=name,
+            pen=pen,
+            symbolPen=symbolPen,
+            symbolBrush=symbolBrush,
+        )
+
         if self._plot_line is not None:
             self.removeItem(self._plot_line)
         if not isinstance(data, np.ndarray):
@@ -143,11 +165,20 @@ class Histogram(pg.PlotWidget):
         self._plot_line = None
 
     def setLogMode(self, x: bool | None = None, y: bool | None = None) -> None:
+        recompute_hist: bool = False
+
         if x is not None:
-            self._x_log = x
+            if self._x_log != x:
+                recompute_hist |= True
+                self._x_log = x
         if y is not None:
-            self._y_log = y
+            if self._y_log != y:
+                recompute_hist |= True
+                self._y_log = y
         self.plotItem.setLogMode(x=x, y=y)
+
+        if recompute_hist and self._last_hist is not None:
+            self.hist(*self._last_hist)
 
     def save(self, filename: str | PathLike[str]) -> None:
         if self._hist.size:

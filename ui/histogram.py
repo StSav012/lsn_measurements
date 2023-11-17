@@ -60,6 +60,11 @@ class Histogram(pg.PlotWidget):
         self._x_log: bool = False
         self._y_log: bool = False
 
+        self._hist: NDArray[float] = np.empty(0)
+        self._bin_centers: NDArray[float] = np.empty(0)
+        self._p_err: NDArray[float] = np.empty(0)
+        self._n_err: NDArray[float] = np.empty(0)
+
     def set_label(self, text: str, unit: str) -> None:
         self._text = str(text)
         self._unit = str(unit)
@@ -105,10 +110,20 @@ class Histogram(pg.PlotWidget):
             bin_centers = np.exp(bin_centers)
         else:
             hist, bin_edges = np.histogram(data, bins=bins, density=True)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2.0
-        if self._y_log:
             hist = hist.astype(np.float64)
-            hist[hist == 0.0] = np.nan
+            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2.0
+
+        self._hist = hist
+        self._bin_centers = bin_centers
+
+        # from https://github.com/veusz/veusz/blob/master/veusz/datasets/histo.py
+        ratio: NDArray[float] = 1.0 / (hist.size * (bin_edges[1:] - bin_edges[:-1]))
+        # “Confidence Limits for Small Numbers of Events in Astrophysical Data,” N. Gehrels, ApJ, 303, 336.
+        self._p_err: NDArray[float] = np.dot(1.0 + np.sqrt(hist + 0.75), ratio)
+        self._n_err: NDArray[float] = -np.dot(np.where(hist > 0.25, np.sqrt(hist - 0.25), 0.0), ratio)
+
+        if self._y_log:
+            hist[hist <= 0.0] = np.nan
         if np.all(np.isnan(bin_centers)) or np.all(np.isnan(hist)):
             self._plot_line = None
         else:
@@ -135,12 +150,20 @@ class Histogram(pg.PlotWidget):
         self.plotItem.setLogMode(x=x, y=y)
 
     def save(self, filename: str | PathLike[str]) -> None:
-        if self._plot_line is None:
-            return
-        dataset: tuple[None, None] | tuple[NDArray[float], NDArray[float]] = self._plot_line.getOriginalDataset()
-        if dataset[0] is not None and dataset[1] is not None:
-            np_dataset: NDArray[float] = np.column_stack(dataset)
-            np_dataset[np.isnan(np_dataset)] = 0.0
-            np.savetxt(filename, np_dataset, delimiter="\t")
+        if self._hist.size:
+            np.savetxt(
+                filename,
+                np.column_stack((self._bin_centers, self._hist, self._p_err, self._n_err)),
+                delimiter="\t",
+                header="\t".join(
+                    (
+                        f"{self._text} [{self._unit}]",
+                        f"Density [1/{self._unit}]",
+                        f"Positive error [1/{self._unit}]",
+                        f"Negative error [1/{self._unit}]",
+                    )
+                ),
+                comments="",
+            )
         else:
             warning("No histogram to save")

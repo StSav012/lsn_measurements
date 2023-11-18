@@ -15,7 +15,7 @@ from nidaqmx.stream_writers import AnalogSingleChannelWriter
 from nidaqmx.task import Task
 from numpy.typing import NDArray
 
-from backend.hardware import (
+from ..hardware import (
     DIVIDER,
     DIVIDER_RESISTANCE,
     R,
@@ -28,8 +28,8 @@ from backend.hardware import (
     dac_sync,
     offsets,
 )
-from backend.utils import measure_offsets, zero_sources
-from backend.utils.connected_points import linear_segment, parabolic_segment
+from ..utils.connected_points import linear_segment, parabolic_segment
+from ..utils.ni import measure_offsets, zero_sources
 
 __all__ = [
     "IVCurveMeasurement",

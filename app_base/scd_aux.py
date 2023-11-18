@@ -15,13 +15,12 @@ from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
 
-from backend.communication.anapico_communication import APUASYN20
-from backend.communication.triton_communication import Triton
-from backend.measurement.scd_aux import SCDMeasurement
-from backend.utils import SliceSequence, error, warning
-from backend.utils.config import get_float, get_float_list, get_str
-from backend.utils.string_utils import format_float
+from hardware.anapico import APUASYN20
+from hardware.triton import Triton
+from measurement import SCDMeasurement
 from ui.scd_aux_gui import SwitchingCurrentDistributionGUI
+from utils import SliceSequence, error, format_float, warning
+from utils.config import get_float, get_float_list, get_str
 
 __all__ = ["SwitchingCurrentDistributionBase"]
 

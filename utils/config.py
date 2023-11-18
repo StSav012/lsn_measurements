@@ -5,7 +5,7 @@ from configparser import ConfigParser
 from decimal import Decimal
 from typing import Any, Sequence
 
-from backend.utils.si import parse_si_number
+from .si import parse_si_number
 
 __all__ = [
     "get_str",

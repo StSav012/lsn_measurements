@@ -7,7 +7,7 @@ from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
 from typing import Any
 
-from .port_scanner import port_scanner
+from utils.port_scanner import port_scanner
 
 __all__ = ["Triton"]
 

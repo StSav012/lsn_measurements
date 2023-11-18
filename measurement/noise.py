@@ -10,14 +10,14 @@ from nidaqmx.constants import AcquisitionType
 from nidaqmx.stream_readers import AnalogMultiChannelReader
 from nidaqmx.task import Task
 
-from backend.hardware import (
+from ..hardware import (
     DIVIDER_RESISTANCE,
     adc_current,
     adc_voltage,
     dac_current,
     offsets,
 )
-from backend.utils import measure_offsets, zero_sources
+from ..utils.ni import measure_offsets, zero_sources
 
 __all__ = ["NoiseMeasurement"]
 

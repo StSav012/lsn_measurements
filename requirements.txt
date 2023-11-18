@@ -6,3 +6,7 @@ pyqtgraph
 pandas
 netifaces
 nidaqmx
+
+# formatting
+black
+ruff

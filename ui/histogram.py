@@ -9,7 +9,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QBrush, QColor, QPen
 from qtpy.QtWidgets import QWidget
 
-from backend.utils import warning
+from utils import warning
 
 __all__ = ["Histogram"]
 

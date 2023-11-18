@@ -31,7 +31,7 @@ from .printqueue import PrintQueue
 from .processing import moving_mean, moving_median, welch
 from .si import parse_temperature
 from .slice_sequence import SliceSequence
-from .string_utils import decimals, multi_split, nth_occurrence, seconds_to_time
+from .string_utils import decimals, format_float, multi_split, nth_occurrence, seconds_to_time
 from .teepath import TeePath
 from .tick_strings import superscript_number, tick_strings
 
@@ -45,7 +45,7 @@ __all__ = [
     "Auto",
     "TeePath",
     "decimals",
-    "seconds_to_time",
+    "format_float",
     "multi_split",
     "nth_occurrence",
     "parse_temperature",

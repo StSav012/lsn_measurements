@@ -24,8 +24,8 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from backend.hardware import device_adc
-from backend.measurement.iv_curve import IVCurveMeasurement
+from hardware import device_adc
+from measurement.iv_curve import IVCurveMeasurement
 
 
 class GUI(QMainWindow):

@@ -15,14 +15,15 @@ from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
 
-from backend.communication.anapico_communication import APUASYN20
-from backend.communication.triton_communication import Triton
-from backend.measurement.detect import DetectMeasurement
-from backend.measurement.lifetime import LifetimeMeasurement
-from backend.utils import SliceSequence, error, warning
-from backend.utils.config import get_float, get_float_list, get_str
-from backend.utils.string_utils import format_float
+from hardware.anapico import APUASYN20
+from hardware.triton import Triton
+from measurement.detect import DetectMeasurement
+from measurement.lifetime import LifetimeMeasurement
 from ui.detect_lifetime_gui import DetectLifetimeGUI
+from utils import error, warning
+from utils.config import get_float, get_float_list, get_str
+from utils.slice_sequence import SliceSequence
+from utils.string_utils import format_float
 
 __all__ = ["DetectLifetimeBase"]
 

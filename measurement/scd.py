@@ -15,7 +15,7 @@ from nidaqmx.stream_readers import AnalogMultiChannelReader
 from nidaqmx.task import Task
 from numpy.typing import NDArray
 
-from backend.hardware import (
+from ..hardware import (
     DIVIDER_RESISTANCE,
     adc_current,
     adc_sync,
@@ -24,15 +24,12 @@ from backend.hardware import (
     dac_sync,
     offsets,
 )
-from backend.utils import (
-    FileWriter,
-    PrintQueue,
-    error,
-    linear_segments,
-    measure_offsets,
-    sine_segments,
-)
-from backend.utils.string_utils import format_float
+from ..utils import error
+from ..utils.connected_points import linear_segments, sine_segments
+from ..utils.filewriter import FileWriter
+from ..utils.ni import measure_offsets
+from ..utils.printqueue import PrintQueue
+from ..utils.string_utils import format_float
 
 fw: FileWriter = FileWriter()
 fw.start()
@@ -179,7 +176,10 @@ class SCDMeasurement(Process):
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             def reading_task_callback(
-                _task_idx: int, _event_type: int, num_samples: int, _callback_data: Any
+                _task_idx: int,
+                _event_type: int,
+                num_samples: int,
+                _callback_data: Any,
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 try:

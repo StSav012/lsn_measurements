@@ -11,8 +11,8 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 from app_base.detect import DetectBase
-from backend.utils import zero_sources
-from backend.utils.string_utils import format_float
+from utils.ni import zero_sources
+from utils.string_utils import format_float
 
 
 @final

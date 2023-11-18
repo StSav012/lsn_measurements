@@ -21,9 +21,9 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from backend.hardware import device_adc
-from backend.measurement.noise import NoiseMeasurement
-from backend.utils import welch
+from hardware import device_adc
+from measurement.noise import NoiseMeasurement
+from utils.processing import welch
 
 _MAX_ADC_SAMPLE_RATE: Final[float] = device_adc.ai_max_multi_chan_rate
 

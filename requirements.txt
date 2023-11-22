@@ -1,11 +1,20 @@
 QtPy
 pathvalidate
+numpy
 scipy
-requests
 pyqtgraph
 pandas
+
+# for communication with hardware
 netifaces
+requests
 nidaqmx
+pyserial
+PyVISA
+PyMeasure
+
+# for basic plotting
+matplotlib
 
 # formatting
 black

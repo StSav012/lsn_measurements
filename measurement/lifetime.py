@@ -462,6 +462,8 @@ class LifetimeMeasurement(Process):
                                 "τ₀/σ₀",
                                 "τ/σ",
                                 "Temperature [mK]",
+                                "1/τ₀ [1/s]",
+                                "1/τ [1/s]",
                                 "Cycles",
                             )
                         )
@@ -472,23 +474,41 @@ class LifetimeMeasurement(Process):
                     f_out.write(
                         "\t".join(
                             (
+                                # Frequency [GHz]
                                 format_float(self.frequency),
+                                # Set Bias Current [nA]
                                 format_float(self.bias_current),
+                                # Mean Bias Current [nA]
                                 f"{mean_set_bias_current_reasonable:.10f}",
+                                # Bias Current StD [nA]
                                 f"{set_bias_current_reasonable_std:.10f}",
+                                # τ₀ [s]
                                 f"{mean_switching_time_reasonable:.10f}",
+                                # σ₀ [s]
                                 f"{switching_time_reasonable_std:.10f}",
+                                # τ [s]
                                 f"{mean_switching_time_rnz:.10f}",
+                                # σ [s]
                                 f"{switching_time_rnz_std:.10f}",
-                                f"""{mean_switching_time_reasonable
+                                # τ₀/σ₀
+                                f"""{mean_switching_time_reasonable 
                                      / switching_time_reasonable_std:.10f}"""
                                 if switching_time_reasonable_std
                                 else "nan",
+                                # τ/σ
                                 f"""{mean_switching_time_rnz 
                                      / switching_time_rnz_std:.10f}"""
                                 if switching_time_rnz_std
                                 else "nan",
+                                # Temperature [mK]
                                 bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                                # 1/τ₀ [1/s]
+                                f"{1.0 / mean_switching_time_reasonable:.10f}"
+                                if mean_switching_time_reasonable
+                                else "nan",
+                                # 1/τ [1/s]
+                                f"{1.0 / mean_switching_time_rnz:.10f}" if mean_switching_time_rnz else "nan",
+                                # Cycles
                                 str(np.count_nonzero(~np.isnan(switching_time))),
                             )
                         )

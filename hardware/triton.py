@@ -34,6 +34,7 @@ class Triton(Thread):
         return True
 
     def __init__(self, ip: str | None, port: int) -> None:
+        self.socket: socket | None = None
         if ip is None:
             from ipaddress import IPv4Address
 
@@ -52,7 +53,7 @@ class Triton(Thread):
         self.daemon = True
 
         self.conversation: dict[str, str] = dict()
-        self.socket: socket | None = socket(AF_INET, SOCK_STREAM)
+        self.socket = socket(AF_INET, SOCK_STREAM)
         try:
             self.socket.connect((ip, port))
         except TimeoutError:

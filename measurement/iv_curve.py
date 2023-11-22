@@ -131,7 +131,7 @@ class IVCurveMeasurement(Process):
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
-                waiting: NDArray[np.bool] = data[2] > trigger_trigger
+                waiting: NDArray[np.bool_] = data[2] > trigger_trigger
                 if np.any(waiting):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]

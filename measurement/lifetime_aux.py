@@ -431,8 +431,8 @@ class LifetimeMeasurement(Process):
                     set_bias_current <= max_reasonable_bias_current
                 )
                 set_bias_current_reasonable: NDArray[np.float64] = set_bias_current[reasonable] * 1e9
-                mean_set_bias_current_reasonable: np.float64 | NDArray[np.float64]
-                set_bias_current_reasonable_std: np.float64 | NDArray[np.float64]
+                mean_set_bias_current_reasonable: float | np.float64 | NDArray[np.float64]
+                set_bias_current_reasonable_std: float | np.float64 | NDArray[np.float64]
                 if set_bias_current_reasonable.size:
                     mean_set_bias_current_reasonable = np.nanmean(set_bias_current_reasonable)
                     set_bias_current_reasonable_std = np.nanstd(set_bias_current_reasonable)
@@ -441,8 +441,8 @@ class LifetimeMeasurement(Process):
                     set_bias_current_reasonable_std = np.nan
 
                 switching_time_reasonable: NDArray[np.float64] = switching_time[reasonable]
-                mean_switching_time_reasonable: np.float64 | NDArray[np.float64]
-                switching_time_reasonable_std: np.float64 | NDArray[np.float64]
+                mean_switching_time_reasonable: float | np.float64 | NDArray[np.float64]
+                switching_time_reasonable_std: float | np.float64 | NDArray[np.float64]
                 if switching_time_reasonable.size:
                     mean_switching_time_reasonable = np.nanmean(switching_time_reasonable)
                     switching_time_reasonable_std = np.nanstd(switching_time_reasonable)
@@ -452,8 +452,8 @@ class LifetimeMeasurement(Process):
 
                 non_zero: NDArray[np.bool_] = switching_time_reasonable > 0.0
                 switching_time_rnz: NDArray[np.float64] = switching_time_reasonable[non_zero]
-                mean_switching_time_rnz: np.float64 | NDArray[np.float64]
-                switching_time_rnz_std: np.float64 | NDArray[np.float64]
+                mean_switching_time_rnz: float | np.float64 | NDArray[np.float64]
+                switching_time_rnz_std: float | np.float64 | NDArray[np.float64]
                 if switching_time_rnz.size:
                     mean_switching_time_rnz = np.nanmean(switching_time_rnz)
                     switching_time_rnz_std = np.nanstd(switching_time_rnz)

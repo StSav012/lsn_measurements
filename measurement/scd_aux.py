@@ -395,8 +395,8 @@ class SCDMeasurement(Process):
                     switching_current <= max_reasonable_switching_current
                 )
                 reasonable_switching_current: NDArray[np.float64] = switching_current[reasonable]
-                mean_switching_current: np.float64 | NDArray[np.float64]
-                switching_current_std: np.float64 | NDArray[np.float64]
+                mean_switching_current: float | np.float64 | NDArray[np.float64]
+                switching_current_std: float | np.float64 | NDArray[np.float64]
                 if reasonable_switching_current.size:
                     mean_switching_current = 1e9 * np.nanmean(reasonable_switching_current)
                     switching_current_std = 1e9 * np.nanstd(reasonable_switching_current)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from os import PathLike
-from typing import Iterable, TYPE_CHECKING, NamedTuple
+from typing import Iterable, NamedTuple, TypeVar
 
 import numpy as np
 import pyqtgraph as pg
@@ -14,37 +14,38 @@ from utils import warning
 __all__ = ["Histogram"]
 
 
-if TYPE_CHECKING:
-    PenType = (
-        None
-        | int
-        | float
-        | str
-        | tuple[int, int]
-        | tuple[int, int, int]
-        | tuple[int, int, int, int]
-        | QColor
-        | QPen
-        | dict[
-            str,
-            None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
-        ]
-    )
-    BrushType = (
-        None
-        | int
-        | float
-        | str
-        | tuple[int, int]
-        | tuple[int, int, int]
-        | tuple[int, int, int, int]
-        | QColor
-        | QBrush
-        | dict[
-            str,
-            None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
-        ]
-    )
+PenType = TypeVar(
+    "PenType",
+    None,
+    int,
+    float,
+    str,
+    tuple[int, int],
+    tuple[int, int, int],
+    tuple[int, int, int, int],
+    QColor,
+    QPen,
+    dict[
+        str,
+        None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
+    ],
+)
+BrushType = TypeVar(
+    "BrushType",
+    None,
+    int,
+    float,
+    str,
+    tuple[int, int],
+    tuple[int, int, int],
+    tuple[int, int, int, int],
+    QColor,
+    QBrush,
+    dict[
+        str,
+        None | int | float | str | tuple[int, int] | tuple[int, int, int] | tuple[int, int, int, int] | QColor,
+    ],
+)
 
 
 class LastHistParams(NamedTuple):

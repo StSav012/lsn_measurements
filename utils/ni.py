@@ -11,7 +11,7 @@ from nidaqmx.task import Task
 from numpy.typing import NDArray
 from scipy import signal
 
-from ..hardware import adc_current, adc_voltage, device_adc, device_dac, offsets
+from hardware import adc_current, adc_voltage, device_adc, device_dac, offsets
 
 __all__ = [
     "zero_sources",

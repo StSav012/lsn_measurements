@@ -14,7 +14,7 @@ from nidaqmx.stream_readers import AnalogMultiChannelReader
 from nidaqmx.task import Task
 from numpy.typing import NDArray
 
-from ..hardware import (
+from hardware import (
     DIVIDER_RESISTANCE,
     adc_current,
     adc_sync,
@@ -23,12 +23,12 @@ from ..hardware import (
     dac_sync,
     offsets,
 )
-from ..utils import error
-from ..utils.connected_points import linear_segments, sine_segments
-from ..utils.count import Count
-from ..utils.filewriter import FileWriter
-from ..utils.ni import measure_offsets
-from ..utils.string_utils import format_float
+from utils import error
+from utils.connected_points import linear_segments, sine_segments
+from utils.count import Count
+from utils.filewriter import FileWriter
+from utils.ni import measure_offsets
+from utils.string_utils import format_float
 
 fw: FileWriter = FileWriter()
 fw.start()

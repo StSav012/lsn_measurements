@@ -4,8 +4,8 @@ from __future__ import annotations
 from socket import AF_INET, SOCK_STREAM, socket
 from typing import Any
 
-from communication.port_scanner import port_scanner
 from utils import warning
+from utils.port_scanner import port_scanner
 
 __all__ = ["SCPIDevice"]
 

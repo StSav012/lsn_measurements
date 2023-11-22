@@ -137,7 +137,7 @@ class DetectMeasurement(Process):
                 samples_per_dac_channel = (
                     2 * bias_current_steps_count + pulse_duration_points_count + waiting_after_pulse_points_count
                 )
-            # Number of samples per channel to write multiplied by the number of channels in the task
+            # The number of samples per channel to write multiplied by the number of channels in the task
             # cannot be an odd number for this device.
             spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
             samples_per_dac_channel += spare_sample_count

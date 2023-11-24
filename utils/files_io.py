@@ -88,7 +88,7 @@ def save_txt(
         Minimum number of characters to be printed. The value is not truncated
         if it has more characters.
     precision:
-        - For integer specifiers (eg. ``d,i,o,x``), the minimum number of
+        - For integer specifiers (e.g. ``d,i,o,x``), the minimum number of
           digits.
         - For ``e, E`` and ``f`` specifiers, the number of digits to print
           after the decimal point.
@@ -99,7 +99,7 @@ def save_txt(
         ``d`` or ``i`` : signed decimal integer
         ``e`` or ``E`` : scientific notation with ``e`` or ``E``.
         ``f`` : decimal floating point
-        ``g,G`` : use the shorter of ``e,E`` or ``f``
+        ``g,G`` : use the shortest of ``e,E`` or ``f``
         ``o`` : signed octal
         ``s`` : string of characters
         ``u`` : unsigned decimal integer

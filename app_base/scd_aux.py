@@ -17,10 +17,12 @@ from qtpy.QtGui import QCloseEvent, QColor
 
 from hardware.anapico import APUASYN20
 from hardware.triton import Triton
-from measurement import SCDMeasurement
+from measurement.scd_aux import SCDMeasurement
 from ui.scd_aux_gui import SwitchingCurrentDistributionGUI
-from utils import SliceSequence, error, format_float, warning
+from utils import error, warning
 from utils.config import get_float, get_float_list, get_str
+from utils.slice_sequence import SliceSequence
+from utils.string_utils import format_float
 
 __all__ = ["SwitchingCurrentDistributionBase"]
 

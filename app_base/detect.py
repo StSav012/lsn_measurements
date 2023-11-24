@@ -170,7 +170,7 @@ class DetectBase(DetectGUI):
             "measurement", "change filtered readings in Triton", fallback=True
         )
 
-        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"d:\ttt\detect"))
+        self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"D:\ttt\detect"))
         self.saving_location /= self.sample_name
         self.saving_location /= date.today().isoformat()
         self.saving_location.mkdir(parents=True, exist_ok=True)

@@ -142,8 +142,8 @@ class Histogram(pg.PlotWidget):
         # from https://github.com/veusz/veusz/blob/master/veusz/datasets/histo.py
         ratio: NDArray[float] = 1.0 / (hist.size * (bin_edges[1:] - bin_edges[:-1]))
         # “Confidence Limits for Small Numbers of Events in Astrophysical Data,” N. Gehrels, ApJ, 303, 336.
-        self._p_err: NDArray[float] = np.dot(1.0 + np.sqrt(hist + 0.75), ratio)
-        self._n_err: NDArray[float] = -np.dot(np.where(hist > 0.25, np.sqrt(hist - 0.25), 0.0), ratio)
+        self._p_err: NDArray[float] = np.multiply(1.0 + np.sqrt(np.abs(hist + 0.75)), ratio)
+        self._n_err: NDArray[float] = -np.multiply(np.where(hist > 0.25, np.sqrt(np.abs(hist - 0.25)), 0.0), ratio)
 
         if self._y_log:
             hist[hist <= 0.0] = np.nan

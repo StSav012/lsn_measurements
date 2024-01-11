@@ -166,7 +166,7 @@ class DetectMeasurement(Process):
             task_adc.timing.cfg_samp_clk_timing(
                 rate=self.adc_rate,
                 sample_mode=AcquisitionType.CONTINUOUS,
-                samps_per_chan=10000,  # can not set task_adc.input_onboard_buffer_size
+                samps_per_chan=1000,  # cannot set task_adc.input_onboard_buffer_size
             )
             task_dac.timing.cfg_samp_clk_timing(
                 rate=dac_rate,

@@ -392,8 +392,8 @@ class DetectMeasurement(Process):
 
                 time.sleep(self.delay_between_cycles)
 
-            prob: float = 100.0 * switches_count / actual_cycles_count
-            err: float = np.sqrt(prob * (100.0 - prob) / actual_cycles_count)
+            prob: float = 100.0 * switches_count / actual_cycles_count if actual_cycles_count > 0 else np.nan
+            err: float = np.sqrt(prob * (100.0 - prob) / actual_cycles_count) if actual_cycles_count > 0 else np.nan
             print(
                 f"for bias current set to {self.bias_current} nA, "
                 f"switching probability is {prob:.3f}% ± {err:.3f}%\n"

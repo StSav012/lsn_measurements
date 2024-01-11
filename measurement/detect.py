@@ -210,7 +210,8 @@ class DetectMeasurement(Process):
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(
-                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+                task_adc.timing.samp_quant_samp_per_chan,
+                reading_task_callback,
             )
 
             task_adc.start()

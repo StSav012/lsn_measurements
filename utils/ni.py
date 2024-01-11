@@ -62,13 +62,15 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
 
 
 def measure_noise_fft(
-    length: int, rate: Optional[float] = None, reset_adc: bool = _RESET_ADC_DEFAULT
+    length: int,
+    rate: Optional[float] = None,
+    reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> tuple[NDArray[np.float64], tuple[NDArray[np.float64], str], tuple[NDArray[np.float64], str],]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
     with Task() as task_adc:
-        # task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
+        task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
         task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
         if rate is None:
             rate = task_adc.timing.samp_clk_max_rate
@@ -131,7 +133,6 @@ def measure_noise_welch(
     if averaging == 1:
         freq, pn_xx = signal.welch(data, fs=rate, nperseg=data.size)
     else:
-        a: int
         freq, pn_xx = signal.welch(
             np.column_stack(
                 [data[a * averaging_step : -((averaging - a - 1) * averaging_step) or None] for a in range(averaging)]

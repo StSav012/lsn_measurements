@@ -123,7 +123,6 @@ class LifetimeMeasurement(Process):
                 ],
             )
 
-        self.trigger_voltage -= offsets[adc_voltage.name]
         measure_offsets()
         self.trigger_voltage += offsets[adc_voltage.name]
 

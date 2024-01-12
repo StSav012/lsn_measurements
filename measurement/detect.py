@@ -104,7 +104,6 @@ class DetectMeasurement(Process):
         self.pulse_ended: bool = False
 
     def run(self) -> None:
-        self.trigger_voltage -= offsets[adc_voltage.name]
         measure_offsets()
         self.trigger_voltage += offsets[adc_voltage.name]
 

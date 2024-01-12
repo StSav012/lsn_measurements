@@ -69,8 +69,8 @@ class LifetimeBase(LifetimeGUI):
             fallback=0.0,
         )
 
-        self.reset_function: Final[str] = get_str(self.config, "current", self.sample_name, "function", fallback="sine")
-        if self.reset_function.casefold() not in ("linear", "sine"):
+        self.reset_function: Final[str] = get_str(self.config, self.sample_name, "current", "function")
+        if self.reset_function.casefold() not in ("linear", "half sine", "quarter sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
         self.bias_current_values: SliceSequence = SliceSequence(
             get_str(self.config, self.sample_name, "current", "bias current [nA]")

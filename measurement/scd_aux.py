@@ -26,7 +26,7 @@ from hardware import (
     offsets,
 )
 from utils import error
-from utils.connected_points import linear_segments, sine_segments
+from utils.connected_points import half_sine_segments, linear_segments, quarter_sine_segments
 from utils.filewriter import FileWriter
 from utils.ni import measure_offsets
 from utils.printqueue import PrintQueue
@@ -272,7 +272,15 @@ class SCDMeasurement(Process):
                                     [self.max_bias_current] + self.initial_biases,
                                     bias_current_steps_count,
                                 ),
-                                "sine": sine_segments(
+                                "sine": half_sine_segments(
+                                    [self.max_bias_current] + self.initial_biases,
+                                    bias_current_steps_count,
+                                ),
+                                "half sine": half_sine_segments(
+                                    [self.max_bias_current] + self.initial_biases,
+                                    bias_current_steps_count,
+                                ),
+                                "quarter sine": quarter_sine_segments(
                                     [self.max_bias_current] + self.initial_biases,
                                     bias_current_steps_count,
                                 ),

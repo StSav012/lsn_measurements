@@ -24,7 +24,7 @@ from hardware import (
     offsets,
 )
 from utils import error
-from utils.connected_points import linear_segments, sine_segments
+from utils.connected_points import half_sine_segments, linear_segments, quarter_sine_segments
 from utils.count import Count
 from utils.filewriter import FileWriter
 from utils.ni import measure_offsets
@@ -237,54 +237,78 @@ class DetectMeasurement(Process):
 
             # calculate the current sequence
             i_set: NDArray[np.float64]
-            if self.setting_function.casefold() == "sine":
-                i_set = (
-                    np.concatenate(
-                        (
-                            sine_segments(
-                                [self.initial_biases[-1], self.bias_current],
-                                bias_current_steps_count,
-                            ),
-                            np.full(
-                                pulse_duration_points_count + waiting_after_pulse_points_count,
-                                self.bias_current,
-                            ),
-                            sine_segments(
-                                [self.bias_current] + self.initial_biases,
-                                bias_current_steps_count,
-                            ),
-                            [self.initial_biases[-1]] * spare_sample_count,
+            match self.setting_function.casefold():
+                case "sine" | "half sine":
+                    i_set = (
+                        np.concatenate(
+                            (
+                                half_sine_segments(
+                                    [self.initial_biases[-1], self.bias_current],
+                                    bias_current_steps_count,
+                                ),
+                                np.full(
+                                    pulse_duration_points_count + waiting_after_pulse_points_count,
+                                    self.bias_current,
+                                ),
+                                half_sine_segments(
+                                    [self.bias_current] + self.initial_biases,
+                                    bias_current_steps_count,
+                                ),
+                                [self.initial_biases[-1]] * spare_sample_count,
+                            )
                         )
+                        * 1e-9
+                        * self.r
+                        * self.divider
                     )
-                    * 1e-9
-                    * self.r
-                    * self.divider
-                )
-            elif self.setting_function.casefold() == "linear":
-                i_set = (
-                    np.concatenate(
-                        (
-                            linear_segments(
-                                [self.initial_biases[-1], self.bias_current],
-                                bias_current_steps_count,
-                            ),
-                            np.full(
-                                pulse_duration_points_count + waiting_after_pulse_points_count,
-                                self.bias_current,
-                            ),
-                            linear_segments(
-                                [self.bias_current] + self.initial_biases,
-                                bias_current_steps_count,
-                            ),
-                            [self.initial_biases[-1]] * spare_sample_count,
+                case "quarter sine":
+                    i_set = (
+                        np.concatenate(
+                            (
+                                quarter_sine_segments(
+                                    [self.initial_biases[-1], self.bias_current],
+                                    bias_current_steps_count,
+                                ),
+                                np.full(
+                                    pulse_duration_points_count + waiting_after_pulse_points_count,
+                                    self.bias_current,
+                                ),
+                                quarter_sine_segments(
+                                    [self.bias_current] + self.initial_biases,
+                                    bias_current_steps_count,
+                                ),
+                                [self.initial_biases[-1]] * spare_sample_count,
+                            )
                         )
+                        * 1e-9
+                        * self.r
+                        * self.divider
                     )
-                    * 1e-9
-                    * self.r
-                    * self.divider
-                )
-            else:
-                raise ValueError("Unsupported current setting function:", self.setting_function)
+                case "linear":
+                    i_set = (
+                        np.concatenate(
+                            (
+                                linear_segments(
+                                    [self.initial_biases[-1], self.bias_current],
+                                    bias_current_steps_count,
+                                ),
+                                np.full(
+                                    pulse_duration_points_count + waiting_after_pulse_points_count,
+                                    self.bias_current,
+                                ),
+                                linear_segments(
+                                    [self.bias_current] + self.initial_biases,
+                                    bias_current_steps_count,
+                                ),
+                                [self.initial_biases[-1]] * spare_sample_count,
+                            )
+                        )
+                        * 1e-9
+                        * self.r
+                        * self.divider
+                    )
+                case _:
+                    raise ValueError("Unsupported current setting function:", self.setting_function)
 
             am_voltage_sequence: NDArray[np.float64] = np.concatenate(
                 (

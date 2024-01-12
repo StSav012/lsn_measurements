@@ -8,10 +8,11 @@ from numpy.typing import NDArray
 
 __all__ = [
     "linear_segment",
-    "sine_segment",
+    "half_sine_segment",
     "parabolic_segment",
     "linear_segments",
-    "sine_segments",
+    "half_sine_segments",
+    "quarter_sine_segments",
 ]
 
 
@@ -24,7 +25,7 @@ def linear_segment(
     return np.linspace(start_point, end_point, points_count, endpoint=endpoint)
 
 
-def sine_segment(
+def half_sine_segment(
     start_point: float,
     end_point: float,
     points_count: int,
@@ -32,6 +33,17 @@ def sine_segment(
 ) -> NDArray[np.float64]:
     return start_point + (end_point - start_point) * 0.5 * (
         1.0 - np.cos(np.linspace(0.0, np.pi, points_count, endpoint=endpoint))
+    )
+
+
+def quarter_sine_segment(
+    start_point: float,
+    end_point: float,
+    points_count: int,
+    endpoint: bool = True,
+) -> NDArray[np.float64]:
+    return start_point + (end_point - start_point) * (
+        np.sin(np.linspace(0.0, 0.5 * np.pi, points_count, endpoint=endpoint))
     )
 
 
@@ -127,7 +139,7 @@ def linear_segments(
     )
 
 
-def sine_segments(
+def half_sine_segments(
     current_values: Sequence[float],
     points_count: int,
 ) -> NDArray[np.float64]:
@@ -140,7 +152,31 @@ def sine_segments(
         (
             np.concatenate(
                 [
-                    sine_segment(prev_point, next_point, points_per_part, endpoint=False)
+                    half_sine_segment(prev_point, next_point, points_per_part, endpoint=False)
+                    for prev_point, next_point in zip(current_values, current_values[1:])
+                ]
+            ),
+            [current_values[-1]] * ((points_count - 1) % (len(current_values) - 1)),
+            [current_values[-1]],
+        ),
+        dtype=np.float64,
+    )
+
+
+def quarter_sine_segments(
+    current_values: Sequence[float],
+    points_count: int,
+) -> NDArray[np.float64]:
+    if len(current_values) < 2:
+        raise ValueError
+    if len(current_values) > points_count - 1:
+        raise ValueError
+    points_per_part: int = (points_count - 1) // (len(current_values) - 1)
+    return np.concatenate(
+        (
+            np.concatenate(
+                [
+                    quarter_sine_segment(prev_point, next_point, points_per_part, endpoint=False)
                     for prev_point, next_point in zip(current_values, current_values[1:])
                 ]
             ),

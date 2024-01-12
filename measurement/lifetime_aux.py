@@ -25,7 +25,7 @@ from hardware import (
     offsets,
 )
 from utils import error
-from utils.connected_points import linear_segments, sine_segments
+from utils.connected_points import half_sine_segments, linear_segments, quarter_sine_segments
 from utils.count import Count
 from utils.filewriter import FileWriter
 from utils.ni import measure_offsets
@@ -245,42 +245,60 @@ class LifetimeMeasurement(Process):
             # calculate the current sequence
             i_set: NDArray[np.float64]
             i_unset: NDArray[np.float64]
-            if self.reset_function.casefold() == "sine":
-                i_set = (
-                    sine_segments(
-                        [self.initial_biases[-1], float(self.bias_current)],
-                        bias_current_steps_count,
+            match self.reset_function.casefold():
+                case "sine" | "half sine":
+                    i_set = (
+                        half_sine_segments(
+                            [self.initial_biases[-1], float(self.bias_current)],
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
                     )
-                    * self.r
-                    * self.divider
-                )
-                i_unset = (
-                    sine_segments(
-                        [float(self.bias_current)] + self.initial_biases,
-                        bias_current_steps_count,
+                    i_unset = (
+                        half_sine_segments(
+                            [float(self.bias_current)] + self.initial_biases,
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
                     )
-                    * self.r
-                    * self.divider
-                )
-            elif self.reset_function.casefold() == "linear":
-                i_set = (
-                    linear_segments(
-                        [self.initial_biases[-1], float(self.bias_current)],
-                        bias_current_steps_count,
+                case "quarter sine":
+                    i_set = (
+                        quarter_sine_segments(
+                            [self.initial_biases[-1], float(self.bias_current)],
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
                     )
-                    * self.r
-                    * self.divider
-                )
-                i_unset = (
-                    linear_segments(
-                        [float(self.bias_current)] + self.initial_biases,
-                        bias_current_steps_count,
+                    i_unset = (
+                        quarter_sine_segments(
+                            [float(self.bias_current)] + self.initial_biases,
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
                     )
-                    * self.r
-                    * self.divider
-                )
-            else:
-                raise ValueError("Unsupported current setting function:", self.reset_function)
+                case "linear":
+                    i_set = (
+                        linear_segments(
+                            [self.initial_biases[-1], float(self.bias_current)],
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
+                    )
+                    i_unset = (
+                        linear_segments(
+                            [float(self.bias_current)] + self.initial_biases,
+                            bias_current_steps_count,
+                        )
+                        * self.r
+                        * self.divider
+                    )
+                case _:
+                    raise ValueError("Unsupported current setting function:", self.reset_function)
 
             i_set = np.row_stack(
                 (

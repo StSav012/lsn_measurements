@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from configparser import ConfigParser
 from decimal import Decimal
-from typing import Any, Sequence
+from typing import Any, LiteralString, Sequence
 
 from .si import parse_si_number
 
@@ -24,8 +24,8 @@ __sentinel = object()
 def get(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: Any = __sentinel,
 ) -> str:
     if f"{section}/{sample}" in config.sections():
@@ -43,8 +43,8 @@ def get(
 def get_str(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: str = __sentinel,
 ) -> str:
     return get(config=config, sample=sample, section=section, key=key, fallback=fallback)
@@ -53,8 +53,8 @@ def get_str(
 def get_bool(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: bool = __sentinel,
 ) -> bool:
     if f"{section}/{sample}" in config.sections():
@@ -72,8 +72,8 @@ def get_bool(
 def get_int(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: int = __sentinel,
 ) -> int:
     if f"{section}/{sample}" in config.sections():
@@ -91,8 +91,8 @@ def get_int(
 def get_float(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: float = __sentinel,
 ) -> float:
     if f"{section}/{sample}" in config.sections():
@@ -110,8 +110,8 @@ def get_float(
 def get_decimal(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: float = __sentinel,
 ) -> Decimal:
     return Decimal.from_float(get_float(config=config, sample=sample, section=section, key=key, fallback=fallback))
@@ -120,8 +120,8 @@ def get_decimal(
 def get_float_tuple(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> tuple[float, ...]:
@@ -142,8 +142,8 @@ def get_float_tuple(
 def get_float_list(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> list[float]:
@@ -164,8 +164,8 @@ def get_float_list(
 def get_decimal_list(
     config: ConfigParser,
     sample: str,
-    section: str,
-    key: str,
+    section: LiteralString,
+    key: LiteralString,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> list[Decimal]:

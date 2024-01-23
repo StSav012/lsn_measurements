@@ -231,11 +231,15 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def _line_name(self) -> str:
         ...
 
+    @abc.abstractmethod
+    def _line_color(self, index: int) -> QColor:
+        ...
+
     @property
     def plot_line_mean(self) -> pg.PlotDataItem:
         i: int = self._line_index
         if i not in self.plot_lines_mean:
-            color: QColor = pg.intColor(i)
+            color: QColor = self._line_color(i)
             self.plot_lines_mean[i] = self.canvas_mean.plot(
                 np.empty(0, dtype=np.float64),
                 symbol="o",

@@ -253,11 +253,15 @@ class DetectBase(DetectGUI):
     def _line_name(self) -> str:
         ...
 
+    @abc.abstractmethod
+    def _line_color(self, index: int) -> QColor:
+        ...
+
     @property
     def plot_line(self) -> pg.PlotDataItem:
         i: int = self._line_index
         if i not in self.plot_lines:
-            color: QColor = pg.intColor(i)
+            color: QColor = self._line_color(i)
             self.plot_lines[i] = self.figure.plot(
                 np.empty(0, dtype=np.float64),
                 symbol="o",

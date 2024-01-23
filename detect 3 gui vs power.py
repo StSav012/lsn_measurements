@@ -7,7 +7,9 @@ from typing import cast, final
 
 import numpy as np
 from numpy.typing import NDArray
+from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
 from app_base.detect import DetectBase
@@ -71,6 +73,16 @@ class App(DetectBase):
                 ),
             )
         )
+
+    def _line_color(self, index: int) -> QColor:
+        hues: int = len(self.frequency_values)
+        if hues < 7:
+            hues *= len(self.temperature_values)
+        if hues < 7:
+            hues *= len(self.setting_time_values)
+        if hues < 7:
+            hues *= len(self.bias_current_values)
+        return intColor(index, hues=hues)
 
     def _add_plot_point_from_file(self) -> None:
         if self.data_file in self.saved_files:

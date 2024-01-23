@@ -257,6 +257,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def _line_name_detect(self) -> str:
         ...
 
+    @abc.abstractmethod
+    def _line_color_detect(self, index: int) -> QColor:
+        ...
+
     @property
     @abc.abstractmethod
     def _line_index_lifetime(self) -> int:
@@ -267,11 +271,15 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def _line_name_lifetime(self) -> str:
         ...
 
+    @abc.abstractmethod
+    def _line_color_lifetime(self, index: int) -> QColor:
+        ...
+
     @property
     def plot_line_detect(self) -> pg.PlotDataItem:
         i: int = self._line_index_detect
         if i not in self.plot_lines_detect:
-            color: QColor = pg.intColor(i)
+            color: QColor = self._line_color_detect(i)
             self.plot_lines_detect[i] = self.canvas_detect.plot(
                 np.empty(0, dtype=np.float64),
                 symbol="o",
@@ -286,7 +294,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def plot_line_lifetime(self) -> pg.PlotDataItem:
         i: int = self._line_index_lifetime
         if i not in self.plot_lines_lifetime:
-            color: QColor = pg.intColor(i)
+            color: QColor = self._line_color_lifetime(i)
             self.plot_lines_lifetime[i] = self.canvas_lifetime.plot(
                 np.empty(0, dtype=np.float64),
                 symbol="o",

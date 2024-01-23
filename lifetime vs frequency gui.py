@@ -3,7 +3,9 @@ import sys
 from pathlib import Path
 from typing import final
 
+from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
 from app_base.lifetime import LifetimeBase
@@ -78,6 +80,18 @@ class App(LifetimeBase):
                 ),
             )
         )
+
+    def _line_color(self, index: int) -> QColor:
+        hues: int = len(self.power_dbm_values)
+        if hues < 7:
+            hues *= len(self.bias_current_values)
+        if hues < 7:
+            hues *= len(self.delay_between_cycles_values)
+        if hues < 7:
+            hues *= len(self.setting_time_values)
+        if hues < 7:
+            hues *= len(self.temperature_values)
+        return intColor(index, hues=hues)
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_frequency.isChecked():

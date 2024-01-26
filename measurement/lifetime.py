@@ -213,15 +213,15 @@ class LifetimeMeasurement(Process):
             measurement_start_time: datetime = datetime.now()
 
             bias_current_amplitude: float = np.abs(float(self.bias_current) - self.initial_biases[-1])
-            actual_bias_current_steps_count: int = round(
-                bias_current_amplitude
-                * 1e-9
-                * self.r
-                * self.divider
-                / min(
-                    ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
-                    bias_current_steps_count,
-                )
+            actual_bias_current_steps_count: int = min(
+                round(
+                    bias_current_amplitude
+                    * 1e-9
+                    * self.r
+                    * self.divider
+                    / ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution))
+                ),
+                bias_current_steps_count,
             )
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 

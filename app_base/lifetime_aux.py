@@ -407,7 +407,7 @@ class LifetimeBase(LifetimeGUI):
             self.label_loop_number.setValue(cycle_index + 1)
             self.label_spent_time.setValue(spent_time.total_seconds())
             self.loop_data[cycle_index] = spent_time
-        finished_data: list[float] = list(v.total_seconds() for v in self.loop_data.values())[:-1]
+        finished_data: NDArray[np.float64] = np.asarray([v.total_seconds() for v in self.loop_data.values()][:-1])
         self.histogram.hist(finished_data, pen="white", symbolBrush="white", symbolPen="white")
         if finished_data:
             self.label_mean_lifetime.setValue(np.mean(finished_data))
@@ -415,8 +415,10 @@ class LifetimeBase(LifetimeGUI):
             self.label_mean_lifetime.clear()
         if len(finished_data) > 2:
             self.label_lifetime_std.setValue(np.std(finished_data))
+            self.label_lifetime_mean_std_ratio.setValue(np.mean(finished_data) / np.std(finished_data))
         else:
             self.label_lifetime_std.clear()
+            self.label_lifetime_mean_std_ratio.clear()
 
     def _add_plot_point(self, x: float, lifetime: float) -> None:
         old_x_data: NDArray[np.float64] = (

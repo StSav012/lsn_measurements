@@ -521,12 +521,12 @@ class LifetimeMeasurement(Process):
                                 # σ [s]
                                 f"{switching_time_rnz_std:.10f}",
                                 # τ₀/σ₀
-                                f"""{mean_switching_time_reasonable 
+                                f"""{mean_switching_time_reasonable
                                      / switching_time_reasonable_std:.10f}"""
                                 if switching_time_reasonable_std
                                 else "nan",
                                 # τ/σ
-                                f"""{mean_switching_time_rnz 
+                                f"""{mean_switching_time_rnz
                                      / switching_time_rnz_std:.10f}"""
                                 if switching_time_rnz_std
                                 else "nan",

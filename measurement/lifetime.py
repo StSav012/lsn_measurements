@@ -314,8 +314,17 @@ class LifetimeMeasurement(Process):
             set_bias_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
 
             for cycle_index in range(self.cycles_count):
-                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
-                    time.sleep(1)
+                if not self.good_to_go.buf[0]:
+                    while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
+                        time.sleep(1)
+                    if not self.good_to_go.buf[127]:
+                        task_dac.write(i_set, auto_start=True)
+                        task_dac.wait_until_done()
+                        task_dac.stop()
+                        task_dac.write(i_unset, auto_start=True)
+                        task_dac.wait_until_done()
+                        task_dac.stop()
+
                 if self.good_to_go.buf[127]:
                     break
 

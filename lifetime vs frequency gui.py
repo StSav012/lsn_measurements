@@ -76,7 +76,7 @@ class App(LifetimeBase):
                         prefix="d ",
                         suffix=self.tr("ms"),
                     ),
-                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not self.synthesizer_output else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm")) if self.synthesizer_output else "",
                 ),
             )
         )

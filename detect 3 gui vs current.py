@@ -54,12 +54,12 @@ class App(DetectBase):
     @property
     def _line_index(self) -> int:
         return (self.power_index
-                + (self.setting_time_index
-                   + (self.temperature_index
-                      + (self.frequency_index
-                         ) * len(self.frequency_values)
-                      ) * len(self.temperature_values)
-                   ) * len(self.setting_time_values)
+                + (self.frequency_index
+                   + (self.setting_time_index
+                      + (self.temperature_index
+                         ) * len(self.temperature_values)
+                      ) * len(self.setting_time_values)
+                   ) * len(self.frequency_values)
                 )
     # fmt: on
 
@@ -78,13 +78,13 @@ class App(DetectBase):
         )
 
     def _line_color(self, index: int) -> QColor:
-        hues: int = len(self.frequency_values)
+        hues: int = len(self.power_dbm_values)
         if hues < 7:
-            hues *= len(self.temperature_values)
+            hues *= len(self.frequency_values)
         if hues < 7:
             hues *= len(self.setting_time_values)
         if hues < 7:
-            hues *= len(self.power_dbm_values)
+            hues *= len(self.temperature_values)
         return intColor(index, hues=hues)
 
     def _add_plot_point_from_file(self) -> None:

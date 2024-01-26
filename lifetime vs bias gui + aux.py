@@ -52,17 +52,17 @@ class App(LifetimeBase):
     # fmt: off
     @property
     def _line_index(self) -> int:
-        return (self.temperature_index
-                + (self.aux_voltage_index
+        return (self.power_index
+                + (self.frequency_index
                    + (self.setting_time_index
-                       + (self.delay_between_cycles_index
-                          + (self.frequency_index
-                             + (self.power_index
-                                ) * len(self.power_dbm_values)
-                             ) * len(self.frequency_values)
-                          ) * len(self.delay_between_cycles_values)
+                      + (self.delay_between_cycles_index
+                         + (self.aux_voltage_index
+                            + (self.temperature_index
+                               ) * len(self.temperature_values)
+                            ) * len(self.aux_voltage_values)
+                         ) * len(self.delay_between_cycles_values)
                       ) * len(self.setting_time_values)
-                   ) * len(self.aux_voltage_values)
+                   ) * len(self.frequency_values)
                 )
     # fmt: on
 
@@ -91,9 +91,9 @@ class App(LifetimeBase):
         if hues < 7:
             hues *= len(self.frequency_values)
         if hues < 7:
-            hues *= len(self.delay_between_cycles_values)
-        if hues < 7:
             hues *= len(self.setting_time_values)
+        if hues < 7:
+            hues *= len(self.delay_between_cycles_values)
         if hues < 7:
             hues *= len(self.aux_voltage_values)
         if hues < 7:

@@ -50,15 +50,15 @@ class App(LifetimeBase):
     # fmt: off
     @property
     def _line_index(self) -> int:
-        return (self.temperature_index
-                + (self.delay_between_cycles_index
-                    + (self.setting_time_index
-                        + (self.bias_current_index
-                           + (self.power_index
-                              ) * len(self.power_dbm_values)
-                           ) * len(self.bias_current_values)
-                       ) * len(self.setting_time_values)
-                   ) * len(self.delay_between_cycles_values)
+        return (self.power_index
+                + (self.setting_time_index
+                   + (self.delay_between_cycles_index
+                      + (self.bias_current_index
+                         + (self.temperature_index
+                            ) * len(self.temperature_values)
+                         ) * len(self.bias_current_values)
+                      ) * len(self.delay_between_cycles_values)
+                   ) * len(self.setting_time_values)
                 )
     # fmt: on
 
@@ -84,11 +84,11 @@ class App(LifetimeBase):
     def _line_color(self, index: int) -> QColor:
         hues: int = len(self.power_dbm_values)
         if hues < 7:
-            hues *= len(self.bias_current_values)
+            hues *= len(self.setting_time_values)
         if hues < 7:
             hues *= len(self.delay_between_cycles_values)
         if hues < 7:
-            hues *= len(self.setting_time_values)
+            hues *= len(self.bias_current_values)
         if hues < 7:
             hues *= len(self.temperature_values)
         return intColor(index, hues=hues)

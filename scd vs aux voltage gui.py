@@ -51,15 +51,15 @@ class App(SwitchingCurrentDistributionBase):
     # fmt: off
     @property
     def _line_index(self) -> int:
-        return (self.temperature_index
-                + (self.current_speed_index
-                    + (self.delay_between_cycles_index
-                       + (self.frequency_index
-                          + (self.power_index
-                             ) * len(self.power_dbm_values)
-                          ) * len(self.frequency_values)
-                       ) * len(self.delay_between_cycles_values)
-                   ) * len(self.current_speed_values)
+        return (self.power_index
+                + (self.frequency_index
+                   + (self.current_speed_index
+                      + (self.delay_between_cycles_index
+                         + (self.temperature_index
+                            ) * len(self.temperature_values)
+                         ) * len(self.delay_between_cycles_values)
+                      ) * len(self.current_speed_values)
+                   ) * len(self.frequency_values)
                 )
     # fmt: on
 
@@ -87,9 +87,9 @@ class App(SwitchingCurrentDistributionBase):
         if hues < 7:
             hues *= len(self.frequency_values)
         if hues < 7:
-            hues *= len(self.delay_between_cycles_values)
-        if hues < 7:
             hues *= len(self.current_speed_values)
+        if hues < 7:
+            hues *= len(self.delay_between_cycles_values)
         if hues < 7:
             hues *= len(self.temperature_values)
         return intColor(index, hues=hues)

@@ -88,11 +88,13 @@ class App(DetectLifetimeBase):
     # fmt: off
     @property
     def _line_index_detect(self) -> int:
-        return (self.bias_current_index
-                + (self.temperature_index
-                   + (self.frequency_index
-                      ) * len(self.frequency_values)
-                   ) * len(self.temperature_values)
+        return (self.frequency_index
+                + (self.setting_time_index
+                    + (self.delay_between_cycles_index
+                       + (self.temperature_index
+                          ) * len(self.temperature_values)
+                       ) * len(self.delay_between_cycles_values)
+                   ) * len(self.setting_time_values)
                 )
     # fmt: on
 
@@ -113,19 +115,21 @@ class App(DetectLifetimeBase):
     def _line_color_detect(self, index: int) -> QColor:
         hues: int = len(self.frequency_values)
         if hues < 7:
-            hues *= len(self.temperature_values)
+            hues *= len(self.setting_time_values)
         if hues < 7:
-            hues *= len(self.bias_current_values)
+            hues *= len(self.delay_between_cycles_values)
+        if hues < 7:
+            hues *= len(self.temperature_values)
         return intColor(index, hues=hues)
 
     # fmt: off
     @property
     def _line_index_lifetime(self) -> int:
-        return (self.temperature_index
-                + (self.setting_time_index
-                    + (self.delay_between_cycles_index
-                       ) * len(self.delay_between_cycles_values)
-                   ) * len(self.setting_time_values)
+        return (self.setting_time_index
+                + (self.delay_between_cycles_index
+                   + (self.temperature_index
+                      ) * len(self.temperature_values)
+                   ) * len(self.delay_between_cycles_values)
                 )
     # fmt: on
 
@@ -151,9 +155,9 @@ class App(DetectLifetimeBase):
         )
 
     def _line_color_lifetime(self, index: int) -> QColor:
-        hues: int = len(self.delay_between_cycles_values)
+        hues: int = len(self.setting_time_values)
         if hues < 7:
-            hues *= len(self.setting_time_values)
+            hues *= len(self.delay_between_cycles_values)
         if hues < 7:
             hues *= len(self.temperature_values)
         return intColor(index, hues=hues)

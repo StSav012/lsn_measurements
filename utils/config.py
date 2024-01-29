@@ -118,9 +118,9 @@ def get_decimal(
     section: LiteralString,
     key: LiteralString,
     *,
-    fallback: float = __sentinel,
+    fallback: Decimal | float | str | tuple[int, Sequence[int], int] = __sentinel,
 ) -> Decimal:
-    return Decimal.from_float(get_float(config=config, sample=sample, section=section, key=key, fallback=fallback))
+    return Decimal(get(config=config, sample=sample, section=section, key=key, fallback=fallback))
 
 
 def get_float_tuple(

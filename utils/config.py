@@ -26,6 +26,7 @@ def get(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: Any = __sentinel,
 ) -> str:
     if f"{section}/{sample}" in config.sections():
@@ -45,6 +46,7 @@ def get_str(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: str = __sentinel,
 ) -> str:
     return get(config=config, sample=sample, section=section, key=key, fallback=fallback)
@@ -55,6 +57,7 @@ def get_bool(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: bool = __sentinel,
 ) -> bool:
     if f"{section}/{sample}" in config.sections():
@@ -74,6 +77,7 @@ def get_int(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: int = __sentinel,
 ) -> int:
     if f"{section}/{sample}" in config.sections():
@@ -93,6 +97,7 @@ def get_float(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: float = __sentinel,
 ) -> float:
     if f"{section}/{sample}" in config.sections():
@@ -112,6 +117,7 @@ def get_decimal(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: float = __sentinel,
 ) -> Decimal:
     return Decimal.from_float(get_float(config=config, sample=sample, section=section, key=key, fallback=fallback))
@@ -122,6 +128,7 @@ def get_float_tuple(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> tuple[float, ...]:
@@ -144,6 +151,7 @@ def get_float_list(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> list[float]:
@@ -166,6 +174,7 @@ def get_decimal_list(
     sample: str,
     section: LiteralString,
     key: LiteralString,
+    *,
     fallback: Sequence[float] = __sentinel,
     separator: str = ",",
 ) -> list[Decimal]:

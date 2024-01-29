@@ -34,11 +34,12 @@ class App(SwitchingCurrentDistributionBase):
                     "SCD-stat",
                     self.config.get("output", "prefix", fallback=""),
                     format_float(self.temperature * 1e3, suffix="mK") if len(self.temperature_values) == 1 else "",
+                    format_float(self.aux_voltage * 1e3, prefix="aux", suffix="mV"),
                     format_float(self.current_speed, prefix="v", suffix="nAps"),
                     format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                     f"CC{self.cycles_count}",
-                    format_float(self.frequency, suffix="GHz") if self.synthesizer_output else "",
-                    format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                    format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                    format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
                     format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                     format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                     self.config.get("output", "suffix", fallback=""),
@@ -71,15 +72,18 @@ class App(SwitchingCurrentDistributionBase):
             filter(
                 None,
                 (
+                    format_float(self.temperature * 1e3, suffix=self.tr("mK"))
+                    if len(self.temperature_values) == 1
+                    else "",
                     format_float(self.aux_voltage * 1e3, suffix=self.tr("mV")),
                     format_float(self.current_speed, suffix=self.tr("nA/s")),
                     format_float(
                         self.delay_between_cycles * 1e3,
-                        prefix="d ",
+                        prefix=self.tr("d "),
                         suffix=self.tr("ms"),
                     ),
-                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
                     format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
                 ),
             )
         )

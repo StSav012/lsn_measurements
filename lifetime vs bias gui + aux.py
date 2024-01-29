@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import final
 
+import numpy as np
 from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
@@ -33,14 +34,12 @@ class App(LifetimeBase):
                         self.config.get("output", "prefix", fallback=""),
                         format_float(self.temperature * 1e3, suffix="mK"),
                         format_float(self.aux_voltage * 1e3, prefix="aux", suffix="mV"),
-                        format_float(self.bias_current_values[0], suffix="nA")
-                        if len(self.bias_current_values) == 1
-                        else "",
+                        format_float(self.bias_current, suffix="nA") if len(self.bias_current_values) == 1 else "",
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
-                        format_float(self.frequency, suffix="GHz") if self.synthesizer_output else "",
-                        format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                        format_float(self.frequency, suffix="GHz") if not np.isnan(self.frequency) else "",
+                        format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
                         format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
@@ -73,15 +72,16 @@ class App(LifetimeBase):
                 None,
                 (
                     format_float(self.temperature * 1e3, suffix=self.tr("mK")),
-                    format_float(self.aux_voltage * 1e3, prefix="aux ", suffix=self.tr("mV")),
-                    format_float(self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")),
+                    format_float(self.bias_current, suffix=self.tr("nA")) if len(self.bias_current_values) == 1 else "",
+                    format_float(self.aux_voltage * 1e3, prefix=self.tr("aux "), suffix=self.tr("mV")),
+                    format_float(self.setting_time * 1e3, prefix=self.tr("ST "), suffix=self.tr("ms")),
                     format_float(
                         self.delay_between_cycles * 1e3,
-                        prefix="d ",
+                        prefix=self.tr("d "),
                         suffix=self.tr("ms"),
                     ),
-                    format_float(self.frequency, suffix=self.tr("GHz")) if self.synthesizer_output else "",
-                    format_float(self.power_dbm, suffix=self.tr("dBm")) if self.synthesizer_output else "",
+                    format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
                 ),
             )
         )

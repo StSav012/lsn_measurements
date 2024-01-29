@@ -34,9 +34,10 @@ class App(DetectBase):
                         "detect",
                         self.config.get("output", "prefix", fallback=""),
                         format_float(self.temperature * 1e3, suffix="mK"),
+                        format_float(self.bias_current, suffix="nA") if len(self.bias_current_values) == 1 else "",
+                        format_float(self.frequency, suffix="GHz"),
                         format_float(self.power_dbm, suffix="dBm"),
                         f"CC{self.cycles_count}",
-                        format_float(self.frequency, suffix="GHz"),
                         format_float(self.pulse_duration, prefix="P", suffix="s"),
                         format_float(self.waiting_after_pulse, prefix="WaP", suffix="s"),
                         format_float(self.setting_time, prefix="ST", suffix="s"),
@@ -66,9 +67,10 @@ class App(DetectBase):
             filter(
                 None,
                 (
-                    format_float(self.power_dbm, suffix=self.tr("dBm")),
+                    format_float(self.bias_current, suffix=self.tr("nA")) if len(self.bias_current_values) == 1 else "",
                     format_float(self.frequency, suffix=self.tr("GHz")),
-                    format_float(self.setting_time * 1e3, prefix="ST ", suffix=self.tr("ms")),
+                    format_float(self.power_dbm, suffix=self.tr("dBm")),
+                    format_float(self.setting_time * 1e3, prefix=self.tr("ST "), suffix=self.tr("ms")),
                     format_float(self.temperature * 1e3, suffix=self.tr("mK")),
                 ),
             )

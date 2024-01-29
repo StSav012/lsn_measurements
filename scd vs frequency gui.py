@@ -35,9 +35,9 @@ class App(SwitchingCurrentDistributionBase):
                     format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                     f"CC{self.cycles_count}",
                     format_float(self.frequency, suffix="GHz")
-                    if self.synthesizer_output and len(self.frequency_values) == 1
+                    if len(self.frequency_values) == 1 and not np.isnan(self.frequency)
                     else "",
-                    format_float(self.power_dbm, suffix="dBm") if self.synthesizer_output else "",
+                    format_float(self.power_dbm, suffix="dBm") if not np.isnan(self.power_dbm) else "",
                     format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                     format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                     self.config.get("output", "suffix", fallback=""),
@@ -72,9 +72,12 @@ class App(SwitchingCurrentDistributionBase):
                     format_float(self.current_speed, suffix=self.tr("nA/s")),
                     format_float(
                         self.delay_between_cycles * 1e3,
-                        prefix="d ",
+                        prefix=self.tr("d "),
                         suffix=self.tr("ms"),
                     ),
+                    format_float(self.frequency, suffix=self.tr("GHz"))
+                    if len(self.frequency_values) == 1 and not np.isnan(self.frequency)
+                    else "",
                     format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
                 ),
             )

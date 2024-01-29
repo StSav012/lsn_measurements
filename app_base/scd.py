@@ -110,11 +110,15 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             fallback=np.nan,
         )
 
-        synthesizer_output: bool = self.config.getboolean("GHz signal", "on", fallback=False)
-        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
-        self.stop_key_frequency.setDisabled(not synthesizer_output or len(self.frequency_values) <= 1)
-        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
-        self.stop_key_power.setDisabled(not synthesizer_output or len(self.power_dbm_values) <= 1)
+        self.synthesizer_output: Final[bool] = self.config.getboolean("GHz signal", "on", fallback=False)
+        self.frequency_values: Final[SliceSequence] = SliceSequence(
+            self.config.get("GHz signal", "frequency [GHz]", fallback="") if self.synthesizer_output else ""
+        )
+        self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
+        self.power_dbm_values: Final[SliceSequence] = SliceSequence(
+            self.config.get("GHz signal", "power [dBm]", fallback="") if self.synthesizer_output else ""
+        )
+        self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
 
         self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
         self.temperature_delay: timedelta = timedelta(
@@ -323,10 +327,6 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         print(f"\nsaving to {self.stat_file}")
         self.setWindowTitle(f"Switching Current Distribution — {self.stat_file}")
         self.timer.start(50)
-
-    @property
-    def synthesizer_output(self) -> bool:
-        return self.config.getboolean("GHz signal", "on", fallback=False)
 
     @abc.abstractmethod
     def _next_indices(self, make_step: bool = True) -> bool:

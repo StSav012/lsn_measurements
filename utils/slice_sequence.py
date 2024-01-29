@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Iterator, Sequence
+from typing import Iterator, Self, Sequence
 
 from .si import parse_si_number
 from .string_utils import multi_split, nth_occurrence
@@ -29,7 +29,7 @@ def float_range(
 class SliceSequence:
     def __init__(
         self,
-        text: str = "",
+        text: str | Self = "",
         *,
         slice_separator: str | Sequence[str] = ("..", ":"),
         items_separator: str | Sequence[str] = (",", ";"),
@@ -41,7 +41,7 @@ class SliceSequence:
             (items_separator,) if isinstance(items_separator, str) else tuple(items_separator)
         )
 
-        self._items: list[float] = self._parse(text)
+        self._items: list[float] = list(text) if isinstance(text, SliceSequence) else self._parse(text)
 
     def _parse(self, text: str) -> list[float]:
         def _parse_slice(slice_text: str) -> list[float]:
@@ -111,4 +111,5 @@ if __name__ == "__main__":
     # print(f"{SliceSequence('1:2;3:80m:4:, 5K')}")
     # SliceSequence('1:2;3:80m:4, 1:abc:2')
     print(SliceSequence("1:2;3:50m:4, 5k"))
+    print(SliceSequence(SliceSequence("1:2;3:50m:4, 5k")))
     print(4 in SliceSequence("1:2;3:50m:4, 5k"))

@@ -188,11 +188,17 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     def power_dbm(self) -> float:
-        return float(self.power_dbm_values[self.power_index]) if self.synthesizer_output else np.nan
+        return (
+            float(self.power_dbm_values[self.power_index]) if self.power_index < len(self.power_dbm_values) else np.nan
+        )
 
     @property
     def frequency(self) -> float:
-        return float(self.frequency_values[self.frequency_index]) if self.synthesizer_output else np.nan
+        return (
+            float(self.frequency_values[self.frequency_index])
+            if self.frequency_index < len(self.frequency_values)
+            else np.nan
+        )
 
     @property
     def setting_time(self) -> float:

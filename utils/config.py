@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Any, LiteralString, Sequence
 
 from .si import parse_si_number
+from .slice_sequence import SliceSequence
 
 __all__ = [
     "get_str",
@@ -190,3 +191,41 @@ def get_decimal_list(
             ).split(separator),
         )
     )
+
+
+def get_slice_sequence(
+    config: ConfigParser,
+    sample: str,
+    section: LiteralString,
+    key: LiteralString,
+    *,
+    fallback: SliceSequence = __sentinel,
+    slice_separator: str | Sequence[str] = ("..", ":"),
+    items_separator: str | Sequence[str] = (",", ";"),
+) -> SliceSequence:
+    if f"{section}/{sample}" in config.sections():
+        if key in config[f"{section}/{sample}"]:
+            if fallback is not __sentinel:
+                return SliceSequence(
+                    config.get(f"{section}/{sample}", key, fallback=fallback),
+                    slice_separator=slice_separator,
+                    items_separator=items_separator,
+                )
+            else:
+                return SliceSequence(
+                    config.get(f"{section}/{sample}", key),
+                    slice_separator=slice_separator,
+                    items_separator=items_separator,
+                )
+    if fallback is not __sentinel:
+        return SliceSequence(
+            config.get(f"{section}", key, fallback=fallback),
+            slice_separator=slice_separator,
+            items_separator=items_separator,
+        )
+    else:
+        return SliceSequence(
+            config.get(f"{section}", key),
+            slice_separator=slice_separator,
+            items_separator=items_separator,
+        )

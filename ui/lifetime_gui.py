@@ -55,6 +55,7 @@ class LifetimeGUI(QMainWindow):
         self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_mean_lifetime: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_lifetime_std: pg.ValueLabel = pg.ValueLabel(self.central_widget)
+        self.label_lifetime_mean_std_ratio: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
         self.stop_key_bias: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
@@ -99,6 +100,7 @@ class LifetimeGUI(QMainWindow):
         self.label_mean_lifetime.formatStr = "{value:0.5f} {suffix}"
         self.label_lifetime_std.suffix = self.tr("s")
         self.label_lifetime_std.formatStr = "{value:0.5f} {suffix}"
+        self.label_lifetime_mean_std_ratio.formatStr = "{value:0.5f}"
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
@@ -121,7 +123,8 @@ class LifetimeGUI(QMainWindow):
         self.parameters_layout.addRow(self.tr("Temperature:"), self.label_temperature)
         self.parameters_layout.addRow(self.tr("Loop number:"), self.label_loop_number)
         self.parameters_layout.addRow(self.tr("Mean lifetime:"), self.label_mean_lifetime)
-        self.parameters_layout.addRow(self.tr("Lifetime std:"), self.label_lifetime_std)
+        self.parameters_layout.addRow(self.tr("Lifetime StD:"), self.label_lifetime_std)
+        self.parameters_layout.addRow(self.tr("Mean to StD ratio:"), self.label_lifetime_mean_std_ratio)
 
         self.button_topmost.setText(self.tr("Keep the Window Topmost"))
         self.button_topmost.setCheckable(True)

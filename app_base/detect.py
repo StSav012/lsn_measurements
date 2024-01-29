@@ -83,11 +83,11 @@ class DetectBase(DetectGUI):
         if self.setting_function.casefold() not in ("linear", "half sine", "quarter sine"):
             raise ValueError("Unsupported current setting function:", self.setting_function)
 
-        self.bias_current_values: SliceSequence = SliceSequence(
+        self.bias_current_values: Final[SliceSequence] = SliceSequence(
             get_str(self.config, self.sample_name, "current", "bias current [nA]")
         )
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
-        self.initial_biases: list[float] = get_float_list(
+        self.initial_biases: Final[list[float]] = get_float_list(
             self.config, self.sample_name, "current", "initial current [nA]", [0.0]
         )
 
@@ -97,7 +97,7 @@ class DetectBase(DetectGUI):
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
-        self.trigger_voltage: float = (
+        self.trigger_voltage: Final[float] = (
             get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
         )
         self.max_reasonable_bias_error: Final[float] = (
@@ -129,9 +129,9 @@ class DetectBase(DetectGUI):
             fallback=np.nan,
         )
 
-        self.frequency_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
+        self.frequency_values: Final[SliceSequence] = SliceSequence(self.config.get("GHz signal", "frequency [GHz]"))
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
-        self.power_dbm_values: SliceSequence = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
+        self.power_dbm_values: Final[SliceSequence] = SliceSequence(self.config.get("GHz signal", "power [dBm]"))
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
         self.pulse_duration: Final[float] = get_float(
             self.config, self.sample_name, "detect", "GHz pulse duration [sec]"
@@ -140,8 +140,8 @@ class DetectBase(DetectGUI):
             self.config, self.sample_name, "detect", "waiting after GHz pulse [sec]"
         )
 
-        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
-        self.temperature_delay: timedelta = timedelta(
+        self.temperature_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "temperature"))
+        self.temperature_delay: Final[timedelta] = timedelta(
             seconds=get_float(
                 self.config,
                 self.sample_name,

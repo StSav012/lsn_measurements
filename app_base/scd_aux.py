@@ -75,8 +75,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.reset_function: Final[str] = get_str(self.config, self.sample_name, "current", "function")
         if self.reset_function.casefold() not in ("linear", "half sine", "quarter sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
-        self.max_bias_current: float = get_float(self.config, self.sample_name, "scd", "max bias current [nA]")
-        self.initial_biases: list[float] = get_float_list(
+        self.max_bias_current: Final[float] = get_float(self.config, self.sample_name, "scd", "max bias current [nA]")
+        self.initial_biases: Final[list[float]] = get_float_list(
             self.config, self.sample_name, "current", "initial current [nA]", [0.0]
         )
         self.current_speed_values: Final[SliceSequence] = SliceSequence(
@@ -85,12 +85,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.stop_key_current_speed.setDisabled(len(self.current_speed_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
-        self.trigger_voltage: float = get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]")
-        self.max_reasonable_bias_error: Final[float] = abs(
-            self.config.getfloat("scd", "maximal reasonable bias error [%]", fallback=np.inf)
+        self.trigger_voltage: Final[float] = get_float(
+            self.config, self.sample_name, "measurement", "voltage trigger [V]"
         )
-        self.cycles_count: int = self.config.getint("scd", "number of cycles")
-        self.max_measurement_time: timedelta = timedelta(
+        self.max_reasonable_bias_error: Final[float] = (
+            abs(self.config.getfloat("scd", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
+        )
+        self.cycles_count: Final[int] = self.config.getint("scd", "number of cycles")
+        self.max_measurement_time: Final[timedelta] = timedelta(
             seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]") * 60
         )
         self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
@@ -131,16 +133,32 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             * 60.0
         )
 
-        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
-        self.temperature_delay: timedelta = timedelta(
-            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
-        )
-        self.change_filtered_readings: Final[bool] = self.config.getboolean(
-            "measurement", "change filtered readings in Triton", fallback=True
+        self.temperature_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "temperature"))
+        self.temperature_delay: Final[timedelta] = timedelta(
+            seconds=get_float(
+                self.config,
+                self.sample_name,
+                "measurement",
+                "time to wait for temperature [minutes]",
+                fallback=0.0,
+            )
+            * 60.0
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
-            abs(self.config.getfloat("measurement", "temperature tolerance [%]", fallback=1.0)) * 0.01
+            abs(
+                get_float(
+                    self.config,
+                    self.sample_name,
+                    "measurement",
+                    "temperature tolerance [%]",
+                    fallback=0.5,
+                )
+            )
+            * 0.01
+        )
+        self.change_filtered_readings: Final[bool] = self.config.getboolean(
+            "measurement", "change filtered readings in Triton", fallback=True
         )
 
         self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"D:\ttt\scd"))

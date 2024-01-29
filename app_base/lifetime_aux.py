@@ -76,7 +76,7 @@ class LifetimeBase(LifetimeGUI):
             get_str(self.config, self.sample_name, "current", "bias current [nA]")
         )
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
-        self.initial_biases: list[float] = get_float_list(
+        self.initial_biases: Final[list[float]] = get_float_list(
             self.config, self.sample_name, "current", "initial current [nA]", [0.0]
         )
         self.setting_time_values: Final[SliceSequence] = SliceSequence(
@@ -85,20 +85,20 @@ class LifetimeBase(LifetimeGUI):
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
-        self.trigger_voltage: float = (
+        self.trigger_voltage: Final[float] = (
             get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
         )
         self.max_reasonable_bias_error: Final[float] = (
             abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count: int = self.config.getint("lifetime", "number of cycles")
-        self.max_waiting_time: timedelta = timedelta(
+        self.cycles_count: Final[int] = self.config.getint("lifetime", "number of cycles")
+        self.max_waiting_time: Final[timedelta] = timedelta(
             seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]")
         )
         self.max_mean: Final[float] = self.config.getfloat(
             "lifetime", "max mean time to measure [sec]", fallback=np.inf
         )
-        self.ignore_never_switched: bool = self.config.getboolean("lifetime", "ignore never switched")
+        self.ignore_never_switched: Final[bool] = self.config.getboolean("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
             get_str(
                 self.config,
@@ -117,17 +117,17 @@ class LifetimeBase(LifetimeGUI):
         )
 
         self.synthesizer_output: Final[bool] = self.config.getboolean("GHz signal", "on", fallback=False)
-        self.frequency_values: SliceSequence = SliceSequence(
+        self.frequency_values: Final[SliceSequence] = SliceSequence(
             self.config.get("GHz signal", "frequency [GHz]", fallback="") if self.synthesizer_output else ""
         )
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
-        self.power_dbm_values: SliceSequence = SliceSequence(
+        self.power_dbm_values: Final[SliceSequence] = SliceSequence(
             self.config.get("GHz signal", "power [dBm]", fallback="") if self.synthesizer_output else ""
         )
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
 
-        self.aux_voltage_values: SliceSequence = SliceSequence(self.config.get("measurement", "aux voltage [V]"))
-        self.aux_voltage_delay: timedelta = timedelta(
+        self.aux_voltage_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "aux voltage [V]"))
+        self.aux_voltage_delay: Final[timedelta] = timedelta(
             seconds=self.config.getfloat(
                 "measurement",
                 "time to wait after aux voltage changed [minutes]",
@@ -137,8 +137,8 @@ class LifetimeBase(LifetimeGUI):
         )
         self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
 
-        self.temperature_values: SliceSequence = SliceSequence(self.config.get("measurement", "temperature"))
-        self.temperature_delay: timedelta = timedelta(
+        self.temperature_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "temperature"))
+        self.temperature_delay: Final[timedelta] = timedelta(
             seconds=get_float(
                 self.config,
                 self.sample_name,

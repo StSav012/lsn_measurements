@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import abc
-from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
@@ -20,7 +19,7 @@ from hardware.triton import Triton
 from measurement.lifetime_aux import LifetimeMeasurement
 from ui.lifetime_aux_gui import LifetimeGUI
 from utils import error, warning
-from utils.config import get_float, get_float_list, get_str
+from utils.config import Config
 from utils.slice_sequence import SliceSequence
 from utils.string_utils import format_float
 
@@ -40,55 +39,41 @@ class LifetimeBase(LifetimeGUI):
         self.good_to_measure.buf[0] = False
         self.measurement: LifetimeMeasurement | None = None
 
-        self.config: ConfigParser = ConfigParser(allow_no_value=True, inline_comment_prefixes=("#", ";"))
-        self.config.read("config.ini")
+        self.config: Config = Config()
 
         self.triton: Triton = Triton(None, 33576)
         self.triton.query_temperature(6, blocking=True)
 
         self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
 
-        self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
+        self.sample_name: Final[str] = self.config.sample_name
         self.parameters_box.setTitle(self.sample_name)
-        self.gain: Final[float] = get_float(self.config, self.sample_name, "circuitry", "voltage gain")
-        self.divider: Final[float] = get_float(self.config, self.sample_name, "circuitry", "current divider")
-        self.r: Final[float] = get_float(
-            self.config, self.sample_name, "circuitry", "ballast resistance [Ohm]"
-        ) + get_float(
-            self.config,
-            self.sample_name,
+        self.gain: Final[float] = self.config.get_float("circuitry", "voltage gain")
+        self.divider: Final[float] = self.config.get_float("circuitry", "current divider")
+        self.r: Final[float] = self.config.get_float(
+            "circuitry",
+            "ballast resistance [Ohm]",
+        ) + self.config.get_float(
             "circuitry",
             "additional ballast resistance [Ohm]",
             fallback=0.0,
         )
-        self.r_series: Final[float] = get_float(
-            self.config,
-            self.sample_name,
-            "circuitry",
-            "resistance in series [Ohm]",
-            fallback=0.0,
-        )
+        self.r_series: Final[float] = self.config.get_float("circuitry", "resistance in series [Ohm]", fallback=0.0)
 
-        self.reset_function: Final[str] = get_str(self.config, self.sample_name, "current", "function")
+        self.reset_function: Final[str] = self.config.get_str("current", "function")
         if self.reset_function.casefold() not in ("linear", "half sine", "quarter sine"):
             raise ValueError("Unsupported current reset function:", self.reset_function)
-        self.bias_current_values: SliceSequence = SliceSequence(
-            get_str(self.config, self.sample_name, "current", "bias current [nA]")
-        )
+        self.bias_current_values: SliceSequence = self.config.get_slice_sequence("current", "bias current [nA]")
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
-        self.initial_biases: Final[list[float]] = get_float_list(
-            self.config, self.sample_name, "current", "initial current [nA]", [0.0]
+        self.initial_biases: Final[list[float]] = self.config.get_float_list(
+            "current", "initial current [nA]", fallback=[0.0]
         )
 
-        self.setting_time_values: Final[SliceSequence] = SliceSequence(
-            get_str(self.config, self.sample_name, "current", "setting time [sec]")
-        )
+        self.setting_time_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "setting time [sec]")
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
         self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
-        self.trigger_voltage: Final[float] = (
-            get_float(self.config, self.sample_name, "measurement", "voltage trigger [V]") * self.gain
-        )
+        self.trigger_voltage: Final[float] = self.config.get_float("measurement", "voltage trigger [V]") * self.gain
         self.max_reasonable_bias_error: Final[float] = (
             abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
@@ -100,67 +85,42 @@ class LifetimeBase(LifetimeGUI):
             "lifetime", "max mean time to measure [sec]", fallback=np.inf
         )
         self.ignore_never_switched: Final[bool] = self.config.getboolean("lifetime", "ignore never switched")
-        self.delay_between_cycles_values: Final[SliceSequence] = SliceSequence(
-            get_str(
-                self.config,
-                self.sample_name,
-                "measurement",
-                "delay between cycles [sec]",
-            )
+        self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
+            "measurement", "delay between cycles [sec]"
         )
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
-        self.adc_rate: Final[float] = get_float(
-            self.config,
-            self.sample_name,
-            "measurement",
-            "adc rate [S/sec]",
-            fallback=np.nan,
-        )
+        self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
 
         self.synthesizer_output: Final[bool] = self.config.getboolean("GHz signal", "on", fallback=False)
-        self.frequency_values: Final[SliceSequence] = SliceSequence(
-            self.config.get("GHz signal", "frequency [GHz]", fallback="") if self.synthesizer_output else ""
+        self.frequency_values: Final[SliceSequence] = (
+            self.config.get_slice_sequence("GHz signal", "frequency [GHz]", fallback=SliceSequence())
+            if self.synthesizer_output
+            else SliceSequence()
         )
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
-        self.power_dbm_values: Final[SliceSequence] = SliceSequence(
-            self.config.get("GHz signal", "power [dBm]", fallback="") if self.synthesizer_output else ""
+        self.power_dbm_values: Final[SliceSequence] = (
+            self.config.get_slice_sequence("GHz signal", "power [dBm]", fallback=SliceSequence())
+            if self.synthesizer_output
+            else SliceSequence()
         )
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
 
-        self.aux_voltage_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "aux voltage [V]"))
+        self.aux_voltage_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "aux voltage [V]")
         self.aux_voltage_delay: Final[timedelta] = timedelta(
             seconds=self.config.getfloat(
-                "measurement",
-                "time to wait after aux voltage changed [minutes]",
-                fallback=0.0,
+                "measurement", "time to wait after aux voltage changed [minutes]", fallback=0.0
             )
             * 60.0
         )
         self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
 
-        self.temperature_values: Final[SliceSequence] = SliceSequence(self.config.get("measurement", "temperature"))
+        self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
         self.temperature_delay: Final[timedelta] = timedelta(
-            seconds=get_float(
-                self.config,
-                self.sample_name,
-                "measurement",
-                "time to wait for temperature [minutes]",
-                fallback=0.0,
-            )
-            * 60.0
+            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
-            abs(
-                get_float(
-                    self.config,
-                    self.sample_name,
-                    "measurement",
-                    "temperature tolerance [%]",
-                    fallback=0.5,
-                )
-            )
-            * 0.01
+            abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
             "measurement", "change filtered readings in Triton", fallback=True

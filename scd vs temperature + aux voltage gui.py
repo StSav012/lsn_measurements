@@ -102,7 +102,7 @@ class App(SwitchingCurrentDistributionBase):
         if make_step:
             self.power_index += 1
         while self.check_exists and self._data_file_exists():
-            self._add_plot_point_from_file(self.aux_voltage)
+            self._add_plot_point_from_file(self.temperature)
             self.power_index += 1
         if self.power_index >= len(self.power_dbm_values):
             self.power_index = 0
@@ -111,7 +111,7 @@ class App(SwitchingCurrentDistributionBase):
             if make_step:
                 self.frequency_index += 1
             while self.check_exists and self._data_file_exists():
-                self._add_plot_point_from_file(self.aux_voltage)
+                self._add_plot_point_from_file(self.temperature)
                 self.frequency_index += 1
             if self.frequency_index >= len(self.frequency_values):
                 self.frequency_index = 0
@@ -120,7 +120,7 @@ class App(SwitchingCurrentDistributionBase):
                 if make_step:
                     self.current_speed_index += 1
                 while self.check_exists and self._data_file_exists():
-                    self._add_plot_point_from_file(self.aux_voltage)
+                    self._add_plot_point_from_file(self.temperature)
                     self.current_speed_index += 1
                 if self.current_speed_index >= len(self.current_speed_values):
                     self.current_speed_index = 0
@@ -129,7 +129,7 @@ class App(SwitchingCurrentDistributionBase):
                     if make_step:
                         self.delay_between_cycles_index += 1
                     while self.check_exists and self._data_file_exists():
-                        self._add_plot_point_from_file(self.aux_voltage)
+                        self._add_plot_point_from_file(self.temperature)
                         self.delay_between_cycles_index += 1
                     if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
                         self.delay_between_cycles_index = 0
@@ -139,7 +139,7 @@ class App(SwitchingCurrentDistributionBase):
                             self.aux_voltage_index += 1
                             self.bad_aux_voltage_time = datetime.now()
                         while self.check_exists and self._data_file_exists():
-                            self._add_plot_point_from_file(self.aux_voltage)
+                            self._add_plot_point_from_file(self.temperature)
                             self.aux_voltage_index += 1
                             self.bad_aux_voltage_time = datetime.now()
                         if self.aux_voltage_index >= len(self.aux_voltage_values):
@@ -150,7 +150,7 @@ class App(SwitchingCurrentDistributionBase):
                             if make_step:
                                 self.temperature_index += 1
                             while self.check_exists and self._data_file_exists():
-                                self._add_plot_point_from_file(self.aux_voltage)
+                                self._add_plot_point_from_file(self.temperature)
                                 self.temperature_index += 1
                             if self.temperature_index >= len(self.temperature_values):
                                 self.temperature_index = 0

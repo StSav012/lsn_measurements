@@ -107,19 +107,19 @@ class App(LifetimeBase):
                 return False
             if make_step:
                 self.power_index += 1
-            while self.synthesizer_output and self.check_exists and self._data_file_exists():
+            while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file()
                 self.power_index += 1
-            if not self.synthesizer_output or self.power_index >= len(self.power_dbm_values):
+            if self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
                 if self.stop_key_frequency.isChecked():
                     return False
                 if make_step:
                     self.frequency_index += 1
-                while self.synthesizer_output and self.check_exists and self._data_file_exists():
+                while self.check_exists and self._data_file_exists():
                     self._add_plot_point_from_file()
                     self.frequency_index += 1
-                if not self.synthesizer_output or self.frequency_index >= len(self.frequency_values):
+                if self.frequency_index >= len(self.frequency_values):
                     self.frequency_index = 0
                     if self.stop_key_setting_time.isChecked():
                         return False

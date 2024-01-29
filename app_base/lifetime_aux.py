@@ -409,11 +409,11 @@ class LifetimeBase(LifetimeGUI):
             self.loop_data[cycle_index] = spent_time
         finished_data: NDArray[np.float64] = np.asarray([v.total_seconds() for v in self.loop_data.values()][:-1])
         self.histogram.hist(finished_data, pen="white", symbolBrush="white", symbolPen="white")
-        if finished_data:
+        if finished_data.size:
             self.label_mean_lifetime.setValue(np.mean(finished_data))
         else:
             self.label_mean_lifetime.clear()
-        if len(finished_data) > 2:
+        if finished_data.size > 2:
             self.label_lifetime_std.setValue(np.std(finished_data))
             self.label_lifetime_mean_std_ratio.setValue(np.mean(finished_data) / np.std(finished_data))
         else:

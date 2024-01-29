@@ -29,7 +29,7 @@ def float_range(
 class SliceSequence:
     def __init__(
         self,
-        text: str,
+        text: str = "",
         *,
         slice_separator: str | Sequence[str] = ("..", ":"),
         items_separator: str | Sequence[str] = (",", ";"),
@@ -90,10 +90,11 @@ class SliceSequence:
         yield from self._items
 
     def __format__(self, format_spec: str) -> str:
+        if not self._items:
+            return "[]"
         if len(self._items) == 1:
             return f"{self._items[0]:{format_spec}}"
-        else:
-            return "[" + ", ".join(f"{item:{format_spec}}" for item in self._items) + "]"
+        return "[" + ", ".join(f"{item:{format_spec}}" for item in self._items) + "]"
 
     def __bool__(self) -> bool:
         return bool(self._items)

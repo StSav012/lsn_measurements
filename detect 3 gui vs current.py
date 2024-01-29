@@ -22,10 +22,7 @@ class App(DetectBase):
     def setup_ui_appearance(self) -> None:
         super(App, self).setup_ui_appearance()
 
-        self.figure.getAxis("bottom").setLabel(
-            text=self.tr("Current"),
-            units=self.tr("nA"),
-        )
+        self.figure.getAxis("bottom").setLabel(text=self.tr("Current"), units=self.tr("nA"))
 
     @property
     def stat_file(self) -> Path:

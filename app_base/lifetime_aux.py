@@ -79,6 +79,7 @@ class LifetimeBase(LifetimeGUI):
         self.initial_biases: Final[list[float]] = get_float_list(
             self.config, self.sample_name, "current", "initial current [nA]", [0.0]
         )
+
         self.setting_time_values: Final[SliceSequence] = SliceSequence(
             get_str(self.config, self.sample_name, "current", "setting time [sec]")
         )

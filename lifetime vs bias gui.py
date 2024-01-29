@@ -55,10 +55,10 @@ class App(LifetimeBase):
                    + (self.setting_time_index
                       + (self.delay_between_cycles_index
                          + (self.temperature_index
-                            ) * len(self.temperature_values)
-                         ) * len(self.delay_between_cycles_values)
-                      ) * len(self.setting_time_values)
-                   ) * len(self.frequency_values)
+                            ) * (len(self.delay_between_cycles_values) or 1)
+                         ) * (len(self.setting_time_values) or 1)
+                      ) * (len(self.frequency_values) or 1)
+                   ) * (len(self.power_dbm_values) or 1)
                 )
     # fmt: on
 
@@ -82,15 +82,15 @@ class App(LifetimeBase):
         )
 
     def _line_color(self, index: int) -> QColor:
-        hues: int = len(self.power_dbm_values)
+        hues: int = len(self.power_dbm_values) or 1
         if hues < 7:
-            hues *= len(self.frequency_values)
+            hues *= len(self.frequency_values) or 1
         if hues < 7:
-            hues *= len(self.setting_time_values)
+            hues *= len(self.setting_time_values) or 1
         if hues < 7:
-            hues *= len(self.delay_between_cycles_values)
+            hues *= len(self.delay_between_cycles_values) or 1
         if hues < 7:
-            hues *= len(self.temperature_values)
+            hues *= len(self.temperature_values) or 1
         return intColor(index, hues=hues)
 
     def _next_indices(self, make_step: bool = True) -> bool:

@@ -248,7 +248,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def plot_line_std(self) -> pg.PlotDataItem:
         i: int = self._line_index
         if i not in self.plot_lines_std:
-            color: QColor = pg.intColor(i)
+            color: QColor = self._line_color(i)
             self.plot_lines_std[i] = self.canvas_std.plot(
                 np.empty(0, dtype=np.float64),
                 symbol="o",

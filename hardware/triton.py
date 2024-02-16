@@ -5,7 +5,7 @@ import time
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
-from typing import Any
+from typing import Any, NamedTuple
 
 from utils.port_scanner import port_scanner
 
@@ -13,6 +13,10 @@ __all__ = ["Triton"]
 
 
 class Triton(Thread):
+    class SignalValue(NamedTuple):
+        value: Any
+        unit: str
+
     @staticmethod
     def heater_range(temperature: float) -> str:
         if temperature < 0.025:
@@ -93,7 +97,7 @@ class Triton(Thread):
             self.conversation[command.strip()] = ""
         return self.conversation[command.strip()]
 
-    def query_value(self, command: str, blocking: bool = False) -> tuple[float, str]:
+    def query_value(self, command: str, blocking: bool = False) -> SignalValue:
         if not command.startswith("READ:"):
             command = "READ:" + command
         response: str
@@ -102,21 +106,21 @@ class Triton(Thread):
         else:
             response = self.query(command)
         if not response:
-            return nan, ""
+            return Triton.SignalValue(nan, "")
         response_start: str = ":".join(["STAT"] + command.split(":")[1:]) + ":"
         if not response.startswith(response_start):
             print(command, "->", response)
-            return nan, ""
+            return Triton.SignalValue(nan, "")
         response = response[len(response_start) :]
         unit: str = ""
         while response and response[-1] not in "1234567890-+.":
             unit = response[-1] + unit
             response = response[:-1]
         if not response:
-            return nan, unit
-        return float(response), unit
+            return Triton.SignalValue(nan, unit)
+        return Triton.SignalValue(float(response), unit)
 
-    def query_temperature(self, index: int, blocking: bool = False) -> tuple[float, str]:
+    def query_temperature(self, index: int, blocking: bool = False) -> SignalValue:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
 
     def issue_value(self, command: str, value: Any) -> bool:
@@ -137,7 +141,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:T" "SET", value)
 
     def ensure_temperature(self, index: int, value: float) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET", blocking=True)[0]:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET", blocking=True).value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:TSET", value)
 
@@ -145,7 +149,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
     def ensure_filter_readings(self, index: int, value: bool) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True)[0]:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True).value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
@@ -153,7 +157,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 
     def ensure_heater_range(self, index: int, value: str) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE", blocking=True)[0]:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE", blocking=True).value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 

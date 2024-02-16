@@ -309,12 +309,9 @@ class LifetimeBase(LifetimeGUI):
         self.synthesizer.power.level = self.power_dbm
         self.label_power.setValue(self.power_dbm)
 
-        actual_temperature: float
-        temperature_unit: str
-        actual_temperature, temperature_unit = self.triton.query_temperature(6)
         self.temperature_just_set = not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < actual_temperature
+            < self.triton.query_temperature(6).value
             < (1.0 + self.temperature_tolerance) * self.temperature
         )
 

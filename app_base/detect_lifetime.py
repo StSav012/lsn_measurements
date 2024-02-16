@@ -338,12 +338,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.label_pulse_duration.setValue(self.pulse_duration * 1000)
         self.label_spent_time.clear()
 
-        actual_temperature: float
-        temperature_unit: str
-        actual_temperature, temperature_unit = self.triton.query_temperature(6)
         self.temperature_just_set = not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < actual_temperature
+            < self.triton.query_temperature(6).value
             < (1.0 + self.temperature_tolerance) * self.temperature
         )
 
@@ -397,12 +394,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.label_pulse_duration.clear()
         self.label_loop_count.setValue(self.cycles_count_lifetime)
 
-        actual_temperature: float
-        temperature_unit: str
-        actual_temperature, temperature_unit = self.triton.query_temperature(6)
         self.temperature_just_set = not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < actual_temperature
+            < self.triton.query_temperature(6).value
             < (1.0 + self.temperature_tolerance) * self.temperature
         )
 

@@ -54,10 +54,7 @@ class Triton(Thread):
 
         self.conversation: dict[str, str] = dict()
         self.socket = socket(AF_INET, SOCK_STREAM)
-        try:
-            self.socket.connect((ip, port))
-        except TimeoutError:
-            self.socket = None
+        self.socket.connect((ip, port))
 
         self._running: bool = True
         self._issuing: bool = False

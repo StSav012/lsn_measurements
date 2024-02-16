@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
-import numpy as np
 from nidaqmx.constants import ChannelType, FillMode, UsageTypeAI
 from nidaqmx.system.device import Device
 from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.system.system import System
 from nidaqmx.task import Task
+from numpy import float64, zeros
 from numpy.typing import NDArray
 
 __all__ = [
@@ -145,7 +145,7 @@ def _read_ai_faster(
     self: Task,
     number_of_samples_per_channel=nidaqmx.task.NUM_SAMPLES_UNSET,
     timeout: float = 10.0,
-) -> np.float64 | NDArray[np.float64]:
+) -> float64 | NDArray[float64]:
     channels_to_read = self.in_stream.channels_to_read
     read_chan_type: ChannelType = channels_to_read.chan_type
 
@@ -168,7 +168,7 @@ def _read_ai_faster(
         array_shape = number_of_samples_per_channel
 
     # Analog Input Only
-    data: NDArray[np.float64] = np.zeros(array_shape, dtype=np.float64)
+    data: NDArray[float64] = zeros(array_shape, dtype=float64)
     samples_read: int
     _, samples_read = self._interpreter.read_analog_f64(
         self._handle, number_of_samples_per_channel, timeout, FillMode.GROUP_BY_CHANNEL.value, data

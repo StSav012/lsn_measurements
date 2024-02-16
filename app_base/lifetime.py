@@ -13,6 +13,7 @@ import pyqtgraph as pg
 from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
+from qtpy.QtWidgets import QMessageBox
 
 from hardware.anapico import APUASYN20
 from hardware.triton import Triton
@@ -41,7 +42,16 @@ class LifetimeBase(LifetimeGUI):
 
         self.config: Config = Config()
 
-        self.triton: Triton = Triton(None, 33576)
+        try:
+            self.triton: Triton = Triton(None, 33576)
+        except Exception as ex:
+            QMessageBox.critical(
+                self,
+                ex.__class__.__name__,
+                "\n".join((self.tr("Failed to initialize Triton"), str(ex))),
+            )
+            raise
+
         self.triton.query_temperature(6, blocking=True)
 
         self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))

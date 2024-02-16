@@ -13,6 +13,7 @@ import pyqtgraph as pg
 from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
+from qtpy.QtWidgets import QMessageBox
 
 from hardware.anapico import APUASYN20
 from hardware.triton import Triton
@@ -41,9 +42,16 @@ class DetectBase(DetectGUI):
 
         self.config: Config = Config()
 
-        print("connecting Triton...", end="", flush=True)
-        self.triton: Triton = Triton(None, 33576)
-        print(" done")
+        try:
+            self.triton: Triton = Triton(None, 33576)
+        except Exception as ex:
+            QMessageBox.critical(
+                self,
+                ex.__class__.__name__,
+                "\n".join((self.tr("Failed to initialize Triton"), str(ex))),
+            )
+            raise
+
         self.triton.query_temperature(6, blocking=True)
 
         print("connecting APUASYN20...", end="", flush=True)

@@ -38,8 +38,16 @@ DIVIDER_RESISTANCE: float = 5.65e3
 
 system: Final[System] = System.local()
 
-device_adc: Final[Device] = system.devices[0]
-device_dac: Final[Device] = system.devices[1]
+
+def find_device(**kwargs: Any) -> Device:
+    for device in system.devices:
+        if all(getattr(device, key) == value for key, value in kwargs.items()):
+            return device
+    raise LookupError(f"No device matching {kwargs} found")
+
+
+device_adc: Final[Device] = find_device(product_type="PXI-4472")
+device_dac: Final[Device] = find_device(product_type="PXI-6733")
 
 adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[1]
 adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[0]

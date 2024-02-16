@@ -299,7 +299,7 @@ class LifetimeBase(LifetimeGUI):
         )
         self.measurement.start()
 
-        self.triton.issue_temperature(6, self.temperature)
+        self.triton.ensure_temperature(6, self.temperature)
         self.label_temperature.setValue(self.temperature * 1000)
         self.label_setting_time.setValue(self.setting_time * 1000)
         self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
@@ -426,17 +426,17 @@ class LifetimeBase(LifetimeGUI):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(f"temperature {actual_temperature} {temperature_unit} " f"is too far from {self.temperature:.3f} K")
-            if not self.triton.issue_temperature(6, self.temperature):
+            print(f"temperature {actual_temperature} {temperature_unit} is too far from {self.temperature:.3f} K")
+            if not self.triton.ensure_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
             if self.change_filtered_readings:
-                if not self.triton.issue_filter_readings(6, self.triton.filter_readings(self.temperature)):
+                if not self.triton.ensure_filter_readings(6, self.triton.filter_readings(self.temperature)):
                     error("failed to change the state of filtered readings")
                     self.timer.stop()
                     self.measurement.terminate()
-            if not self.triton.issue_heater_range(6, self.triton.heater_range(self.temperature)):
+            if not self.triton.ensure_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
                 self.measurement.terminate()

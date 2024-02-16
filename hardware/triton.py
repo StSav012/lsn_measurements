@@ -136,10 +136,25 @@ class Triton(Thread):
     def issue_temperature(self, index: int, value: float) -> bool:
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:T" "SET", value)
 
+    def ensure_temperature(self, index: int, value: float) -> bool:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET", blocking=True)[0]:
+            return True
+        return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:TSET", value)
+
     def issue_filter_readings(self, index: int, value: bool) -> bool:
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
+    def ensure_filter_readings(self, index: int, value: bool) -> bool:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True)[0]:
+            return True
+        return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
+
     def issue_heater_range(self, index: int, value: str) -> bool:
+        return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
+
+    def ensure_heater_range(self, index: int, value: str) -> bool:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE", blocking=True)[0]:
+            return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 
     def run(self) -> None:

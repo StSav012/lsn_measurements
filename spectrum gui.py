@@ -113,10 +113,12 @@ class GUI(QMainWindow):
         self.combo_voltage_gain.addItems({"2": 2, "10": 10, "100": 100, "1000": 1000})
 
         self.spin_averaging_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)
+        self.spin_averaging_time_span.setMaximum(np.inf)
         self.spin_averaging_time_span.setSingleStep(1.0 / _MAX_ADC_SAMPLE_RATE)
         self.spin_averaging_time_span.setSuffix(self.tr(" s"))
 
         self.spin_display_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)
+        self.spin_display_time_span.setMaximum(np.inf)
         self.spin_display_time_span.setSingleStep(1.0 / _MAX_ADC_SAMPLE_RATE)
         self.spin_display_time_span.setSuffix(self.tr(" s"))
 

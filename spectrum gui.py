@@ -94,6 +94,11 @@ class GUI(QMainWindow):
         self.spin_current.setOpts(**opts)
 
         opts = {
+            "compactHeight": False,
+        }
+        self.combo_current_divider.setOpts(**opts)
+
+        opts = {
             "suffix": self.tr("Ω"),
             "siPrefix": True,
             "decimals": 6,

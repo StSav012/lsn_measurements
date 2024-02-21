@@ -109,7 +109,7 @@ class GUI(QMainWindow):
         self.spin_ballast_resistance.setOpts(**opts)
         self.spin_resistance_in_series.setOpts(**opts)
 
-        self.combo_voltage_gain.setEditable(False)
+        self.combo_voltage_gain.setEditable(True)
         self.combo_voltage_gain.addItems({"2": 2, "10": 10, "100": 100, "1000": 1000})
 
         self.spin_averaging_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)

@@ -71,17 +71,25 @@ class App(LifetimeBase):
             filter(
                 None,
                 (
-                    format_float(self.temperature * 1e3, suffix=self.tr("mK")),
+                    format_float(self.temperature * 1e3, suffix=self.tr("mK"))
+                    if len(self.temperature_values) > 1
+                    else "",
                     format_float(self.bias_current, suffix=self.tr("nA")) if len(self.bias_current_values) == 1 else "",
-                    format_float(self.aux_voltage * 1e3, prefix=self.tr("aux "), suffix=self.tr("mV")),
-                    format_float(self.setting_time * 1e3, prefix=self.tr("ST "), suffix=self.tr("ms")),
-                    format_float(
-                        self.delay_between_cycles * 1e3,
-                        prefix=self.tr("d "),
-                        suffix=self.tr("ms"),
-                    ),
-                    format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
-                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
+                    format_float(self.aux_voltage * 1e3, prefix=self.tr("aux "), suffix=self.tr("mV"))
+                    if len(self.aux_voltage_values) > 1
+                    else "",
+                    format_float(self.setting_time * 1e3, prefix=self.tr("ST "), suffix=self.tr("ms"))
+                    if len(self.setting_time_values) > 1
+                    else "",
+                    format_float(self.delay_between_cycles * 1e3, prefix=self.tr("d "), suffix=self.tr("ms"))
+                    if len(self.delay_between_cycles_values) > 1
+                    else "",
+                    format_float(self.frequency, suffix=self.tr("GHz"))
+                    if len(self.frequency_values) > 1 and not np.isnan(self.frequency)
+                    else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm"))
+                    if len(self.power_dbm_values) > 1 and not np.isnan(self.power_dbm)
+                    else "",
                 ),
             )
         )

@@ -71,14 +71,18 @@ class App(SwitchingCurrentDistributionBase):
                     format_float(self.temperature * 1e3, suffix=self.tr("mK"))
                     if len(self.temperature_values) == 1
                     else "",
-                    format_float(self.current_speed, suffix=self.tr("nA/s")),
-                    format_float(
-                        self.delay_between_cycles * 1e3,
-                        prefix=self.tr("d "),
-                        suffix=self.tr("ms"),
-                    ),
-                    format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
-                    format_float(self.power_dbm, suffix=self.tr("dBm")) if not np.isnan(self.power_dbm) else "",
+                    format_float(self.current_speed, suffix=self.tr("nA/s"))
+                    if len(self.current_speed_values) > 1
+                    else "",
+                    format_float(self.delay_between_cycles * 1e3, prefix=self.tr("d "), suffix=self.tr("ms"))
+                    if len(self.delay_between_cycles_values) > 1
+                    else "",
+                    format_float(self.frequency, suffix=self.tr("GHz"))
+                    if len(self.frequency_values) > 1 and not np.isnan(self.frequency)
+                    else "",
+                    format_float(self.power_dbm, suffix=self.tr("dBm"))
+                    if len(self.power_dbm_values) > 1 and not np.isnan(self.power_dbm)
+                    else "",
                 ),
             )
         )

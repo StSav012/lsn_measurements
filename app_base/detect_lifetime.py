@@ -46,7 +46,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.config: Config = Config()
 
         try:
-            self.triton: Triton = Triton(None, 33576)
+            self.triton: Triton = Triton()
         except Exception as ex:
             QMessageBox.critical(
                 self,

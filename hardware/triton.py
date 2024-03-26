@@ -37,7 +37,7 @@ class Triton(Thread):
             return False
         return True
 
-    def __init__(self, ip: str | None, port: int) -> None:
+    def __init__(self, ip: str | None = None, port: int = 33576) -> None:
         self.socket: socket | None = None
         if ip is None:
             from ipaddress import IPv4Address
@@ -169,7 +169,7 @@ class Triton(Thread):
 
 
 if __name__ == "__main__":
-    t: Triton = Triton(None, 33576)
+    t: Triton = Triton()
     # for _ in range(3):
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:SIG:TEMP'))
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:LOOP:TSET'))

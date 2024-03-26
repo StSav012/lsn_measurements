@@ -38,7 +38,6 @@ class Triton(Thread):
         return True
 
     def __init__(self, ip: str | None = None, port: int = 33576) -> None:
-        self.socket: socket | None = None
         if ip is None:
             from ipaddress import IPv4Address
 
@@ -57,7 +56,7 @@ class Triton(Thread):
         self.daemon = True
 
         self.conversation: dict[str, str] = dict()
-        self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.socket.connect((ip, port))
 
         self._running: bool = True
@@ -67,12 +66,9 @@ class Triton(Thread):
 
     def __del__(self) -> None:
         self._running = False
-        if self.socket is not None:
-            self.socket.close()
+        self.socket.close()
 
     def communicate(self, command: str) -> str:
-        if self.socket is None:
-            return ""
         while self._issuing:
             time.sleep(0.1)
         self._issuing = True

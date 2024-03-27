@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
-from typing import Any, NamedTuple
+from typing import Any, AnyStr, ClassVar, Final, assert_type
+
+from astropy.units import Quantity
 
 from utils.port_scanner import port_scanner
 
@@ -13,10 +16,6 @@ __all__ = ["Triton"]
 
 
 class Triton(Thread):
-    class SignalValue(NamedTuple):
-        value: Any
-        unit: str
-
     @staticmethod
     def heater_range(temperature: float) -> str:
         if temperature < 0.025:
@@ -93,7 +92,7 @@ class Triton(Thread):
             self.conversation[command.strip()] = ""
         return self.conversation[command.strip()]
 
-    def query_value(self, command: str, blocking: bool = False) -> SignalValue:
+    def query_value(self, command: str, blocking: bool = False) -> Quantity:
         if not command.startswith("READ:"):
             command = "READ:" + command
         response: str
@@ -102,21 +101,14 @@ class Triton(Thread):
         else:
             response = self.query(command)
         if not response:
-            return Triton.SignalValue(nan, "")
+            return Quantity(nan)
         response_start: str = ":".join(["STAT"] + command.split(":")[1:]) + ":"
         if not response.startswith(response_start):
             print(command, "->", response)
-            return Triton.SignalValue(nan, "")
-        response = response[len(response_start) :]
-        unit: str = ""
-        while response and response[-1] not in "1234567890-+.":
-            unit = response[-1] + unit
-            response = response[:-1]
-        if not response:
-            return Triton.SignalValue(nan, unit)
-        return Triton.SignalValue(float(response), unit)
+            return Quantity(nan)
+        return Quantity(response[len(response_start) :])
 
-    def query_temperature(self, index: int, blocking: bool = False) -> SignalValue:
+    def query_temperature(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
 
     def issue_value(self, command: str, value: Any) -> bool:

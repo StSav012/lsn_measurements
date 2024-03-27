@@ -5,6 +5,9 @@ scipy
 pyqtgraph
 pandas
 
+# for quantities with units
+astropy
+
 # for communication with hardware
 netifaces
 requests

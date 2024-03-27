@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import functools
+from functools import lru_cache
 from typing import Sequence
 
 __all__ = [
@@ -20,7 +20,7 @@ def decimals(text: str) -> int:
         return 0
 
 
-@functools.lru_cache(maxsize=128, typed=True)
+@lru_cache(maxsize=128, typed=True)
 def format_float(value: float, precision: int = 10, *, prefix: str = "", suffix: str = "") -> str:
     return prefix + f"{value:.{precision}f}".rstrip("0").rstrip(".") + suffix
 

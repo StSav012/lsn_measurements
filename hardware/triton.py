@@ -12,7 +12,7 @@ from astropy.units import Quantity
 
 from utils.port_scanner import port_scanner
 
-__all__ = ["Triton"]
+__all__ = ["Triton", "TritonScript"]
 
 
 class Triton(Thread):
@@ -154,6 +154,105 @@ class Triton(Thread):
             for command in list(self.conversation):
                 self.communicate(command)
             time.sleep(1)
+
+
+class TritonScript(socket):
+    _end: ClassVar[bytes] = b"<end>"
+
+    def __init__(self, ip: str, port: int = 22518) -> None:
+        super().__init__(AF_INET, SOCK_STREAM)
+        self.connect((ip, port))
+
+    def __del__(self) -> None:
+        self.close()
+
+    def communicate(self, command: AnyStr) -> list[bytes]:
+        if isinstance(command, str):
+            command = command.encode()
+        assert_type(command, bytes)
+        self.send(command.strip() + b"\r\n")
+        resp: bytes = b""
+        while not resp.endswith(TritonScript._end):
+            resp += self.recv(1)
+            if not resp:
+                return resp
+        lines: list[bytes] = resp.splitlines()
+        if lines[0] != command:
+            raise ValueError(f"Expected the response to start with {command!r}, got {lines[0]!r}")
+        if lines[-1] != TritonScript._end:
+            raise ValueError(f"Expected the response to end with {TritonScript._end!r}, got {lines[-1]!r}")
+        if not lines[1].startswith(b"<"):
+            raise ValueError(f"Unexpected response line: {lines[1]!r}")
+        return lines[2:-1]
+
+    @property
+    def status(self) -> dict[str, bool | None]:
+        cmd: Final[bytes] = b"status"
+        data: dict[str, bool | None] = {}
+        line: bytes
+        for line in self.communicate(cmd):
+            if b" is " in line:
+                key: bytes
+                value: bytes
+                key, value = line.split(b" is ", maxsplit=1)
+                if value in (b"off", b"closed"):
+                    data[key.decode()] = False
+                elif value in (b"on", b"open"):
+                    data[key.decode()] = True
+                else:
+                    raise ValueError(f"Unexpected response line: {line!r}")
+            elif line.endswith(b" not found"):
+                data[line.removesuffix(b" not found").decode()] = None
+        return data
+
+    @property
+    def pressures(self) -> dict[str, Quantity]:
+        cmd: Final[bytes] = b"pressures"
+        data: dict[str, Quantity] = {}
+        line: bytes
+        for line in self.communicate(cmd):
+            if b": " in line:
+                key: bytes
+                value: bytes
+                key, value = line.split(b": ", maxsplit=1)
+                data[key.decode()] = Quantity(value.decode())
+        return data
+
+    @property
+    def thermometry(self) -> tuple[list[dict[str, float | str | bool | datetime]], dict[str, Quantity]]:
+        cmd: Final[bytes] = b"thermometry"
+        ch_data: list[dict[str, float | str | bool | datetime]] = []
+        data: dict[str, Quantity] = {}
+        line: bytes
+        for line in self.communicate(cmd):
+            if b": " not in line:
+                continue
+            line = line.rstrip(b";")
+            if line.startswith(b"channel"):
+                parts: list[str] = line.decode().split("; ")
+                ch_data_part: dict[str, float | str | bool | datetime] = {}
+                for part in parts:
+                    if ":" not in part:
+                        continue
+                    part_key: str
+                    part_value: str
+                    part_key, part_value = part.split(": ", maxsplit=1)
+                    if part_key == "enabled":
+                        ch_data_part[part_key] = bool(int(part_value))
+                    elif part_key == "time":
+                        ch_data_part[part_key] = datetime.utcfromtimestamp(float(part_value))
+                    else:
+                        try:
+                            ch_data_part[part_key] = float(part_value)
+                        except ValueError:
+                            ch_data_part[part_key] = part_value
+                ch_data.append(ch_data_part)
+            else:
+                key: bytes
+                value: bytes
+                key, value = line.split(b": ", maxsplit=1)
+                data[key.decode()] = Quantity(value.decode())
+        return ch_data, data
 
 
 if __name__ == "__main__":

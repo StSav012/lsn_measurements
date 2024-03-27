@@ -256,11 +256,17 @@ class TritonScript(socket):
 
 
 if __name__ == "__main__":
-    t: Triton = Triton()
+    from pprint import pp
+
+    # t: Triton = Triton()
     # for _ in range(3):
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:SIG:TEMP'))
     #     print(_, *t.query_value('READ:DEV:T6:TEMP:LOOP:TSET'))
     #     print(_, *t.query_value('SET:DEV:T6:TEMP:LOOP:TSET:0.9'))
     #     time.sleep(2)
-    print(t.communicate("READ:DEV:T6:TEMP:LOOP:RANGE"))
-    # print(t.issue_value('SET:DEV:T6:TEMP:LOOP:RANGE', '0.316'))
+    # pp(t.communicate("READ:DEV:T6:TEMP:LOOP:RANGE"))
+    # pp(t.issue_value('SET:DEV:T6:TEMP:LOOP:RANGE', '0.316'))
+    ts: TritonScript = TritonScript("triton")
+    pp(ts.status)
+    pp(ts.pressures)
+    pp(ts.thermometry)

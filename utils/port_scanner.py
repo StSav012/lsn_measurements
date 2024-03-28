@@ -25,9 +25,18 @@ def port_scanner(port: int, timeout: float = 0.1) -> list[ipaddress.IPv4Address]
         finally:
             sock.close()
 
-    local_ips: list[ipaddress.IPv4Address] = list(
+    def get_local_ip() -> ipaddress.IPv4Address:
+        # https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib/25850698#25850698
+        sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))  # connect() for UDP doesn't send packets
+        ip: str = sock.getsockname()[0]
+        sock.close()
+        return ipaddress.ip_address(ip)
+
+    local_ips: set[ipaddress.IPv4Address] = set(
         map(ipaddress.ip_address, socket.gethostbyname_ex(socket.gethostname())[2])
     )
+    local_ips.add(get_local_ip())
 
     interface: str
     for interface in netifaces.interfaces():

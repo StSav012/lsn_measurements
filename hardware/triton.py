@@ -209,14 +209,9 @@ class TritonScript(socket):
                 key: bytes
                 value: bytes
                 key, value = line.split(b" is ", maxsplit=1)
-                if value in (b"off", b"closed"):
-                    data[key.decode()] = False
-                elif value in (b"on", b"open"):
-                    data[key.decode()] = True
-                else:
-                    raise ValueError(f"Unexpected response line: {line!r}")
+                data[key.decode()] = value.decode()
             elif line.endswith(b" not found"):
-                data[line.removesuffix(b" not found").decode()] = None
+                data[line.removesuffix(b" not found").decode()] = "not found"
         return data
 
     @property

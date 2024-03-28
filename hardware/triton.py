@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+from collections import OrderedDict
 from datetime import datetime
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
@@ -199,9 +200,9 @@ class TritonScript(socket):
         return lines[2:-1]
 
     @property
-    def status(self) -> dict[str, bool | None]:
+    def status(self) -> dict[str, str]:
         cmd: Final[bytes] = b"status"
-        data: dict[str, bool | None] = {}
+        data: OrderedDict[str, str] = OrderedDict()
         line: bytes
         for line in self.communicate(cmd):
             if b" is " in line:
@@ -221,7 +222,7 @@ class TritonScript(socket):
     @property
     def pressures(self) -> dict[str, Quantity]:
         cmd: Final[bytes] = b"pressures"
-        data: dict[str, Quantity] = {}
+        data: OrderedDict[str, Quantity] = OrderedDict()
         line: bytes
         for line in self.communicate(cmd):
             if b": " in line:
@@ -235,7 +236,7 @@ class TritonScript(socket):
     def thermometry(self) -> tuple[list[dict[str, float | str | bool | datetime]], dict[str, Quantity]]:
         cmd: Final[bytes] = b"thermometry"
         ch_data: list[dict[str, float | str | bool | datetime]] = []
-        data: dict[str, Quantity] = {}
+        data: OrderedDict[str, Quantity] = OrderedDict()
         line: bytes
         for line in self.communicate(cmd):
             if b": " not in line:
@@ -243,7 +244,7 @@ class TritonScript(socket):
             line = line.rstrip(b";")
             if line.startswith(b"channel"):
                 parts: list[str] = line.decode().split("; ")
-                ch_data_part: dict[str, float | str | bool | datetime] = {}
+                ch_data_part: OrderedDict[str, float | str | bool | datetime] = OrderedDict()
                 for part in parts:
                     if ":" not in part:
                         continue

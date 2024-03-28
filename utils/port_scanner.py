@@ -25,13 +25,17 @@ def port_scanner(port: int, timeout: float = 0.1) -> list[ipaddress.IPv4Address]
         finally:
             sock.close()
 
-    local_ip: ipaddress.IPv4Address = ipaddress.ip_address(socket.gethostbyname(socket.gethostname()))
+    local_ips: list[ipaddress.IPv4Address] = list(
+        map(ipaddress.ip_address, socket.gethostbyname_ex(socket.gethostname())[2])
+    )
 
     interface: str
     for interface in netifaces.interfaces():
         address: dict[str, str]
         for address in netifaces.ifaddresses(interface).get(netifaces.AF_INET, []):
-            if address["addr"] == str(local_ip):
+            for local_ip in local_ips:
+                if address["addr"] != str(local_ip):
+                    continue
                 network: ipaddress.IPv4Network = ipaddress.ip_network(
                     f'{local_ip}/{address["net""mask"]}', strict=False
                 )

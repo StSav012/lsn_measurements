@@ -159,8 +159,21 @@ class Triton(Thread):
 class TritonScript(socket):
     _end: ClassVar[bytes] = b"<end>"
 
-    def __init__(self, ip: str, port: int = 22518) -> None:
+    def __init__(self, ip: str | None = None, port: int = 22518) -> None:
         super().__init__(AF_INET, SOCK_STREAM)
+        if ip is None:
+            from ipaddress import IPv4Address
+
+            connectable_hosts: list[IPv4Address] = port_scanner(port)
+            if not connectable_hosts:
+                raise RuntimeError("Triton could not be found automatically. Try specifying an IP address.")
+            if len(connectable_hosts) > 1:
+                raise RuntimeError(
+                    f"There are numerous devices with open port {port}:\n",
+                    ",\n".join(map(str, connectable_hosts)),
+                    "\nTry specifying an IP address.",
+                )
+            ip = str(connectable_hosts[0])
         self.connect((ip, port))
 
     def __del__(self) -> None:

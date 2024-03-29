@@ -62,9 +62,11 @@ class App(DetectLifetimeBase):
                         "lifetime",
                         self.config.get("output", "prefix", fallback=""),
                         format_float(self.temperature * 1e3, suffix="mK"),
-                        format_float(self.bias_current_values[0], suffix="nA")
-                        if len(self.bias_current_values) == 1
-                        else "",
+                        (
+                            format_float(self.bias_current_values[0], suffix="nA")
+                            if len(self.bias_current_values) == 1
+                            else ""
+                        ),
                         format_float(self.delay_between_cycles, prefix="d", suffix="s"),
                         f"CC{self.cycles_count_lifetime}",
                         format_float(self.setting_time, prefix="ST", suffix="s"),
@@ -163,13 +165,15 @@ class App(DetectLifetimeBase):
         return intColor(index, hues=hues)
 
     def _next_indices(self, make_step: bool = True) -> bool:
-        if self.stop_key_bias.isChecked():
-            return False
-        if make_step:
-            self.bias_current_index += 1
-        while self.check_exists and self._stat_file_exists():
-            self.bias_current_index += 1
-        if self.bias_current_index >= len(self.bias_current_values):
+        while True:
+            if self.stop_key_bias.isChecked():
+                return False
+            if make_step:
+                self.bias_current_index += 1
+            while self.check_exists and self._stat_file_exists():
+                self.bias_current_index += 1
+            if self.bias_current_index < len(self.bias_current_values):
+                return True
             self.bias_current_index = 0
             if self.stop_key_frequency.isChecked():
                 return False

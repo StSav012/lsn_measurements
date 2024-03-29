@@ -182,8 +182,7 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def stat_file(self) -> Path:
-        ...
+    def stat_file(self) -> Path: ...
 
     @property
     def data_file(self) -> Path:
@@ -235,17 +234,14 @@ class LifetimeBase(LifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def _line_index(self) -> int:
-        ...
+    def _line_index(self) -> int: ...
 
     @property
     @abc.abstractmethod
-    def _line_name(self) -> str:
-        ...
+    def _line_name(self) -> str: ...
 
     @abc.abstractmethod
-    def _line_color(self, index: int) -> QColor:
-        ...
+    def _line_color(self, index: int) -> QColor: ...
 
     @property
     def plot_line(self) -> pg.PlotDataItem:
@@ -322,8 +318,7 @@ class LifetimeBase(LifetimeGUI):
         self.timer.start(50)
 
     @abc.abstractmethod
-    def _next_indices(self, make_step: bool = True) -> bool:
-        ...
+    def _next_indices(self, make_step: bool = True) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
         super(LifetimeBase, self).on_button_start_clicked()
@@ -480,5 +475,4 @@ class LifetimeBase(LifetimeGUI):
         ).T
 
     @abc.abstractmethod
-    def on_timeout(self) -> None:
-        ...
+    def on_timeout(self) -> None: ...

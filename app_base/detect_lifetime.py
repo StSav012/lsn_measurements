@@ -176,8 +176,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def stat_file(self) -> Path:
-        ...
+    def stat_file(self) -> Path: ...
 
     @property
     def data_file(self) -> Path:
@@ -234,31 +233,25 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     @property
     @abc.abstractmethod
-    def _line_index_detect(self) -> int:
-        ...
+    def _line_index_detect(self) -> int: ...
 
     @property
     @abc.abstractmethod
-    def _line_name_detect(self) -> str:
-        ...
+    def _line_name_detect(self) -> str: ...
 
     @abc.abstractmethod
-    def _line_color_detect(self, index: int) -> QColor:
-        ...
+    def _line_color_detect(self, index: int) -> QColor: ...
 
     @property
     @abc.abstractmethod
-    def _line_index_lifetime(self) -> int:
-        ...
+    def _line_index_lifetime(self) -> int: ...
 
     @property
     @abc.abstractmethod
-    def _line_name_lifetime(self) -> str:
-        ...
+    def _line_name_lifetime(self) -> str: ...
 
     @abc.abstractmethod
-    def _line_color_lifetime(self, index: int) -> QColor:
-        ...
+    def _line_color_lifetime(self, index: int) -> QColor: ...
 
     @property
     def plot_line_detect(self) -> pg.PlotDataItem:
@@ -411,8 +404,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         }[self.mode]()
 
     @abc.abstractmethod
-    def _next_indices(self, make_step: bool = True) -> bool:
-        ...
+    def _next_indices(self, make_step: bool = True) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
         super(DetectLifetimeBase, self).on_button_start_clicked()
@@ -558,5 +550,4 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         return exists
 
     @abc.abstractmethod
-    def on_timeout(self) -> None:
-        ...
+    def on_timeout(self) -> None: ...

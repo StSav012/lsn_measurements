@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import cast, final
 
 import numpy as np
+from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt

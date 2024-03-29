@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import final
 
 import numpy as np
+from astropy.units import K, Quantity
 from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor

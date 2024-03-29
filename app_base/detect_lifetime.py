@@ -10,6 +10,7 @@ from typing import Final, Literal, Optional, TextIO
 
 import numpy as np
 import pyqtgraph as pg
+from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
@@ -333,7 +334,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.temperature_just_set = not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < self.triton.query_temperature(6).value
+            < self.triton.query_temperature(6).to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         )
 
@@ -389,7 +390,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.temperature_just_set = not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < self.triton.query_temperature(6).value
+            < self.triton.query_temperature(6).to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         )
 
@@ -491,20 +492,18 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
     def _watch_temperature(self) -> None:
         td: timedelta
-        actual_temperature: float
-        temperature_unit: str
-        actual_temperature, temperature_unit = self.triton.query_temperature(6)
-        ats: bytes = str(actual_temperature * 1000).encode()
+        actual_temperature: Quantity = self.triton.query_temperature(6)
+        ats: bytes = str(actual_temperature.to_value("mK")).encode()
         self.good_to_measure.buf[1 : 1 + len(ats)] = ats
         if not (
             (1.0 - self.temperature_tolerance) * self.temperature
-            < actual_temperature
+            < actual_temperature.to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         ):
             self.good_to_measure.buf[0] = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
-            print(f"temperature {actual_temperature} {temperature_unit} is too far from {self.temperature:.3f} K")
+            print(f"temperature {actual_temperature} is too far from {self.temperature:.3f} K")
             if not self.triton.ensure_temperature(6, self.temperature):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
@@ -527,7 +526,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             else:
                 self.good_to_measure.buf[0] = False
                 print(
-                    f"temperature {actual_temperature} {temperature_unit} "
+                    f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
                     f": {self.temperature_delay - td} left"
                 )

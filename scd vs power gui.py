@@ -111,65 +111,58 @@ class App(SwitchingCurrentDistributionBase):
         return intColor(index, hues=hues)
 
     def _next_indices(self, make_step: bool = True) -> bool:
-        if self.stop_key_power.isChecked():
-            return False
-        if make_step:
-            self.power_index += 1
-        while self.check_exists and self._data_file_exists():
-            self._add_plot_point_from_file(self.power_dbm)
-            self.power_index += 1
-        if self.power_index >= len(self.power_dbm_values):
-            self.power_index = 0
-            if self.stop_key_frequency.isChecked():
+        while True:
+            if self.stop_key_power.isChecked():
                 return False
             if make_step:
-                self.frequency_index += 1
+                self.power_index += 1
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file(self.power_dbm)
-                self.frequency_index += 1
-            if self.frequency_index >= len(self.frequency_values):
-                self.frequency_index = 0
-                if self.stop_key_current_speed.isChecked():
-                    return False
-                if make_step:
-                    self.current_speed_index += 1
-                while self.check_exists and self._data_file_exists():
-                    self._add_plot_point_from_file(self.power_dbm)
-                    self.current_speed_index += 1
-                if self.current_speed_index >= len(self.current_speed_values):
-                    self.current_speed_index = 0
-                    if self.stop_key_delay_between_cycles.isChecked():
-                        return False
-                    if make_step:
-                        self.delay_between_cycles_index += 1
-                    while self.check_exists and self._data_file_exists():
-                        self._add_plot_point_from_file(self.power_dbm)
-                        self.delay_between_cycles_index += 1
-                    if self.delay_between_cycles_index >= len(self.delay_between_cycles_values):
-                        self.delay_between_cycles_index = 0
-                        if self.stop_key_temperature.isChecked():
-                            return False
-                        if make_step:
-                            self.temperature_index += 1
-                        while self.check_exists and self._data_file_exists():
-                            self._add_plot_point_from_file(self.power_dbm)
-                            self.temperature_index += 1
-                        if self.temperature_index >= len(self.temperature_values):
-                            self.temperature_index = 0
-                            return False
-                        actual_temperature: float
-                        temperature_unit: str
-                        (
-                            actual_temperature,
-                            temperature_unit,
-                        ) = self.triton.query_temperature(6)
-                        if not (
-                            (1.0 - self.temperature_tolerance) * self.temperature
-                            < actual_temperature
-                            < (1.0 + self.temperature_tolerance) * self.temperature
-                        ):
-                            self.temperature_just_set = True
-        return True
+                self.power_index += 1
+            if self.power_index < len(self.power_dbm_values):
+                return True
+            self.power_index = 0
+
+            if self.stop_key_frequency.isChecked():
+                return False
+            self.frequency_index += 1
+            if self.frequency_index < len(self.frequency_values):
+                continue
+            self.frequency_index = 0
+
+            if self.stop_key_current_speed.isChecked():
+                return False
+            self.current_speed_index += 1
+            if self.current_speed_index < len(self.current_speed_values):
+                continue
+            self.current_speed_index = 0
+
+            if self.stop_key_delay_between_cycles.isChecked():
+                return False
+            self.delay_between_cycles_index += 1
+            if self.delay_between_cycles_index < len(self.delay_between_cycles_values):
+                continue
+            self.delay_between_cycles_index = 0
+
+            if self.stop_key_temperature.isChecked():
+                return False
+            try:
+                self.temperature_index += 1
+                if self.temperature_index < len(self.temperature_values):
+                    continue
+                self.temperature_index = 0
+            finally:
+                actual_temperature: Quantity = self.triton.query_temperature(6)
+                if not (
+                    (1.0 - self.temperature_tolerance) * self.temperature
+                    < actual_temperature.to_value(K)
+                    < (1.0 + self.temperature_tolerance) * self.temperature
+                ):
+                    self.temperature_just_set = True
+
+            break
+
+        return False
 
     def on_timeout(self) -> None:
         self._read_state_queue()

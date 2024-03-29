@@ -113,56 +113,51 @@ class App(DetectBase):
         self._add_plot_point(cast(float, np.mean(bias_current)), prob, err)
 
     def _next_indices(self, make_step: bool = True) -> bool:
-        if self.stop_key_power.isChecked():
-            return False
-        if make_step:
-            self.power_index += 1
-        while self.check_exists and self._data_file_exists():
-            self._add_plot_point_from_file()
-            self.power_index += 1
-        if self.power_index >= len(self.power_dbm_values):
-            self.power_index = 0
-            if self.stop_key_frequency.isChecked():
+        while True:
+            if self.stop_key_power.isChecked():
                 return False
             if make_step:
-                self.frequency_index += 1
+                self.power_index += 1
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file()
-                self.frequency_index += 1
-            if self.frequency_index >= len(self.frequency_values):
-                self.frequency_index = 0
-                if self.stop_key_setting_time.isChecked():
-                    return False
-                if make_step:
-                    self.setting_time_index += 1
-                while self.check_exists and self._data_file_exists():
-                    self._add_plot_point_from_file()
-                    self.setting_time_index += 1
-                if self.setting_time_index >= len(self.setting_time_values):
-                    self.setting_time_index = 0
-                    if self.stop_key_temperature.isChecked():
-                        return False
-                    if make_step:
-                        self.temperature_index += 1
-                    while self.check_exists and self._data_file_exists():
-                        self._add_plot_point_from_file()
-                        self.temperature_index += 1
-                    if self.temperature_index >= len(self.temperature_values):
-                        self.temperature_index = 0
-                        return False
-                    actual_temperature: float
-                    temperature_unit: str
-                    (
-                        actual_temperature,
-                        temperature_unit,
-                    ) = self.triton.query_temperature(6)
-                    if not (
-                        (1.0 - self.temperature_tolerance) * self.temperature
-                        < actual_temperature
-                        < (1.0 + self.temperature_tolerance) * self.temperature
-                    ):
-                        self.temperature_just_set = True
-        return True
+                self.power_index += 1
+            if self.power_index < len(self.power_dbm_values):
+                return True
+            self.power_index = 0
+
+            if self.stop_key_frequency.isChecked():
+                return False
+            self.frequency_index += 1
+            if self.frequency_index < len(self.frequency_values):
+                continue
+            self.frequency_index = 0
+
+            if self.stop_key_setting_time.isChecked():
+                return False
+            self.setting_time_index += 1
+            if self.setting_time_index < len(self.setting_time_values):
+                continue
+            self.setting_time_index = 0
+
+            if self.stop_key_temperature.isChecked():
+                return False
+            try:
+                self.temperature_index += 1
+                if self.temperature_index < len(self.temperature_values):
+                    continue
+                self.temperature_index = 0
+            finally:
+                actual_temperature: Quantity = self.triton.query_temperature(6)
+                if not (
+                    (1.0 - self.temperature_tolerance) * self.temperature
+                    < actual_temperature.to_value(K)
+                    < (1.0 + self.temperature_tolerance) * self.temperature
+                ):
+                    self.temperature_just_set = True
+
+            break
+
+        return False
 
     def on_timeout(self) -> None:
         self._read_state_queue()

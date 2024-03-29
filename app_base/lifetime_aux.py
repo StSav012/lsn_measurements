@@ -6,10 +6,11 @@ from datetime import date, datetime, timedelta
 from multiprocessing import Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Final, TextIO, cast
+from typing import Final, TextIO
 
 import numpy as np
 import pyqtgraph as pg
+from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCloseEvent, QColor
@@ -400,27 +401,6 @@ class LifetimeBase(LifetimeGUI):
         x_data: NDArray[np.float64] = np.append(old_x_data, x)
         y_data: NDArray[np.float64] = np.append(old_y_data, lifetime)
         self.plot_line.setData(x_data, y_data)
-
-    def _add_plot_point_from_file(self) -> None:
-        if self.data_file in self.saved_files:
-            return
-        self.saved_files.add(self.data_file)
-        measured_data: NDArray[float] = self._get_data_file_content()
-        if measured_data.shape[0] == 7:
-            bias_current: NDArray[float] = measured_data[3]
-            lifetime: NDArray[float] = measured_data[2]
-            median_bias_current: float = cast(float, np.nanmedian(bias_current))
-            min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
-            max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
-            reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
-                bias_current <= max_reasonable_bias_current
-            )
-            bias_current = bias_current[reasonable]
-            lifetime = lifetime[reasonable]
-            self._add_plot_point(
-                cast(float, np.mean(bias_current)),
-                cast(float, np.mean(lifetime[lifetime > 0.0])),
-            )
 
     def _watch_temperature(self) -> None:
         td: timedelta

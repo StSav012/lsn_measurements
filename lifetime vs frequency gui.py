@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
-from typing import final
+from typing import cast, final
 
 import numpy as np
+from astropy.units import K, Quantity
+from numpy.typing import NDArray
 from pyqtgraph.functions import intColor
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
@@ -112,6 +114,27 @@ class App(LifetimeBase):
         if hues < 7:
             hues *= len(self.temperature_values) or 1
         return intColor(index, hues=hues)
+
+    def _add_plot_point_from_file(self) -> None:
+        if self.data_file in self.saved_files:
+            return
+        self.saved_files.add(self.data_file)
+        measured_data: NDArray[float] = self._get_data_file_content()
+        if measured_data.shape[0] == 7:
+            bias_current: NDArray[float] = measured_data[3]
+            lifetime: NDArray[float] = measured_data[2]
+            median_bias_current: float = cast(float, np.nanmedian(bias_current))
+            min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
+            max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
+            reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
+                bias_current <= max_reasonable_bias_current
+            )
+            lifetime = lifetime[reasonable]
+            self._add_plot_point(
+                cast(float, np.mean(measured_data[0])),
+                cast(float, np.mean(lifetime[lifetime > 0.0])),
+            )
+            self.last_lifetime_0 = cast(float, np.mean(lifetime[lifetime > 0.0]))
 
     def _next_indices(self, make_step: bool = True) -> bool:
         if self.stop_key_frequency.isChecked():

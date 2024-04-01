@@ -165,12 +165,10 @@ class App(DetectLifetimeBase):
             hues *= len(self.temperature_values) or 1
         return intColor(index, hues=hues)
 
-    def _next_indices(self, make_step: bool = True) -> bool:
+    def _next_indices(self) -> bool:
         while True:
             if self.stop_key_bias.isChecked():
                 return False
-            if make_step:
-                self.bias_current_index += 1
             while self.check_exists and self._stat_file_exists():
                 self.bias_current_index += 1
             if self.bias_current_index < len(self.bias_current_values):
@@ -218,6 +216,10 @@ class App(DetectLifetimeBase):
 
         return False
 
+    def _make_step(self) -> bool:
+        self.bias_current_index += 1
+        return self._next_indices()
+
     def on_timeout(self) -> None:
         self._read_state_queue_detect()
 
@@ -261,7 +263,7 @@ class App(DetectLifetimeBase):
             self.power_index += 1
             if prob < self.minimal_probability_to_measure or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
-                if not self._next_indices():
+                if not self._make_step():
                     self.on_button_stop_clicked()
                     return
 

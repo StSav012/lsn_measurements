@@ -108,12 +108,10 @@ class App(SwitchingCurrentDistributionBase):
             hues *= len(self.delay_between_cycles_values) or 1
         return intColor(index, hues=hues)
 
-    def _next_indices(self, make_step: bool = True) -> bool:
+    def _next_indices(self) -> bool:
         while True:
             if self.stop_key_power.isChecked():
                 return False
-            if make_step:
-                self.power_index += 1
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file(self.temperature)
                 self.power_index += 1
@@ -162,6 +160,10 @@ class App(SwitchingCurrentDistributionBase):
 
         return False
 
+    def _make_step(self) -> bool:
+        self.power_index += 1
+        return self._next_indices()
+
     def on_timeout(self) -> None:
         self._read_state_queue()
         self._read_switching_data_queue()
@@ -181,7 +183,7 @@ class App(SwitchingCurrentDistributionBase):
             self.button_drop_measurement.reset()
             self.timer.stop()
             self.histogram.save(self.hist_file)
-            if not self._next_indices():
+            if not self._make_step():
                 self.on_button_stop_clicked()
                 return
 

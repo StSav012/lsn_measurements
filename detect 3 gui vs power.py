@@ -112,12 +112,10 @@ class App(DetectBase):
         err: float = np.sqrt(prob * (100.0 - prob) / self.cycles_count)
         self._add_plot_point(cast(float, np.mean(bias_current)), prob, err)
 
-    def _next_indices(self, make_step: bool = True) -> bool:
+    def _next_indices(self) -> bool:
         while True:
             if self.stop_key_bias.isChecked():
                 return False
-            if make_step:
-                self.bias_current_index += 1
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file()
                 self.bias_current_index += 1
@@ -159,6 +157,10 @@ class App(DetectBase):
 
         return False
 
+    def _make_step(self) -> bool:
+        self.bias_current_index += 1
+        return self._next_indices()
+
     def on_timeout(self) -> None:
         self._read_state_queue()
 
@@ -185,10 +187,10 @@ class App(DetectBase):
                 if prob < self.minimal_probability_to_measure:
                     current_power: float = self.power_dbm
                     while self.power_dbm <= current_power:
-                        if not self._next_indices():
+                        if not self._make_step():
                             self.on_button_stop_clicked()
                             return
-                elif not self._next_indices():
+                elif not self._make_step():
                     self.on_button_stop_clicked()
                     return
 

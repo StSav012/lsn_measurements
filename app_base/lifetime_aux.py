@@ -338,11 +338,14 @@ class LifetimeBase(LifetimeGUI):
         self.timer.start(50)
 
     @abc.abstractmethod
-    def _next_indices(self, make_step: bool = True) -> bool: ...
+    def _next_indices(self) -> bool: ...
+
+    @abc.abstractmethod
+    def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
         super(LifetimeBase, self).on_button_start_clicked()
-        if self.check_exists and not self._next_indices(make_step=False):
+        if self.check_exists and not self._next_indices():
             error("nothing left to measure")
             self.on_button_stop_clicked()
             return

@@ -136,12 +136,10 @@ class App(LifetimeBase):
             )
             self.last_lifetime_0 = cast(float, np.mean(lifetime[lifetime > 0.0]))
 
-    def _next_indices(self, make_step: bool = True) -> bool:
+    def _next_indices(self) -> bool:
         while True:
             if self.stop_key_frequency.isChecked():
                 return False
-            if make_step:
-                self.frequency_index += 1
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file()
                 self.frequency_index += 1
@@ -196,6 +194,10 @@ class App(LifetimeBase):
             break
 
         return False
+
+    def _make_step(self) -> bool:
+        self.frequency_index += 1
+        return self._next_indices()
 
     def on_timeout(self) -> None:
         self._read_state_queue()

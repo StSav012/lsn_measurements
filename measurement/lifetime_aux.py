@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from multiprocessing import Process, Queue
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
-from typing import Any, Final, Literal, Sequence, cast
+from typing import Any, Callable, Final, Literal, Sequence, cast
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -243,63 +243,49 @@ class LifetimeMeasurement(Process):
                 return
 
             # calculate the current sequence
-            i_set: NDArray[np.float64]
-            i_unset: NDArray[np.float64]
+            reset_function: Callable[[Sequence[float], int], NDArray[np.float64]]
             match self.reset_function.casefold():
                 case "sine" | "half sine":
-                    i_set = (
-                        half_sine_segments(
-                            [self.initial_biases[-1], float(self.bias_current)],
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
-                    i_unset = (
-                        half_sine_segments(
-                            [float(self.bias_current)] + self.initial_biases,
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
+                    reset_function = half_sine_segments
                 case "quarter sine":
-                    i_set = (
-                        quarter_sine_segments(
-                            [self.initial_biases[-1], float(self.bias_current)],
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
-                    i_unset = (
-                        quarter_sine_segments(
-                            [float(self.bias_current)] + self.initial_biases,
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
+                    reset_function = quarter_sine_segments
                 case "linear":
-                    i_set = (
-                        linear_segments(
-                            [self.initial_biases[-1], float(self.bias_current)],
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
-                    i_unset = (
-                        linear_segments(
-                            [float(self.bias_current)] + self.initial_biases,
-                            bias_current_steps_count,
-                        )
-                        * self.r
-                        * self.divider
-                    )
+                    reset_function = linear_segments
                 case _:
                     raise ValueError("Unsupported current setting function:", self.reset_function)
 
+            initial_i_set: NDArray[np.float64] = (
+                reset_function(
+                    [0.0, float(self.bias_current)],
+                    bias_current_steps_count,
+                )
+                * self.r
+                * self.divider
+            )
+            i_set: NDArray[np.float64] = (
+                reset_function(
+                    [self.initial_biases[-1], float(self.bias_current)],
+                    bias_current_steps_count,
+                )
+                * self.r
+                * self.divider
+            )
+            i_unset: NDArray[np.float64] = (
+                reset_function(
+                    [float(self.bias_current)] + self.initial_biases,
+                    bias_current_steps_count,
+                )
+                * self.r
+                * self.divider
+            )
+
+            initial_i_set = np.row_stack(
+                (
+                    initial_i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
+                    trigger_on_sequence,
+                    np.full(bias_current_steps_count, self.aux_voltage),
+                )
+            )
             i_set = np.row_stack(
                 (
                     i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
@@ -315,7 +301,7 @@ class LifetimeMeasurement(Process):
                 )
             )
 
-            task_dac.write(i_set, auto_start=True)
+            task_dac.write(initial_i_set, auto_start=True)
             task_dac.wait_until_done()
             task_dac.stop()
             task_dac.write(i_unset, auto_start=True)
@@ -530,21 +516,27 @@ class LifetimeMeasurement(Process):
                                 # σ [s]
                                 f"{switching_time_rnz_std:.10f}",
                                 # τ₀/σ₀
-                                f"""{mean_switching_time_reasonable
+                                (
+                                    f"""{mean_switching_time_reasonable
                                      / switching_time_reasonable_std:.10f}"""
-                                if switching_time_reasonable_std
-                                else "nan",
+                                    if switching_time_reasonable_std
+                                    else "nan"
+                                ),
                                 # τ/σ
-                                f"""{mean_switching_time_rnz
+                                (
+                                    f"""{mean_switching_time_rnz
                                      / switching_time_rnz_std:.10f}"""
-                                if switching_time_rnz_std
-                                else "nan",
+                                    if switching_time_rnz_std
+                                    else "nan"
+                                ),
                                 # Temperature [mK]
                                 bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
                                 # 1/τ₀ [1/s]
-                                f"{1.0 / mean_switching_time_reasonable:.10f}"
-                                if mean_switching_time_reasonable
-                                else "nan",
+                                (
+                                    f"{1.0 / mean_switching_time_reasonable:.10f}"
+                                    if mean_switching_time_reasonable
+                                    else "nan"
+                                ),
                                 # 1/τ [1/s]
                                 f"{1.0 / mean_switching_time_rnz:.10f}" if mean_switching_time_rnz else "nan",
                                 # Cycles

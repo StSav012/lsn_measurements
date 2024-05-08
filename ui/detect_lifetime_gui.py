@@ -40,8 +40,8 @@ class DetectLifetimeGUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
-        self.canvas_detect: pg.PlotItem = self.figure.addPlot(row=0, col=0)
-        self.canvas_lifetime: pg.PlotItem = self.figure.addPlot(row=0, col=1)
+        self.canvas_detect: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
+        self.canvas_lifetime: pg.PlotItem = self.figure.ci.addPlot(row=0, col=1)
         self.plot_lines_detect: dict[int, pg.PlotDataItem] = dict()
         self.plot_lines_lifetime: dict[int, pg.PlotDataItem] = dict()
 
@@ -199,12 +199,12 @@ class DetectLifetimeGUI(QMainWindow):
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags() | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags() ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
+                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint)
             )
             self.show()
 

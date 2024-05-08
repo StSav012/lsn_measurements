@@ -43,8 +43,8 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
-        self.canvas_mean: pg.PlotItem = self.figure.addPlot(row=0, col=0)
-        self.canvas_std: pg.PlotItem = self.figure.addPlot(row=1, col=0)
+        self.canvas_mean: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
+        self.canvas_std: pg.PlotItem = self.figure.ci.addPlot(row=1, col=0)
         self.plot_lines_mean: dict[int, pg.PlotDataItem] = dict()
         self.plot_lines_std: dict[int, pg.PlotDataItem] = dict()
 
@@ -91,7 +91,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         y_axis.enableAutoSIPrefix(False)
         self.canvas_std.ctrl.averageGroup.setChecked(False)
         self.canvas_std.showGrid(x=True, y=True)
-        self.canvas_std.setXLink(self.canvas_mean)
+        self.canvas_std.vb.setXLink(self.canvas_mean)
 
         self.canvas_mean.addLegend()
         self.canvas_std.addLegend()
@@ -192,12 +192,12 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags() | Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags() ^ (Qt.WindowFlags.CustomizeWindowHint | Qt.WindowFlags.WindowStaysOnTopHint)
+                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint)
             )
             self.show()
 

@@ -106,7 +106,9 @@ class DetectBase(DetectGUI):
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
         self.power_dbm_values: Final[SliceSequence] = self.config.get_slice_sequence("GHz signal", "power [dBm]")
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
-        self.pulse_duration: Final[float] = self.config.get_float("detect", "GHz pulse duration [sec]")
+        self.pulse_duration_values: Final[SliceSequence] = self.config.get_slice_sequence(
+            "detect", "GHz pulse duration [sec]"
+        )
         self.waiting_after_pulse: Final[float] = self.config.get_float("detect", "waiting after GHz pulse [sec]")
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
@@ -132,6 +134,7 @@ class DetectBase(DetectGUI):
         self.delay_between_cycles_index: int = 0
         self.bias_current_index: int = 0
         self.power_index: int = 0
+        self.pulse_duration_index: int = 0
 
         self.saved_files: set[Path] = set()
 
@@ -165,6 +168,10 @@ class DetectBase(DetectGUI):
     @property
     def delay_between_cycles(self) -> float:
         return self.delay_between_cycles_values[self.delay_between_cycles_index]
+
+    @property
+    def pulse_duration(self) -> float:
+        return self.pulse_duration_values[self.pulse_duration_index]
 
     @property
     @abc.abstractmethod

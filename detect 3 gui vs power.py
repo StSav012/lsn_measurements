@@ -54,9 +54,11 @@ class App(DetectBase):
     def _line_index(self) -> int:
         return (self.bias_current_index
                 + (self.frequency_index
-                   + (self.setting_time_index
-                      + (self.temperature_index
-                         ) * (len(self.setting_time_values) or 1)
+                   + (self.pulse_duration_index
+                      + (self.setting_time_index
+                         + (self.temperature_index
+                            ) * (len(self.setting_time_values) or 1)
+                         ) * (len(self.pulse_duration_values) or 1)
                       ) * (len(self.frequency_values) or 1)
                    ) * (len(self.bias_current_values) or 1)
                 )
@@ -71,6 +73,11 @@ class App(DetectBase):
                     format_float(self.bias_current, suffix=self.tr("nA")) if len(self.bias_current_values) > 1 else "",
                     format_float(self.frequency, suffix=self.tr("GHz")) if len(self.frequency_values) > 1 else "",
                     format_float(self.power_dbm, suffix=self.tr("dBm")) if len(self.power_dbm_values) == 1 else "",
+                    (
+                        format_float(self.pulse_duration * 1e3, prefix=self.tr("P "), suffix=self.tr("ms"))
+                        if len(self.pulse_duration_values) > 1
+                        else ""
+                    ),
                     (
                         format_float(self.setting_time * 1e3, prefix=self.tr("ST "), suffix=self.tr("ms"))
                         if len(self.setting_time_values) > 1
@@ -89,6 +96,8 @@ class App(DetectBase):
         hues: int = len(self.bias_current_values) or 1
         if hues < 7:
             hues *= len(self.frequency_values) or 1
+        if hues < 7:
+            hues *= len(self.pulse_duration_values) or 1
         if hues < 7:
             hues *= len(self.setting_time_values) or 1
         if hues < 7:
@@ -129,6 +138,13 @@ class App(DetectBase):
             if self.frequency_index < len(self.frequency_values):
                 continue
             self.frequency_index = 0
+
+            if self.stop_key_pulse_duration.isChecked():
+                return False
+            self.pulse_duration_index += 1
+            if self.pulse_duration_index < len(self.pulse_duration_values):
+                continue
+            self.pulse_duration_index = 0
 
             if self.stop_key_setting_time.isChecked():
                 return False

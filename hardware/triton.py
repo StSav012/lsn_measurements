@@ -11,6 +11,7 @@ from typing import Any, AnyStr, ClassVar, Final, assert_type
 
 from astropy.units import Quantity
 
+from utils import error
 from utils.port_scanner import port_scanner
 
 __all__ = ["Triton", "TritonScript"]
@@ -75,7 +76,10 @@ class Triton(Thread):
         self.socket.send((command.strip() + "\r\n").encode())
         resp: bytes = b""
         while (not resp) or resp[-1] != 10:
-            resp += self.socket.recv(1)
+            try:
+                resp += self.socket.recv(1)
+            except ConnectionResetError:
+                error(self.socket.getpeername())
             if not resp:
                 self._issuing = False
                 if command.startswith("READ:"):

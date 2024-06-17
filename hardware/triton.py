@@ -97,7 +97,7 @@ class Triton(Thread):
             self.conversation[command.strip()] = ""
         return self.conversation[command.strip()]
 
-    def query_value(self, command: str, blocking: bool = False) -> Quantity:
+    def query_value(self, command: str, blocking: bool = False) -> bool | Quantity:
         if not command.startswith("READ:"):
             command = "READ:" + command
         response: str
@@ -111,7 +111,12 @@ class Triton(Thread):
         if not response.startswith(response_start):
             print(command, "->", response)
             return Quantity(nan)
-        return Quantity(response[len(response_start) :])
+        response = response[len(response_start) :]
+        if response == "OFF":
+            return False
+        elif response == "ON":
+            return True
+        return Quantity(response)
 
     def query_temperature(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
@@ -142,7 +147,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
     def ensure_filter_readings(self, index: int, value: bool) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True).value:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True):
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 

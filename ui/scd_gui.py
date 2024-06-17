@@ -58,10 +58,10 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.label_delay_between_cycles: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_temperature: pg.ValueLabel = pg.ValueLabel(self.central_widget)
 
-        self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
-        self.stop_key_frequency: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_current_speed: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_delay_between_cycles: QPushButton = QPushButton(self.stop_sings_box)
+        self.stop_key_power: QPushButton = QPushButton(self.stop_sings_box)
+        self.stop_key_frequency: QPushButton = QPushButton(self.stop_sings_box)
         self.stop_key_temperature: QPushButton = QPushButton(self.stop_sings_box)
 
         self.button_start: QPushButton = QPushButton(self.central_widget)
@@ -140,22 +140,22 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
 
         self.histogram.set_label(text=self.tr("Current"), unit=self.tr("A"))
 
-        self.stop_key_power.setText(self.tr("Stop after this Power"))
-        self.stop_key_frequency.setText(self.tr("Stop after this Frequency"))
         self.stop_key_current_speed.setText(self.tr("Stop after this Current Speed"))
         self.stop_key_delay_between_cycles.setText(self.tr("Stop after this Delay"))
+        self.stop_key_power.setText(self.tr("Stop after this Power"))
+        self.stop_key_frequency.setText(self.tr("Stop after this Frequency"))
         self.stop_key_temperature.setText(self.tr("Stop after this Temperature"))
 
-        self.stop_key_power.setCheckable(True)
-        self.stop_key_frequency.setCheckable(True)
         self.stop_key_current_speed.setCheckable(True)
         self.stop_key_delay_between_cycles.setCheckable(True)
+        self.stop_key_power.setCheckable(True)
+        self.stop_key_frequency.setCheckable(True)
         self.stop_key_temperature.setCheckable(True)
 
-        self.stop_sings_box.layout().addWidget(self.stop_key_power)
-        self.stop_sings_box.layout().addWidget(self.stop_key_frequency)
         self.stop_sings_box.layout().addWidget(self.stop_key_current_speed)
         self.stop_sings_box.layout().addWidget(self.stop_key_delay_between_cycles)
+        self.stop_sings_box.layout().addWidget(self.stop_key_power)
+        self.stop_sings_box.layout().addWidget(self.stop_key_frequency)
         self.stop_sings_box.layout().addWidget(self.stop_key_temperature)
 
         self.buttons_layout.addWidget(self.button_start)

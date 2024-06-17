@@ -53,13 +53,13 @@ class App(SwitchingCurrentDistributionBase):
     # fmt: off
     @property
     def _line_index(self) -> int:
-        return (self.power_index
-                + (self.frequency_index
-                   + (self.current_speed_index
-                      + (self.delay_between_cycles_index
-                         ) * (len(self.current_speed_values) or 1)
-                      ) * (len(self.frequency_values) or 1)
-                   ) * (len(self.power_dbm_values) or 1)
+        return (self.current_speed_index
+                + (self.delay_between_cycles_index
+                   + (self.power_index
+                      + (self.frequency_index
+                         ) * (len(self.power_dbm_values) or 1)
+                      ) * (len(self.delay_between_cycles_values) or 1)
+                   ) * (len(self.current_speed_values) or 1)
                 )
     # fmt: on
 
@@ -101,36 +101,22 @@ class App(SwitchingCurrentDistributionBase):
     def _line_color(self, index: int) -> QColor:
         hues: int = len(self.power_dbm_values) or 1
         if hues < 7:
-            hues *= len(self.frequency_values) or 1
-        if hues < 7:
             hues *= len(self.current_speed_values) or 1
         if hues < 7:
             hues *= len(self.delay_between_cycles_values) or 1
+        if hues < 7:
+            hues *= len(self.frequency_values) or 1
         return intColor(index, hues=hues)
 
     def _next_indices(self) -> bool:
         while True:
-            if self.stop_key_power.isChecked():
+            if self.stop_key_current_speed.isChecked():
                 return False
             while self.check_exists and self._data_file_exists():
                 self._add_plot_point_from_file(self.temperature)
-                self.power_index += 1
-            if self.power_index < len(self.power_dbm_values):
-                return True
-            self.power_index = 0
-
-            if self.stop_key_frequency.isChecked():
-                return False
-            self.frequency_index += 1
-            if self.frequency_index < len(self.frequency_values):
-                continue
-            self.frequency_index = 0
-
-            if self.stop_key_current_speed.isChecked():
-                return False
-            self.current_speed_index += 1
+                self.current_speed_index += 1
             if self.current_speed_index < len(self.current_speed_values):
-                continue
+                return True
             self.current_speed_index = 0
 
             if self.stop_key_delay_between_cycles.isChecked():
@@ -139,6 +125,20 @@ class App(SwitchingCurrentDistributionBase):
             if self.delay_between_cycles_index < len(self.delay_between_cycles_values):
                 continue
             self.delay_between_cycles_index = 0
+
+            if self.stop_key_power.isChecked():
+                return False
+            self.power_index += 1
+            if self.power_index < len(self.power_dbm_values):
+                continue
+            self.power_index = 0
+
+            if self.stop_key_frequency.isChecked():
+                return False
+            self.frequency_index += 1
+            if self.frequency_index < len(self.frequency_values):
+                continue
+            self.frequency_index = 0
 
             if self.stop_key_temperature.isChecked():
                 return False
@@ -161,7 +161,7 @@ class App(SwitchingCurrentDistributionBase):
         return False
 
     def _make_step(self) -> bool:
-        self.power_index += 1
+        self.current_speed_index += 1
         return self._next_indices()
 
     def on_timeout(self) -> None:

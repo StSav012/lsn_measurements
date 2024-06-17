@@ -257,7 +257,7 @@ class SCDMeasurement(Process):
             )
 
             # calculating the current sequence
-            i_set: NDArray[np.float64] = np.row_stack(
+            i_set: NDArray[np.float64] = np.vstack(
                 (
                     np.concatenate(
                         (
@@ -299,7 +299,7 @@ class SCDMeasurement(Process):
             task_adc.start()
 
             task_dac.write(
-                np.row_stack(
+                np.vstack(
                     (
                         np.full(
                             2 * bias_current_steps_count,

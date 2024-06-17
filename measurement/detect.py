@@ -318,7 +318,7 @@ class DetectMeasurement(Process):
                     np.full(bias_current_steps_count + spare_sample_count, 0.0),
                 )
             )
-            period_sequence: NDArray[np.float64] = np.row_stack(
+            period_sequence: NDArray[np.float64] = np.vstack(
                 (
                     i_set * (1.0 + DIVIDER_RESISTANCE / self.r),
                     am_voltage_sequence,
@@ -328,7 +328,7 @@ class DetectMeasurement(Process):
 
             # set initial state
             task_dac.write(
-                np.row_stack(
+                np.vstack(
                     (
                         np.full(
                             task_dac.timing.samp_quant_samp_per_chan,

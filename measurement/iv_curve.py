@@ -186,7 +186,7 @@ class IVCurveMeasurement(Process):
             self.pulse_started = False
             self.pulse_ended = False
             task_dac.write(
-                np.row_stack((i_set, trigger_sequence)),
+                np.vstack((i_set, trigger_sequence)),
                 auto_start=True,
                 timeout=WAIT_INFINITELY,
             )
@@ -698,7 +698,7 @@ def iv_curve_of_rate(
 
         # t0: float = datetime.now().timestamp()
         task_dac.write(
-            np.row_stack((i_set, trigger_on_sequence)),
+            np.vstack((i_set, trigger_on_sequence)),
             auto_start=True,
             timeout=task_dac.timing.samp_quant_samp_per_chan / task_dac.timing.samp_clk_rate * 2.0,
         )

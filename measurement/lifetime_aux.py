@@ -205,7 +205,7 @@ class LifetimeMeasurement(Process):
             task_adc.start()
 
             task_dac.write(
-                np.row_stack(
+                np.vstack(
                     (
                         np.full(
                             bias_current_steps_count,
@@ -279,21 +279,21 @@ class LifetimeMeasurement(Process):
                 * self.divider
             )
 
-            initial_i_set = np.row_stack(
+            initial_i_set = np.vstack(
                 (
                     initial_i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_on_sequence,
                     np.full(bias_current_steps_count, self.aux_voltage),
                 )
             )
-            i_set = np.row_stack(
+            i_set = np.vstack(
                 (
                     i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_on_sequence,
                     np.full(bias_current_steps_count, self.aux_voltage),
                 )
             )
-            i_unset = np.row_stack(
+            i_unset = np.vstack(
                 (
                     i_unset * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_off_sequence,
@@ -328,7 +328,7 @@ class LifetimeMeasurement(Process):
 
                 # set initial state
                 task_dac.write(
-                    np.row_stack(
+                    np.vstack(
                         (
                             np.full(
                                 bias_current_steps_count,

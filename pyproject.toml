@@ -8,6 +8,7 @@ line-length = 120
 [tool.ruff.lint]
 fixable = ["ALL"]
 unfixable = []
+select = ["NPY201"]
 
 [tool.ruff.format]
 quote-style = "double"

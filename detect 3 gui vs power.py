@@ -119,7 +119,7 @@ class App(DetectBase):
         good_count: int = np.count_nonzero(reasonable)
         prob: float = 100.0 * good_count / self.cycles_count
         err: float = np.sqrt(prob * (100.0 - prob) / self.cycles_count)
-        self._add_plot_point(cast(float, np.mean(bias_current)), prob, err)
+        self._add_plot_point(self.power_dbm, prob, err)
 
     def _next_indices(self) -> bool:
         while True:

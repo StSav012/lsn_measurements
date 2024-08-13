@@ -141,6 +141,8 @@ class DetectBase(DetectGUI):
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
         self.temperature_just_set: bool = False
 
+        self.last_prob: float = np.nan
+
     def closeEvent(self, event: QCloseEvent) -> None:
         self.synthesizer.reset()
         super().closeEvent(event)

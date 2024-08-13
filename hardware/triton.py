@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
@@ -259,7 +259,7 @@ class TritonScript(socket):
                     if part_key == "enabled":
                         ch_data_part[part_key] = bool(int(part_value))
                     elif part_key == "time":
-                        ch_data_part[part_key] = datetime.utcfromtimestamp(float(part_value))
+                        ch_data_part[part_key] = datetime.fromtimestamp(float(part_value), tz=timezone.utc)
                     else:
                         try:
                             ch_data_part[part_key] = float(part_value)

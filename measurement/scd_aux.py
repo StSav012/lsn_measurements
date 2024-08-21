@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timedelta
-from multiprocessing import Process, Queue
-from multiprocessing.shared_memory import SharedMemory
+from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
 from typing import Any, Final, Literal, Sequence, cast
 
@@ -47,7 +46,9 @@ class SCDMeasurement(Process):
         results_queue: "Queue[tuple[float, float]]",
         state_queue: "Queue[tuple[int, timedelta]]",
         switching_data_queue: "Queue[tuple[np.float64, np.float64]]",
-        good_to_go: SharedMemory,
+        good_to_go: Event,
+        user_aborted: Event,
+        actual_temperature: Value,
         *,
         voltage_gain: float,
         current_divider: float,
@@ -75,7 +76,9 @@ class SCDMeasurement(Process):
         self.results_queue: Queue[tuple[float, float]] = results_queue
         self.state_queue: Queue[tuple[int, timedelta | None]] = state_queue
         self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = switching_data_queue
-        self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
+        self.good_to_go: Event = good_to_go
+        self.user_aborted: Event = user_aborted
+        self.actual_temperature: Value = actual_temperature
 
         self.gain: Final[float] = voltage_gain
         self.divider: Final[float] = current_divider
@@ -342,9 +345,9 @@ class SCDMeasurement(Process):
             cycle_index: int = 1
             this_time_cycles_count: int = self.cycles_count
             while cycle_index <= this_time_cycles_count:
-                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
-                    time.sleep(1)
-                if self.good_to_go.buf[127]:
+                while not self.good_to_go.wait(0.1) and not self.user_aborted.wait(0.1):
+                    ...
+                if self.user_aborted.is_set():
                     break
 
                 pq.write(f"cycle {cycle_index} out of {this_time_cycles_count}:", end=" ")
@@ -360,9 +363,9 @@ class SCDMeasurement(Process):
                 task_dac.write(i_set, auto_start=True)
                 task_dac.wait_until_done(WAIT_INFINITELY)
                 task_dac.stop()
-                while not self.pulse_ended and not self.good_to_go.buf[127]:
-                    time.sleep(0.01)
-                if self.good_to_go.buf[127]:
+                while not self.pulse_ended and not self.user_aborted.wait(0.01):
+                    ...
+                if self.user_aborted.is_set():
                     print("user aborted")
                     break
                 self.pulse_ended = False
@@ -438,7 +441,7 @@ class SCDMeasurement(Process):
                                 f"{mean_switching_current:.6f}",
                                 f"{switching_current_std:.6f}",
                                 f"{(datetime.now() - measurement_start_time).total_seconds():.3f}",
-                                bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                                format_float(self.actual_temperature.value),
                                 str(np.count_nonzero(~np.isnan(switching_current))),
                             )
                         )

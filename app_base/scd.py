@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import abc
 from datetime import date, datetime, timedelta
-from multiprocessing import Queue
-from multiprocessing.shared_memory import SharedMemory
+from multiprocessing import Event, Queue, Value
 from pathlib import Path
 from typing import Final, TextIO, cast
 
@@ -40,8 +39,11 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = Queue()
         self.switching_current: list[np.float64] = []
         self.switching_voltage: list[np.float64] = []
-        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=128)
-        self.good_to_measure.buf[0] = False
+        self.good_to_go: Event = Event()
+        self.good_to_go.clear()
+        self.user_aborted: Event = Event()
+        self.user_aborted.clear()
+        self.actual_temperature: Value = Value("d")
         self.measurement: SCDMeasurement | None = None
 
         self.config: Config = Config()
@@ -280,7 +282,9 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             results_queue=self.results_queue,
             state_queue=self.state_queue,
             switching_data_queue=self.switching_data_queue,
-            good_to_go=self.good_to_measure,
+            good_to_go=self.good_to_go,
+            user_aborted=self.user_aborted,
+            actual_temperature=self.actual_temperature,
             resistance=self.r,
             resistance_in_series=self.r_series,
             current_divider=self.divider,
@@ -343,7 +347,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.start_measurement()
 
     def on_button_stop_clicked(self) -> None:
-        self.good_to_measure.buf[127] = True  # tell the process to finish gracefully
+        self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
                 try:
@@ -407,8 +411,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         if measured_data.shape[0] == 3:
             current: NDArray[float] = measured_data[0] * 1e9
             median_bias_current: float = cast(float, np.nanmedian(current))
-            min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
-            max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
+            min_reasonable_bias_current: float = median_bias_current * (1.0 - 0.01 * self.max_reasonable_bias_error)
+            max_reasonable_bias_current: float = median_bias_current * (1.0 + 0.01 * self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (current >= min_reasonable_bias_current) & (
                 current <= max_reasonable_bias_current
             )
@@ -418,14 +422,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def _watch_temperature(self) -> None:
         td: timedelta
         actual_temperature: Quantity = self.triton.query_temperature(6)
-        ats: bytes = str(actual_temperature.to_value("mK")).encode()
-        self.good_to_measure.buf[1 : 1 + len(ats)] = ats
+        self.actual_temperature.value = actual_temperature.to_value("mK")
         if not (
             (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature.to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         ):
-            self.good_to_measure.buf[0] = False
+            self.good_to_go.clear()
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
             print(f"temperature {actual_temperature} is too far from {self.temperature:.3f} K")
@@ -446,10 +449,10 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             td = datetime.now() - self.bad_temperature_time
             if td > self.temperature_delay:
                 self.timer.setInterval(50)
-                self.good_to_measure.buf[0] = True
+                self.good_to_go.set()
                 self.temperature_just_set = False
             else:
-                self.good_to_measure.buf[0] = False
+                self.good_to_go.clear()
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
@@ -457,7 +460,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 )
                 self.timer.setInterval(1000)
         else:
-            self.good_to_measure.buf[0] = True
+            self.good_to_go.set()
 
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (

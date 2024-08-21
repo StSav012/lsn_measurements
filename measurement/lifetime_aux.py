@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timedelta
-from multiprocessing import Process, Queue
-from multiprocessing.shared_memory import SharedMemory
+from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
 from typing import Any, Callable, Final, Literal, Sequence, cast
 
@@ -42,7 +41,9 @@ class LifetimeMeasurement(Process):
         self,
         results_queue: "Queue[tuple[float, float, float]]",
         state_queue: "Queue[tuple[int, timedelta]]",
-        good_to_go: SharedMemory,
+        good_to_go: Event,
+        user_aborted: Event,
+        actual_temperature: Value,
         *,
         voltage_gain: float,
         current_divider: float,
@@ -70,7 +71,9 @@ class LifetimeMeasurement(Process):
 
         self.results_queue: Queue[tuple[float, float, float]] = results_queue
         self.state_queue: Queue[tuple[int, timedelta]] = state_queue
-        self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
+        self.good_to_go: Event = good_to_go
+        self.user_aborted: Event = user_aborted
+        self.actual_temperature: Value = actual_temperature
 
         self.gain: Final[float] = voltage_gain
         self.divider: Final[float] = current_divider
@@ -312,10 +315,10 @@ class LifetimeMeasurement(Process):
             set_bias_current: NDArray[np.float64] = np.full(self.cycles_count, np.nan, dtype=np.float64)
 
             for cycle_index in range(self.cycles_count):
-                if not self.good_to_go.buf[0]:
-                    while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
-                        time.sleep(1)
-                    if not self.good_to_go.buf[127]:
+                if not self.good_to_go.is_set():
+                    while not self.good_to_go.wait(0.1) and not self.user_aborted.wait(0.1):
+                        ...
+                    if not self.user_aborted.is_set():
                         task_dac.write(i_set, auto_start=True)
                         task_dac.wait_until_done()
                         task_dac.stop()
@@ -323,7 +326,7 @@ class LifetimeMeasurement(Process):
                         task_dac.wait_until_done()
                         task_dac.stop()
 
-                if self.good_to_go.buf[127]:
+                if self.user_aborted.is_set():
                     break
 
                 # set initial state
@@ -348,9 +351,9 @@ class LifetimeMeasurement(Process):
                 )
                 task_dac.wait_until_done()
                 task_dac.stop()
-                while not self.c.loadable and not self.good_to_go.buf[127]:
-                    time.sleep(0.01)
-                if self.good_to_go.buf[127]:
+                while not self.c.loadable and not self.user_aborted.wait(0.01):
+                    ...
+                if self.user_aborted.is_set():
                     break
                 self.c.loaded = False
 
@@ -368,8 +371,7 @@ class LifetimeMeasurement(Process):
                 t0: datetime = datetime.now()
                 t1: datetime = datetime.now()
 
-                while t1 - t0 <= self.max_waiting_time and not self.c.loaded and not self.good_to_go.buf[127]:
-                    time.sleep(0.01)
+                while t1 - t0 <= self.max_waiting_time and not self.c.loaded and not self.user_aborted.wait(0.01):
                     self.state_queue.put((cycle_index, t1 - t0))
                     t1 = datetime.now()
 
@@ -393,13 +395,13 @@ class LifetimeMeasurement(Process):
                             i * 1e9,
                             v * 1e3,
                             (datetime.now() - measurement_start_time).total_seconds(),
-                            bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                            self.actual_temperature.value,
                         ],
                     )
 
                     self.c.loaded = False
                 else:
-                    if self.good_to_go.buf[127]:
+                    if self.user_aborted.is_set():
                         print("user aborted")
                     else:
                         print("no switching events detected")
@@ -417,7 +419,7 @@ class LifetimeMeasurement(Process):
                                     i * 1e9,
                                     v * 1e3,
                                     (datetime.now() - measurement_start_time).total_seconds(),
-                                    bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                                    self.actual_temperature.value,
                                 ],
                             )
 
@@ -530,7 +532,7 @@ class LifetimeMeasurement(Process):
                                     else "nan"
                                 ),
                                 # Temperature [mK]
-                                bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                                format_float(self.actual_temperature.value),
                                 # 1/τ₀ [1/s]
                                 (
                                     f"{1.0 / mean_switching_time_reasonable:.10f}"
@@ -553,7 +555,7 @@ class LifetimeMeasurement(Process):
                     )
                 )
             else:
-                if self.good_to_go.buf[127]:
+                if self.user_aborted.is_set():
                     print("user aborted")
                 else:
                     print(f"no switching event detected for bias current set to {self.bias_current} nA")

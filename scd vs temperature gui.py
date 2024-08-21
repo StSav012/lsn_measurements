@@ -176,8 +176,12 @@ class App(SwitchingCurrentDistributionBase):
 
         self._watch_temperature()
 
-        self.good_to_measure.buf[0] &= not self.button_pause.isChecked()
-        self.good_to_measure.buf[127] = self.button_drop_measurement.isPushed()
+        if self.good_to_go.is_set() and self.button_pause.isChecked():
+            self.good_to_go.clear()
+        if self.button_drop_measurement.isPushed():
+            self.user_aborted.set()
+        else:
+            self.user_aborted.clear()
 
         if not self.measurement.is_alive():
             self.button_drop_measurement.reset()

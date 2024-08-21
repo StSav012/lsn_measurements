@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 import time
-from multiprocessing import Process, Queue
-from multiprocessing.shared_memory import SharedMemory
+from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
 from typing import Any, Final, Literal, Sequence
 
@@ -41,7 +40,9 @@ class DetectMeasurement(Process):
         self,
         results_queue: "Queue[tuple[float, float]]",
         state_queue: "Queue[tuple[int, int, int]]",
-        good_to_go: SharedMemory,
+        good_to_go: Event,
+        user_aborted: Event,
+        actual_temperature: Value,
         *,
         voltage_gain: float,
         current_divider: float,
@@ -69,7 +70,9 @@ class DetectMeasurement(Process):
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
         self.state_queue: Queue[tuple[int, int, int]] = state_queue
-        self.good_to_go: SharedMemory = SharedMemory(name=good_to_go.name)
+        self.good_to_go: Event = good_to_go
+        self.user_aborted: Event = user_aborted
+        self.actual_temperature: Value = actual_temperature
 
         self.voltage_gain: Final[float] = voltage_gain
         self.divider: Final[float] = current_divider
@@ -353,9 +356,9 @@ class DetectMeasurement(Process):
             actual_cycles_count: int = 0
 
             for cycle_index in range(self.cycles_count):
-                while not self.good_to_go.buf[0] and not self.good_to_go.buf[127]:
-                    time.sleep(1)
-                if self.good_to_go.buf[127]:
+                while not self.good_to_go.wait(0.1) and not self.user_aborted.wait(0.1):
+                    ...
+                if self.user_aborted.is_set():
                     break
 
                 estimated_cycles_count: int
@@ -373,9 +376,9 @@ class DetectMeasurement(Process):
                     end=" ",
                 )
 
-                while not self.c.loadable and not self.good_to_go.buf[127]:
-                    time.sleep(0.01)
-                if self.good_to_go.buf[127]:
+                while not self.c.loadable and not self.user_aborted.wait(0.01):
+                    ...
+                if self.user_aborted.is_set():
                     print("user aborted")
                     break
                 self.c.loaded = False
@@ -387,9 +390,9 @@ class DetectMeasurement(Process):
                 task_dac.wait_until_done()
                 task_dac.stop()
 
-                while not self.c.loadable or not self.pulse_ended and not self.good_to_go.buf[127]:
+                while not self.c.loadable or not self.pulse_ended and not self.user_aborted.is_set():
                     time.sleep(0.01)
-                if self.good_to_go.buf[127]:
+                if self.user_aborted.is_set():
                     print("user aborted")
                     break
                 self.pulse_started = False
@@ -453,7 +456,7 @@ class DetectMeasurement(Process):
                             f"{10.0 ** (0.1 * float(self.power_dbm)):.6e}",
                             str(actual_cycles_count),
                             str(err),
-                            bytes(self.good_to_go.buf[1:65]).strip(b"\0").decode(),
+                            format_float(self.actual_temperature.value),
                         )
                     )
                     + "\n"

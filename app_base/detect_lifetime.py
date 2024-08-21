@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import abc
 from datetime import date, datetime, timedelta
-from multiprocessing import Queue
-from multiprocessing.shared_memory import SharedMemory
+from multiprocessing import Event, Queue, Value
 from pathlib import Path
 from typing import Final, Literal, Optional, TextIO
 
@@ -40,8 +39,11 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.state_queue_detect: Queue[tuple[int, int, int]] = Queue()
         self.results_queue_lifetime: Queue[tuple[float, float, float]] = Queue()
         self.state_queue_lifetime: Queue[tuple[int, timedelta]] = Queue()
-        self.good_to_measure: SharedMemory = SharedMemory(create=True, size=1)
-        self.good_to_measure.buf[0] = False
+        self.good_to_go: Event = Event()
+        self.good_to_go.clear()
+        self.user_aborted: Event = Event()
+        self.user_aborted.clear()
+        self.actual_temperature: Value = Value("d")
         self.measurement: Optional[DetectMeasurement | LifetimeMeasurement] = None
 
         self.config: Config = Config()
@@ -296,7 +298,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.measurement = DetectMeasurement(
             results_queue=self.results_queue_detect,
             state_queue=self.state_queue_detect,
-            good_to_go=self.good_to_measure,
+            good_to_go=self.good_to_go,
+            user_aborted=self.user_aborted,
+            actual_temperature=self.actual_temperature,
             resistance=self.r,
             resistance_in_series=self.r_series,
             current_divider=self.divider,
@@ -353,7 +357,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.measurement = LifetimeMeasurement(
             results_queue=self.results_queue_lifetime,
             state_queue=self.state_queue_lifetime,
-            good_to_go=self.good_to_measure,
+            good_to_go=self.good_to_go,
+            user_aborted=self.user_aborted,
+            actual_temperature=self.actual_temperature,
             resistance=self.r,
             resistance_in_series=self.r_series,
             current_divider=self.divider,
@@ -435,7 +441,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.start_measurement()
 
     def on_button_stop_clicked(self) -> None:
-        self.good_to_measure.buf[127] = True  # tell the process to finish gracefully
+        self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
                 try:
@@ -496,14 +502,13 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def _watch_temperature(self) -> None:
         td: timedelta
         actual_temperature: Quantity = self.triton.query_temperature(6)
-        ats: bytes = str(actual_temperature.to_value("mK")).encode()
-        self.good_to_measure.buf[1 : 1 + len(ats)] = ats
+        self.actual_temperature.value = actual_temperature.to_value("mK")
         if not (
             (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature.to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         ):
-            self.good_to_measure.buf[0] = False
+            self.good_to_go.clear()
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
             print(f"temperature {actual_temperature} is too far from {self.temperature:.3f} K")
@@ -524,10 +529,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             td = datetime.now() - self.bad_temperature_time
             if td > self.temperature_delay:
                 self.timer.setInterval(50)
-                self.good_to_measure.buf[0] = True
+                self.good_to_go.set()
                 self.temperature_just_set = False
             else:
-                self.good_to_measure.buf[0] = False
+                self.good_to_go.clear()
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
@@ -535,7 +540,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 )
                 self.timer.setInterval(1000)
         else:
-            self.good_to_measure.buf[0] = True
+            self.good_to_go.set()
 
     def _stat_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (

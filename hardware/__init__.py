@@ -164,7 +164,8 @@ def _read_ai_faster(
     if read_chan_type != ChannelType.ANALOG_INPUT or any(
         chan.ai_meas_type == UsageTypeAI.POWER for chan in channels_to_read
     ):
-        return self._read()  # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
+        # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
+        return self._read(number_of_samples_per_channel, timeout)
 
     num_samples_not_set: bool = number_of_samples_per_channel is NUM_SAMPLES_UNSET
     number_of_samples_per_channel: int = self._calculate_num_samps_per_chan(number_of_samples_per_channel)

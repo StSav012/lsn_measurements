@@ -11,7 +11,7 @@ astropy
 # for communication with hardware
 netifaces
 requests
-nidaqmx
+nidaqmx>=1.0.0
 pyserial
 PyVISA
 PyMeasure

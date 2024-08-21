@@ -4,10 +4,10 @@ from __future__ import annotations
 from typing import Final, Iterable, Iterator, Optional, Sequence, cast
 
 import numpy as np
-from nidaqmx.channels import AIChannel
 from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
 from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.task import Task
+from nidaqmx.task.channels import AIChannel
 from numpy.typing import NDArray
 from scipy import signal
 
@@ -65,7 +65,11 @@ def measure_noise_fft(
     length: int,
     rate: Optional[float] = None,
     reset_adc: bool = _RESET_ADC_DEFAULT,
-) -> tuple[NDArray[np.float64], tuple[NDArray[np.float64], str], tuple[NDArray[np.float64], str],]:
+) -> tuple[
+    NDArray[np.float64],
+    tuple[NDArray[np.float64], str],
+    tuple[NDArray[np.float64], str],
+]:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task

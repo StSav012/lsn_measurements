@@ -7,12 +7,12 @@ from multiprocessing import Process, Queue
 from typing import Any, Final, Literal
 
 import numpy as np
-from nidaqmx.channels import AIChannel
 from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
 from nidaqmx.errors import DaqError
 from nidaqmx.stream_readers import AnalogMultiChannelReader, AnalogSingleChannelReader
 from nidaqmx.stream_writers import AnalogSingleChannelWriter
 from nidaqmx.task import Task
+from nidaqmx.task.channels import AIChannel
 from numpy.typing import NDArray
 
 from hardware import (

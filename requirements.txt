@@ -16,6 +16,8 @@ pyserial
 PyVISA
 PyMeasure
 
+tomli; python_version < '3.11'
+
 # for basic plotting
 matplotlib
 

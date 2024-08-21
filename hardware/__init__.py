@@ -1,7 +1,13 @@
 # coding: utf-8
 from __future__ import annotations
 
+try:
+    from tomllib import loads
+except ImportError:
+    from tomli import loads
+
 from inspect import getfullargspec
+from pathlib import Path
 from typing import Any, Final
 
 from nidaqmx.constants import ChannelType, FillMode, UsageTypeAI
@@ -18,7 +24,6 @@ __all__ = [
     "VOLTAGE_GAIN",
     "DIVIDER",
     "DIVIDER_RESISTANCE",
-    "system",
     "device_dac",
     "device_adc",
     "adc_sync",
@@ -31,11 +36,26 @@ __all__ = [
     "offsets",
 ]
 
-R: float = 200.0e3
-R_SERIES: float = 0.0e3
-VOLTAGE_GAIN: float = 1000.0
-DIVIDER: float = 1.058
-DIVIDER_RESISTANCE: float = 5.65e3
+config_file: Path = Path(__file__).parent / "config.toml"
+if not config_file.exists():
+    from utils.tkinter_message import show_error
+
+    show_error(
+        title="No hardware config found",
+        message="There should be a file named “config.toml” with the hardware description.",
+    )
+    exit(1)
+
+config: dict[str, Any] = loads(config_file.read_text(encoding="utf-8"))
+
+pxi: Final[dict[str, float]] = config["PXI"]
+
+circuitry: Final[dict[str, float]] = config["circuitry"]
+R: float = circuitry["R"]
+R_SERIES: float = circuitry["R_SERIES"]
+VOLTAGE_GAIN: float = circuitry["VOLTAGE_GAIN"]
+DIVIDER: float = circuitry["DIVIDER"]
+DIVIDER_RESISTANCE: float = circuitry["DIVIDER_RESISTANCE"]
 
 system: Final[System] = System.local()
 
@@ -47,12 +67,12 @@ def find_device(**kwargs: Any) -> Device:
     raise LookupError(f"No device matching {kwargs} found")
 
 
-device_adc: Final[Device] = find_device(product_type="PXI-4472")
-device_dac: Final[Device] = find_device(product_type="PXI-6733")
+device_adc: Final[Device] = find_device(product_type=pxi["ADC"])
+device_dac: Final[Device] = find_device(product_type=pxi["DAC"])
 
 adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[1]
 adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[0]
-adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[4]
+adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[3]
 dac_current: Final[PhysicalChannel] = device_dac.ao_physical_chans[1]
 dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[2]
 dac_synth_pulse: Final[PhysicalChannel] = device_dac.ao_physical_chans[3]

@@ -23,4 +23,5 @@ matplotlib
 
 # formatting
 black
-ruff
+ruff<0.4.3; platform_system=="Windows" and platform_release<"10"
+ruff; platform_system!="Windows" or platform_release>="10"

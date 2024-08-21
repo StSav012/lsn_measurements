@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import annotations
 
+from inspect import getfullargspec
 from typing import Any, Final
 
 from nidaqmx.constants import ChannelType, FillMode, UsageTypeAI
@@ -149,10 +150,13 @@ if not hasattr(Task, "input_onboard_buffer_size"):
 
 # don't convert the samples read from NDArray into a list
 # the following function is an almost exact copy of what is in the NI sources, except there is no `np.tolist` used
+NUM_SAMPLES_UNSET, default_timeout = getfullargspec(Task.read).defaults
+
+
 def _read_ai_faster(
     self: Task,
-    number_of_samples_per_channel=nidaqmx.task.NUM_SAMPLES_UNSET,
-    timeout: float = 10.0,
+    number_of_samples_per_channel=NUM_SAMPLES_UNSET,
+    timeout: float = default_timeout,
 ) -> float64 | NDArray[float64]:
     channels_to_read = self.in_stream.channels_to_read
     read_chan_type: ChannelType = channels_to_read.chan_type
@@ -162,7 +166,7 @@ def _read_ai_faster(
     ):
         return self._read()  # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
 
-    num_samples_not_set: bool = number_of_samples_per_channel is nidaqmx.task.NUM_SAMPLES_UNSET
+    num_samples_not_set: bool = number_of_samples_per_channel is NUM_SAMPLES_UNSET
     number_of_samples_per_channel: int = self._calculate_num_samps_per_chan(number_of_samples_per_channel)
     number_of_channels: int = len(channels_to_read.channel_names)
 

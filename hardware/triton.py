@@ -139,10 +139,14 @@ class Triton(Thread):
             return False
         return response.endswith(":VALID")
 
-    def issue_temperature(self, index: int, value: float) -> bool:
+    def issue_temperature(self, index: int, value: float | Quantity) -> bool:
+        if isinstance(value, Quantity):
+            value = value.to_value("K")
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:T" "SET", value)
 
-    def ensure_temperature(self, index: int, value: float) -> bool:
+    def ensure_temperature(self, index: int, value: float | Quantity) -> bool:
+        if isinstance(value, Quantity):
+            value = value.to_value("K")
         if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET", blocking=True).value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:TSET", value)
@@ -163,7 +167,9 @@ class Triton(Thread):
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 
-    def issue_chamber_heater_power(self, index: int, value: float) -> bool:
+    def issue_chamber_heater_power(self, index: int, value: float | Quantity) -> bool:
+        if isinstance(value, Quantity):
+            value = value.to_value("uW")
         return self.issue_value(f"SET:DEV:H{index}:HTR:SIG:POWR", value)
 
     def run(self) -> None:

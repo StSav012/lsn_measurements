@@ -122,6 +122,9 @@ class Triton(Thread):
     def query_temperature(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
 
+    def query_chamber_heater_power(self, index: int, blocking: bool = False) -> Quantity:
+        return self.query_value(f"READ:DEV:H{index}:HTR:SIG:POWR", blocking=blocking)
+
     def issue_value(self, command: str, value: Any) -> bool:
         if not command.startswith("SET:"):
             command = "SET:" + command
@@ -159,6 +162,9 @@ class Triton(Thread):
         if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE", blocking=True).value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
+
+    def issue_chamber_heater_power(self, index: int, value: float) -> bool:
+        return self.issue_value(f"SET:DEV:H{index}:HTR:SIG:POWR", value)
 
     def run(self) -> None:
         while self._running:

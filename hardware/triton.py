@@ -1,12 +1,11 @@
 # coding: utf-8
 from __future__ import annotations
 
-import time
 from collections import OrderedDict
 from datetime import datetime, timezone
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
-from threading import Thread
+from threading import Condition, Lock, Thread
 from typing import Any, AnyStr, ClassVar, Final, assert_type
 
 from astropy.units import Quantity
@@ -42,8 +41,8 @@ class Triton(Thread):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.conversation: dict[str, str] = dict()
 
-        self._running: bool = True
-        self._issuing: bool = False
+        self._issuing: Lock = Lock()
+        self._has_pending_data: Condition = Condition()
 
         if ip is None:
             from ipaddress import IPv4Address
@@ -59,44 +58,40 @@ class Triton(Thread):
                 )
             ip = str(connectable_hosts[0])
 
-        super().__init__()
-        self.daemon = True
+        super().__init__(daemon=True)
 
         self.socket.connect((ip, port))
 
         self.start()
 
     def __del__(self) -> None:
-        self._running = False
         self.socket.close()
 
     def communicate(self, command: str) -> str:
-        while self._issuing:
-            time.sleep(0.1)
-        self._issuing = True
-        self.socket.send((command.strip() + "\r\n").encode())
-        resp: bytes = b""
-        while (not resp) or resp[-1] != 10:
-            try:
-                resp += self.socket.recv(1)
-            except ConnectionResetError:
-                error(self.socket.getpeername())
-            if not resp:
-                self._issuing = False
-                if command.startswith("READ:"):
-                    self.conversation[command] = ""
-                return ""
-        self._issuing = False
+        with self._issuing:
+            self.socket.send((command.strip() + "\r\n").encode())
+            resp: bytes = b""
+            while (not resp) or resp[-1] != 10:
+                try:
+                    resp += self.socket.recv(1)
+                except ConnectionResetError:
+                    error(self.socket.getpeername())
+                if not resp:
+                    if command.startswith("READ:"):
+                        self.conversation[command] = ""
+                        with self._has_pending_data:
+                            self._has_pending_data.notify()
+                        return ""
         if command.startswith("READ:"):
             self.conversation[command] = resp.decode().strip()
+            with self._has_pending_data:
+                self._has_pending_data.notify()
         return resp.decode().strip()
 
     def query(self, command: str, blocking: bool = False) -> str:
-        if blocking:
+        if blocking or command not in self.conversation:
             return self.communicate(command)
-        if command not in self.conversation:
-            self.conversation[command.strip()] = ""
-        return self.conversation[command.strip()]
+        return self.conversation.get(command.strip(), "")
 
     def query_value(self, command: str, blocking: bool = False) -> bool | Quantity:
         if not command.startswith("READ:"):
@@ -173,10 +168,11 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:H{index}:HTR:SIG:POWR", value)
 
     def run(self) -> None:
-        while self._running:
-            for command in list(self.conversation):
-                self.communicate(command)
-            time.sleep(1)
+        while self.is_alive():
+            with self._has_pending_data:
+                self._has_pending_data.wait_for(self.conversation.__len__, 0.1)
+                for command in list(self.conversation):
+                    self.communicate(command)
 
 
 class TritonScript(socket):
@@ -287,17 +283,20 @@ class TritonScript(socket):
 
 
 if __name__ == "__main__":
+    import time
     from pprint import pp
 
-    # t: Triton = Triton()
-    # for _ in range(3):
-    #     print(_, *t.query_value('READ:DEV:T6:TEMP:SIG:TEMP'))
-    #     print(_, *t.query_value('READ:DEV:T6:TEMP:LOOP:TSET'))
-    #     print(_, *t.query_value('SET:DEV:T6:TEMP:LOOP:TSET:0.9'))
-    #     time.sleep(2)
-    # pp(t.communicate("READ:DEV:T6:TEMP:LOOP:RANGE"))
-    # pp(t.issue_value('SET:DEV:T6:TEMP:LOOP:RANGE', '0.316'))
-    ts: TritonScript = TritonScript("triton")
-    pp(ts.status)
-    pp(ts.pressures)
-    pp(ts.thermometry)
+    t: Triton = Triton()
+    for _ in range(30):
+        print(_, t.query_value("READ:DEV:T6:TEMP:SIG:TEMP"))
+        print(_, t.query_value("READ:DEV:T6:TEMP:LOOP:TSET"))
+        print(_, t.communicate("SET:DEV:T6:TEMP:LOOP:TSET:0.9"))
+        time.sleep(0.2)
+    pp(t.communicate("READ:DEV:T6:TEMP:LOOP:RANGE"))
+    pp(t.issue_value("SET:DEV:T6:TEMP:LOOP:RANGE", "0.316"))
+
+    # ts: TritonScript = TritonScript("triton")
+    # pp(ts.status)
+    # pp(ts.pressures)
+    # pp(ts.thermometry)
+    ...

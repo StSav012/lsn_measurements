@@ -1,6 +1,8 @@
 # coding=utf-8
 
 from collections.abc import Callable
+from select import select
+from sys import stdin
 from typing import TypeVar
 
 __all__ = [
@@ -43,7 +45,9 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
 
     def show_cli_message() -> None:
         with s:
-            res.append(input(f"{title}: {message}" if title else message))
+            print(f"{title}: {message}" if title else message)
+            select([stdin], [], [])
+            res.append(input())
 
     a: Thread = Thread(target=show_gui_message, daemon=True)
     b: Thread = Thread(target=show_cli_message, daemon=True)
@@ -119,7 +123,9 @@ def _ask(method: Callable[_P, _T], title: str, prompt: str) -> _T | str | None:
 
     def show_cli_message() -> None:
         with s:
-            res.append(input(f"{title}: {prompt}" if title else prompt))
+            print(f"{title}: {prompt}" if title else prompt, end="", flush=True)
+            select([stdin], [], [])
+            res.append(input())
 
     a: Thread = Thread(target=show_gui_message, daemon=True)
     b: Thread = Thread(target=show_cli_message, daemon=True)

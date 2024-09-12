@@ -42,7 +42,30 @@ if not config_file.exists():
 
     show_error(
         title="No hardware config found",
-        message="There should be a file named “config.toml” with the hardware description.",
+        message="""There should be a file named “config.toml” with the hardware description:
+
+[PXI]
+ADC = "PXI-..."
+DAC = "PXI-..."
+
+[physical_chans.AI]
+voltage = <int>
+current = <int>
+sync = <int>
+
+[physical_chans.AO]
+current = <int>
+aux = <int>
+synth_pulse = <int>
+sync = <int>
+
+[circuitry]
+R = <float>
+R_SERIES = <float>
+VOLTAGE_GAIN = <float>
+DIVIDER = <float>
+DIVIDER_RESISTANCE = <float>
+""",
     )
     exit(1)
 

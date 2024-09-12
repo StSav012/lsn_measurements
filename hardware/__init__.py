@@ -70,13 +70,15 @@ def find_device(**kwargs: Any) -> Device:
 device_adc: Final[Device] = find_device(product_type=pxi["ADC"])
 device_dac: Final[Device] = find_device(product_type=pxi["DAC"])
 
-adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[1]
-adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[0]
-adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[3]
-dac_current: Final[PhysicalChannel] = device_dac.ao_physical_chans[1]
-dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[2]
-dac_synth_pulse: Final[PhysicalChannel] = device_dac.ao_physical_chans[3]
-dac_sync: Final[PhysicalChannel] = device_dac.ao_physical_chans[4]
+physical_chans: Final[dict[str, dict[str, int]]] = config["physical_chans"]
+
+adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["voltage"]]
+adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["current"]]
+adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["sync"]]
+dac_current: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["current"]]
+dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["aux"]]
+dac_synth_pulse: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["synth_pulse"]]
+dac_sync: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["sync"]]
 
 offsets: dict[str, float] = {adc_current.name: 0.0, adc_voltage.name: 0.0}
 

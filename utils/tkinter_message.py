@@ -34,7 +34,7 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
 
     def show_gui_message() -> None:
         with s:
-            res.append(method(title=title, prompt=message))
+            res.append(method(title=title, message=message))
 
     def show_cli_message() -> None:
         with s:

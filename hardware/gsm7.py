@@ -4,7 +4,7 @@ from __future__ import annotations
 from math import nan
 from typing import Final, NamedTuple
 
-import requests
+from vxi11.vxi11 import Instrument
 
 try:
     from .scpi_device import SCPIDevice
@@ -69,7 +69,7 @@ class _Output:
 
     @property
     def state(self) -> bool:
-        if self._parent.socket is None:
+        if getattr(self._parent, "_instr", None) is None:
             return False
         return bool(int(self._parent.query(":output")))
 
@@ -119,11 +119,15 @@ class _Arm:
 
 
 class GSM7(SCPIDevice):
-    _PORT: Final[int] = 80
+    _PORT: Final[int] = 111
 
     def __init__(self, ip: str | None = None, *, expected: bool = True) -> None:
         super().__init__(ip, GSM7._PORT, terminator=b"\n", expected=expected, reset=False)
-        self._session: requests.Session = requests.session()
+        self._instr: Instrument | None = None
+        if self.socket is not None:
+            self.socket.close()
+            self._instr = Instrument(self.socket.getpeername()[0], term_char=self.terminator)
+            self.socket = None
 
         self.calculate: Final[_Calculate] = _Calculate(self)
         self.calculate1: Final[_Calculate] = self.calculate
@@ -143,18 +147,12 @@ class GSM7(SCPIDevice):
         self.arm: Final[_Arm] = _Arm(self)
 
     def communicate(self, command: str) -> str | None:
-        if self.socket is None:
+        if self._instr is None:
             return ""
-        self._session.post(
-            url=f"http://{self.socket.getpeername()[0]}/info?scpiForm",
-            data=command.strip(),
-        )
-        if not command.endswith("?"):
-            return
-        resp: requests.Response = self._session.get(f"http://{self.socket.getpeername()[0]}/info?scpi")
-        while not resp.json()["result"]:
-            resp = self._session.get(f"http://{self.socket.getpeername()[0]}/info?scpi")
-        return resp.json()["result"]
+        if command.rstrip().endswith("?"):
+            return self._instr.ask(command)
+        else:
+            self._instr.write(command)
 
     @property
     def read(self) -> ReadResult:

@@ -14,6 +14,7 @@ requests
 nidaqmx>=1.0.0
 pyserial
 PyVISA
+python-vxi11
 PyMeasure
 
 tomli; python_version < '3.11'

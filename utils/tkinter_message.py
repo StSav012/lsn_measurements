@@ -33,8 +33,13 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
     res: list[_T | str] = []
 
     def show_gui_message() -> None:
+        _kwargs: dict[str, str]
+        if "\n\n" in message:
+            _kwargs = dict(zip(["message", "detail"], message.split("\n\n", maxsplit=1)))
+        else:
+            _kwargs = {"message": message}
         with s:
-            res.append(method(title=title, message=message))
+            res.append(method(title=title, **_kwargs))
 
     def show_cli_message() -> None:
         with s:

@@ -2,11 +2,13 @@
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from ipaddress import IPv4Address, IPv4Network, ip_address, ip_network
-from socket import AF_INET, SOCK_DGRAM, SOCK_STREAM, error, gethostbyname_ex, gethostname, socket
+from socket import AF_INET, SOCK_STREAM, error, gethostbyname_ex, gethostname, socket
 
 from netifaces import ifaddresses, interfaces
 
 __all__ = ["port_scanner"]
+
+from utils import get_local_ip
 
 
 def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
@@ -23,14 +25,6 @@ def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
             return True
         finally:
             sock.close()
-
-    def get_local_ip() -> IPv4Address:
-        # https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib/25850698#25850698
-        sock: socket = socket(AF_INET, SOCK_DGRAM)
-        sock.connect(("8.8.8.8", 80))  # connect() for UDP doesn't send packets
-        ip: str = sock.getsockname()[0]
-        sock.close()
-        return ip_address(ip)
 
     local_ips: set[IPv4Address] = set(map(ip_address, gethostbyname_ex(gethostname())[2]))
     local_ips.add(get_local_ip())

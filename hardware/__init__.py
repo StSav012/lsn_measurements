@@ -4,6 +4,7 @@ from __future__ import annotations
 try:
     from tomllib import loads
 except ImportError:
+    # noinspection PyUnresolvedReferences,PyPackageRequirements
     from tomli import loads
 
 from inspect import getfullargspec
@@ -110,6 +111,8 @@ if not hasattr(Task, "output_onboard_buffer_size"):
     import ctypes
     import nidaqmx
     from _ctypes import CFuncPtr
+
+    # noinspection PyProtectedMember
     from nidaqmx._library_interpreter import LibraryInterpreter
 
     def get_output_onboard_buffer_size(self) -> int:
@@ -163,6 +166,8 @@ if not hasattr(Task, "input_onboard_buffer_size"):
     import ctypes
     import nidaqmx
     from _ctypes import CFuncPtr
+
+    # noinspection PyProtectedMember
     from nidaqmx._library_interpreter import LibraryInterpreter
 
     def get_input_onboard_buffer_size(self) -> int:
@@ -210,6 +215,7 @@ def _read_ai_faster(
         chan.ai_meas_type == UsageTypeAI.POWER for chan in channels_to_read
     ):
         # use the NI function, backed up as `_read` prior to `_read_ai_faster` function use
+        # noinspection PyUnresolvedReferences
         return self._read(number_of_samples_per_channel, timeout)
 
     num_samples_not_set: bool = number_of_samples_per_channel is NUM_SAMPLES_UNSET

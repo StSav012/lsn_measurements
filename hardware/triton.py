@@ -117,7 +117,7 @@ class Triton(Thread):
     def query_temperature(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:T{index}:TEMP:SIG:TEMP", blocking=blocking)
 
-    def query_chamber_heater_power(self, index: int, blocking: bool = False) -> Quantity:
+    def query_heater_power(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:H{index}:HTR:SIG:POWR", blocking=blocking)
 
     def issue_value(self, command: str, value: Any) -> bool:
@@ -162,7 +162,7 @@ class Triton(Thread):
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 
-    def issue_chamber_heater_power(self, index: int, value: float | Quantity) -> bool:
+    def issue_heater_power(self, index: int, value: float | Quantity) -> bool:
         if isinstance(value, Quantity):
             value = value.to_value("uW")
         return self.issue_value(f"SET:DEV:H{index}:HTR:SIG:POWR", value)

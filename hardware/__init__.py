@@ -85,8 +85,10 @@ system: Final[System] = System.local()
 
 
 def find_device(**kwargs: Any) -> Device:
+    device: Device
     for device in system.devices:
         if all(getattr(device, key) == value for key, value in kwargs.items()):
+            device.reset_device()
             return device
     raise LookupError(f"No device matching {kwargs} found")
 

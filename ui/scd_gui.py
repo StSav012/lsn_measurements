@@ -104,7 +104,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.label_power.suffix = self.tr("dBm")
         self.label_frequency.suffix = self.tr("GHz")
         self.label_frequency.formatStr = "{value:0.4f} {suffix}"
-        self.label_current_speed.suffix = self.tr("ms")
+        self.label_current_speed.suffix = self.tr("nA/s")
         self.label_current_speed.formatStr = "{value:0.1f} {suffix}"
         self.label_delay_between_cycles.suffix = self.tr("ms")
         self.label_delay_between_cycles.formatStr = "{value:0.1f} {suffix}"

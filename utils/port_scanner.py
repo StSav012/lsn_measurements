@@ -14,6 +14,9 @@ from utils import get_local_ip
 def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
     ports = list(ports)
 
+    if not ports:
+        return []
+
     def connectable_host(host_to_try: IPv4Address, port_to_try: int) -> bool:
         sock: socket = socket(AF_INET, SOCK_STREAM)
         sock.settimeout(timeout)
@@ -60,7 +63,7 @@ def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
     if not connectable_hosts:
         return []
 
-    return sorted(connectable_hosts[ports[0]].intersection(*[connectable_hosts[port] for port in ports]))
+    return sorted(connectable_hosts[ports.pop()].intersection(*[connectable_hosts[port] for port in ports]))
 
 
 if __name__ == "__main__":

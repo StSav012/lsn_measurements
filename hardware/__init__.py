@@ -160,7 +160,6 @@ if not hasattr(Task, "output_onboard_buffer_size"):
     Task.output_onboard_buffer_size = property(
         fget=get_output_onboard_buffer_size,
         fset=set_output_onboard_buffer_size,
-        fdel=lambda self: None,
         doc="int: Specifies in samples per channel the size of the onboard output buffer of the device.",
     )
 
@@ -195,7 +194,6 @@ if not hasattr(Task, "input_onboard_buffer_size"):
 
     Task.input_onboard_buffer_size = property(
         fget=get_input_onboard_buffer_size,
-        fdel=lambda self: None,
         doc="int: Indicates in samples per channel the size of the onboard input buffer of the device.",
     )
 

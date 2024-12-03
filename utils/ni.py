@@ -38,7 +38,11 @@ def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] =
         task_dac.wait_until_done()
 
 
-def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_adc: bool = True) -> None:
+def measure_offsets(
+    duration: float = 0.04,
+    do_zero_sources: bool = True,
+    reset_adc: bool = _RESET_ADC_DEFAULT,
+) -> None:
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task

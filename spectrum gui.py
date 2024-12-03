@@ -7,6 +7,7 @@ from typing import Final, final
 
 import numpy as np
 import pyqtgraph as pg
+from qtpy import QT5
 from qtpy.QtCore import QSettings, QTimer, Qt
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
@@ -297,7 +298,8 @@ class App(GUI):
 
 if __name__ == "__main__":
     app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+    if QT5:
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

@@ -8,6 +8,7 @@ import numpy as np
 from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from pyqtgraph.functions import intColor
+from qtpy import QT5
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
@@ -254,7 +255,8 @@ class App(LifetimeBase):
 
 if __name__ == "__main__":
     app: QApplication = QApplication(sys.argv)
-    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+    if QT5:
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     window: App = App()
     window.show()
     app.exec()

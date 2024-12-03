@@ -56,6 +56,7 @@ def measure_offsets(duration: float = 0.04, do_zero_sources: bool = True, reset_
         task_adc.start()
         data: list[float] = task_adc.read(count, timeout=WAIT_INFINITELY)
         task_adc.stop()
+        data: NDArray[np.float64] = np.concatenate(data_chunks)
         index: int
         for index, channel in enumerate(device_adc.ai_physical_chans):
             offsets[channel.name] = cast(float, np.mean(data[index]))
@@ -84,7 +85,7 @@ def measure_noise_fft(
             samps_per_chan=length,
         )
         zero_sources()
-        data = np.array(task_adc.read(length))
+        data = np.asarray(task_adc.read(length))
 
         task_adc.close()
 
@@ -127,7 +128,7 @@ def measure_noise_welch(
         task_adc.start()
         if progress:
             print(progress, end="", flush=True)
-        data: NDArray[np.float64] = np.array(task_adc.read(length, timeout=WAIT_INFINITELY), dtype=np.float64)
+        data: NDArray[np.float64] = np.asarray(task_adc.read(length, timeout=WAIT_INFINITELY), dtype=np.float64)
         if progress:
             print(progress, end="", flush=True)
         task_adc.stop()
@@ -173,7 +174,7 @@ def measure_noise_welch_iter(
             samps_per_chan=length,
         )
         for _ in range(count):
-            data: NDArray[np.float64] = np.array(task_adc.read(length))
+            data: NDArray[np.float64] = np.asarray(task_adc.read(length))
 
             freq: NDArray[np.float64]
             pn_xx: NDArray[np.float64]
@@ -193,7 +194,7 @@ def measure_noise_welch_iter(
 #                                             sample_mode=AcquisitionType.FINITE,  # don't use continuous
 #                                             samps_per_chan=length)
 #         for _ in range(count):
-#             _data: NDArray[np.float64] = np.array(task_adc.read(length))
+#             _data: NDArray[np.float64] = np.asarray(task_adc.read(length))
 #
 #             _freq: NDArray[np.float64]
 #             _pn_xx: NDArray[np.float64]
@@ -230,6 +231,6 @@ def measure_noise_trend(
             rate = task_adc.timing.samp_clk_max_rate
         length: int = round(duration * rate)
         task_adc.timing.cfg_samp_clk_timing(rate=rate, sample_mode=AcquisitionType.CONTINUOUS)
-        data: NDArray[np.float64] = task_adc.read(length, timeout=WAIT_INFINITELY)
+        data: NDArray[np.float64] = np.asarray(task_adc.read(length, timeout=WAIT_INFINITELY))
 
     return np.arange(0, data.size) / rate, data

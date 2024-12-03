@@ -54,7 +54,7 @@ def measure_offsets(
             rate=task_adc.timing.samp_clk_max_rate,
             sample_mode=AcquisitionType.CONTINUOUS,
         )
-        input_onboard_buffer_size: int = task_adc.input_onboard_buffer_size
+        input_onboard_buffer_size: int = task_adc.in_stream.input_onbrd_buf_size
         if do_zero_sources:
             zero_sources()
         task_adc.start()

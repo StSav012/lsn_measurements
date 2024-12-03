@@ -131,8 +131,9 @@ class DetectMeasurement(Process):
             samples_per_dac_channel: int = (
                 2 * bias_current_steps_count + pulse_duration_points_count + waiting_after_pulse_points_count
             )
-            if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+            output_onboard_buffer_size: int = task_adc.out_stream.output_onbrd_buf_size
+            if samples_per_dac_channel > output_onboard_buffer_size:
+                dac_rate /= samples_per_dac_channel / output_onboard_buffer_size
                 bias_current_steps_count = round(self.setting_time * dac_rate)
                 pulse_duration_points_count = round(self.pulse_duration * dac_rate)
                 waiting_after_pulse_points_count = round(self.waiting_after_pulse * dac_rate)
@@ -144,7 +145,7 @@ class DetectMeasurement(Process):
             spare_sample_count: int = (task_dac.number_of_channels * samples_per_dac_channel) % 2
             samples_per_dac_channel += spare_sample_count
             # If we get too many samples per channel again, we sacrifice the current steps
-            while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+            while samples_per_dac_channel > output_onboard_buffer_size:
                 bias_current_steps_count -= 1
                 samples_per_dac_channel = (
                     2 * bias_current_steps_count
@@ -168,7 +169,8 @@ class DetectMeasurement(Process):
             task_adc.timing.cfg_samp_clk_timing(
                 rate=self.adc_rate,
                 sample_mode=AcquisitionType.CONTINUOUS,
-                samps_per_chan=1000,  # cannot set task_adc.input_onboard_buffer_size
+                # cannot use `task_adc.in_stream.input_onbrd_buf_size` here to have time to process data
+                samps_per_chan=1000,
             )
             task_dac.timing.cfg_samp_clk_timing(
                 rate=dac_rate,

@@ -127,12 +127,13 @@ class SCDMeasurement(Process):
             dac_rate: float = task_dac.timing.samp_clk_max_rate
             bias_current_steps_count: int = round(bias_current_amplitude / self.current_speed * dac_rate)
             samples_per_dac_channel: int = 2 * bias_current_steps_count
-            if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+            output_onboard_buffer_size: int = task_adc.out_stream.output_onbrd_buf_size
+            if samples_per_dac_channel > output_onboard_buffer_size:
+                dac_rate /= samples_per_dac_channel / output_onboard_buffer_size
                 bias_current_steps_count = round(bias_current_amplitude / self.current_speed * dac_rate)
                 samples_per_dac_channel = 2 * bias_current_steps_count
             # If we get too many samples per channel again, we sacrifice the current steps
-            while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+            while samples_per_dac_channel > output_onboard_buffer_size:
                 bias_current_steps_count -= 1
                 samples_per_dac_channel = 2 * bias_current_steps_count
 

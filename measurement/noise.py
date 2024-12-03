@@ -58,7 +58,7 @@ class NoiseMeasurement(Process):
             task_adc.timing.cfg_samp_clk_timing(
                 rate=self.sample_rate,
                 sample_mode=AcquisitionType.CONTINUOUS,
-                samps_per_chan=task_adc.input_onboard_buffer_size,
+                samps_per_chan=task_adc.in_stream.input_onbrd_buf_size,
             )
 
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)

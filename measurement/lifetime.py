@@ -138,11 +138,12 @@ class LifetimeMeasurement(Process):
             dac_rate: float = task_dac.timing.samp_clk_max_rate
             bias_current_steps_count: int = round(self.setting_time * dac_rate)
 
-            if bias_current_steps_count > task_dac.output_onboard_buffer_size:
-                dac_rate /= bias_current_steps_count / task_dac.output_onboard_buffer_size
+            output_onboard_buffer_size: int = task_adc.out_stream.output_onbrd_buf_size
+            if bias_current_steps_count > output_onboard_buffer_size:
+                dac_rate /= bias_current_steps_count / output_onboard_buffer_size
                 bias_current_steps_count = round(self.setting_time * dac_rate)
             # If we get too many samples per channel again, we sacrifice the current steps
-            while bias_current_steps_count > task_dac.output_onboard_buffer_size:
+            while bias_current_steps_count > output_onboard_buffer_size:
                 bias_current_steps_count -= 1
 
             trigger_trigger: float = 0.45 * sync_channel.ao_max

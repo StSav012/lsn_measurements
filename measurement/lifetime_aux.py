@@ -507,28 +507,26 @@ class LifetimeMeasurement(Process):
                                 # Set Bias Current [nA]
                                 format_float(self.bias_current),
                                 # Mean Bias Current [nA]
-                                f"{mean_set_bias_current_reasonable:.10f}",
+                                format_float(mean_set_bias_current_reasonable),
                                 # Bias Current StD [nA]
-                                f"{set_bias_current_reasonable_std:.10f}",
+                                format_float(set_bias_current_reasonable_std),
                                 # τ₀ [s]
-                                f"{mean_switching_time_reasonable:.10f}",
+                                format_float(mean_switching_time_reasonable),
                                 # σ₀ [s]
-                                f"{switching_time_reasonable_std:.10f}",
+                                format_float(switching_time_reasonable_std),
                                 # τ [s]
-                                f"{mean_switching_time_rnz:.10f}",
+                                format_float(mean_switching_time_rnz),
                                 # σ [s]
-                                f"{switching_time_rnz_std:.10f}",
+                                format_float(switching_time_rnz_std),
                                 # τ₀/σ₀
                                 (
-                                    f"""{mean_switching_time_reasonable
-                                     / switching_time_reasonable_std:.10f}"""
+                                    format_float(mean_switching_time_reasonable / switching_time_reasonable_std)
                                     if switching_time_reasonable_std
                                     else "nan"
                                 ),
                                 # τ/σ
                                 (
-                                    f"""{mean_switching_time_rnz
-                                     / switching_time_rnz_std:.10f}"""
+                                    format_float(mean_switching_time_rnz / switching_time_rnz_std)
                                     if switching_time_rnz_std
                                     else "nan"
                                 ),
@@ -536,12 +534,12 @@ class LifetimeMeasurement(Process):
                                 format_float(self.actual_temperature.value),
                                 # 1/τ₀ [1/s]
                                 (
-                                    f"{1.0 / mean_switching_time_reasonable:.10f}"
+                                    format_float(1.0 / mean_switching_time_reasonable)
                                     if mean_switching_time_reasonable
                                     else "nan"
                                 ),
                                 # 1/τ [1/s]
-                                f"{1.0 / mean_switching_time_rnz:.10f}" if mean_switching_time_rnz else "nan",
+                                format_float(1.0 / mean_switching_time_rnz) if mean_switching_time_rnz else "nan",
                                 # Cycles
                                 str(np.count_nonzero(~np.isnan(switching_time))),
                             )

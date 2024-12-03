@@ -431,9 +431,9 @@ class SCDMeasurement(Process):
                                 format_float(self.temperature * 1000),
                                 format_float(self.frequency),
                                 format_float(self.power_dbm),
-                                f"{mean_switching_current:.6f}",
-                                f"{switching_current_std:.6f}",
-                                f"{(datetime.now() - measurement_start_time).total_seconds():.3f}",
+                                format_float(mean_switching_current),
+                                format_float(switching_current_std),
+                                format_float((datetime.now() - measurement_start_time).total_seconds()),
                                 format_float(self.actual_temperature.value),
                                 str(np.count_nonzero(~np.isnan(switching_current))),
                             )

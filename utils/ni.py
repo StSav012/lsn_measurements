@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import annotations
-
+from collections import deque
 from typing import Final, Iterable, Iterator, Optional, Sequence, cast
 
 import numpy as np
@@ -55,10 +54,14 @@ def measure_offsets(
             rate=task_adc.timing.samp_clk_max_rate,
             sample_mode=AcquisitionType.CONTINUOUS,
         )
+        input_onboard_buffer_size: int = task_adc.input_onboard_buffer_size
         if do_zero_sources:
             zero_sources()
         task_adc.start()
-        data: list[float] = task_adc.read(count, timeout=WAIT_INFINITELY)
+        data_chunks: deque[NDArray[np.float64]] = deque()
+        for _ in range(input_onboard_buffer_size // count):
+            data_chunks.append(task_adc.read(input_onboard_buffer_size, timeout=WAIT_INFINITELY))
+        data_chunks.append(task_adc.read(input_onboard_buffer_size % count, timeout=WAIT_INFINITELY))
         task_adc.stop()
         data: NDArray[np.float64] = np.concatenate(data_chunks)
         index: int

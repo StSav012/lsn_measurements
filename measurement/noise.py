@@ -17,7 +17,7 @@ from hardware import (
     dac_current,
     offsets,
 )
-from utils.ni import measure_offsets, zero_sources
+from utils.ni import measure_offsets
 
 __all__ = ["NoiseMeasurement", "IVNoiseMeasurement"]
 
@@ -73,8 +73,6 @@ class NoiseMeasurement(Process):
                 data: NDArray[np.float64] = np.empty((number_of_channels, number_of_samples_per_channel))
                 adc_stream.read_many_sample(data, number_of_samples_per_channel)
                 self.results_queue.put((sample_clock_rate, data))
-
-        zero_sources()
 
 
 class IVNoiseMeasurement(Process):
@@ -138,5 +136,3 @@ class IVNoiseMeasurement(Process):
                 data[0] = (data[0] - offsets[adc_current.name] - data[1]) / self.ballast_resistance
                 data[1] -= data[0] * self.resistance_in_series
                 self.results_queue.put((sample_clock_rate, data))
-
-        zero_sources()

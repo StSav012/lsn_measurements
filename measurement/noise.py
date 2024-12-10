@@ -29,6 +29,7 @@ class NoiseMeasurement(Process):
         channel: PhysicalChannel,
         sample_rate: float,
         scale: float,
+        measure_offset: bool = False,
     ) -> None:
         super().__init__()
         self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
@@ -36,9 +37,12 @@ class NoiseMeasurement(Process):
         self.channel: PhysicalChannel = channel
         self.sample_rate: Final[float] = sample_rate
         self.scale: Final[float] = scale
+        self.measure_offset: Final[bool] = measure_offset
 
     def run(self) -> None:
-        measure_offsets()
+        if self.measure_offset:
+            measure_offsets()
+
         task_adc: Task
 
         with Task() as task_adc:

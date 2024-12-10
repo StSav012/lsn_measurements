@@ -105,12 +105,13 @@ class IVCurveMeasurement(Process):
             dac_rate: float = task_dac.timing.samp_clk_max_rate
             points: int = round(abs(self.max_current - self.min_current) / self.current_rate * dac_rate)
             samples_per_dac_channel: int = (2 if self.two_way else 1) * points + 2
-            if samples_per_dac_channel > task_dac.output_onboard_buffer_size:
-                dac_rate /= samples_per_dac_channel / task_dac.output_onboard_buffer_size
+            output_onbrd_buf_size: int = task_dac.out_stream.output_onbrd_buf_size
+            if samples_per_dac_channel > output_onbrd_buf_size:
+                dac_rate /= samples_per_dac_channel / output_onbrd_buf_size
                 points = round(abs(self.max_current - self.min_current) / self.current_rate * dac_rate)
                 samples_per_dac_channel = (2 if self.two_way else 1) * points + 2
             # If we get too many samples per channel again, we sacrifice the current steps
-            while samples_per_dac_channel > task_dac.output_onboard_buffer_size:
+            while samples_per_dac_channel > output_onbrd_buf_size:
                 points -= 1 if self.two_way else 2  # keep samples_per_dac_channel even
                 samples_per_dac_channel = (2 if self.two_way else 1) * points + 2
 

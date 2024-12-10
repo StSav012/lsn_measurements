@@ -166,7 +166,9 @@ class GUI(QMainWindow):
         self.spin_sample_rate.setValue(self.settings.value("sampleRate", 32678.0, float))
         self.spin_scale.setValue(self.settings.value("voltageScale", 100.0, float))
         self.check_power_or_magnitude.setChecked(self.settings.value("powerUnits", True, bool))
-        self.combo_welch_window.setValue(self.settings.value("welchWindow", "hann", str))
+        with suppress(ValueError):
+            # `ValueError` might occur when there is no such item present
+            self.combo_welch_window.setValue(self.settings.value("welchWindow", "hann", str))
         self.spin_averaging_time_span.setValue(self.settings.value("averagingTimeSpan", 20.0, float))
         self.spin_display_time_span.setValue(self.settings.value("displayTimeSpan", 2.0, float))
         self.settings.endGroup()

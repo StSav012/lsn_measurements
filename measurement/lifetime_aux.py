@@ -198,7 +198,7 @@ class LifetimeMeasurement(Process):
                             self.c.loaded = True
                             self.c.reset()
                 else:
-                    self.c.loadable = np.any(data[1, ~waiting] < 0.5 * self.trigger_voltage)
+                    self.c.loadable = np.any(data[1] < 0.5 * self.trigger_voltage)
                 return 0
 
             # noinspection PyTypeChecker

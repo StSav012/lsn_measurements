@@ -224,7 +224,7 @@ class App(LifetimeBase):
             self.button_drop_measurement.reset()
             self.timer.stop()
             self.histogram.save(self.hist_file)
-            if not self._next_indices():
+            if not self._make_step():
                 self.on_button_stop_clicked()
                 return
 

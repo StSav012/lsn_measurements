@@ -196,6 +196,8 @@ class GUI(QMainWindow):
         self.button_start.setDisabled(True)
         self.parameters_box.setDisabled(True)
         self.button_stop.setEnabled(True)
+        self.voltage_trend_plot_line.setData([], [])
+        self.voltage_spectrum_plot_line.setData([], [])
 
     @Slot()
     def on_button_stop_clicked(self) -> None:
@@ -272,6 +274,7 @@ class App(GUI):
 
     @Slot()
     def on_button_start_clicked(self) -> None:
+        self.v = np.empty(0)
         super().on_button_start_clicked()
         self.timer.start(40)
         self.measurement = NoiseMeasurement(

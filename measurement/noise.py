@@ -74,6 +74,8 @@ class NoiseMeasurement(Process):
                 adc_stream.read_many_sample(data, number_of_samples_per_channel)
                 self.results_queue.put((sample_clock_rate, data))
 
+            task_adc.stop()
+
 
 class IVNoiseMeasurement(Process):
     def __init__(

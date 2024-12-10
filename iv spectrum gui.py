@@ -1,14 +1,13 @@
 # coding: utf-8
-from __future__ import annotations
-
 import sys
 from multiprocessing import Queue
 from typing import Final, final
 
 import numpy as np
 import pyqtgraph as pg
+from numpy.typing import NDArray
 from qtpy import QT5
-from qtpy.QtCore import QSettings, QTimer, Qt
+from qtpy.QtCore import QSettings, QTimer, Qt, Slot
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
     QApplication,
@@ -46,10 +45,10 @@ class GUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
-        self.canvas_current_trend: pg.PlotItem = self.figure.addPlot(row=0, col=0)
-        self.canvas_voltage_trend: pg.PlotItem = self.figure.addPlot(row=1, col=0)
-        self.canvas_current_spectrum: pg.PlotItem = self.figure.addPlot(row=0, col=1)
-        self.canvas_voltage_spectrum: pg.PlotItem = self.figure.addPlot(row=1, col=1)
+        self.canvas_current_trend: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
+        self.canvas_voltage_trend: pg.PlotItem = self.figure.ci.addPlot(row=1, col=0)
+        self.canvas_current_spectrum: pg.PlotItem = self.figure.ci.addPlot(row=0, col=1)
+        self.canvas_voltage_spectrum: pg.PlotItem = self.figure.ci.addPlot(row=1, col=1)
         self.current_trend_plot_line: pg.PlotDataItem = self.canvas_current_trend.plot(np.empty(0), name="")
         self.voltage_trend_plot_line: pg.PlotDataItem = self.canvas_voltage_trend.plot(np.empty(0), name="")
         self.current_spectrum_plot_line: pg.PlotDataItem = self.canvas_current_spectrum.plot(np.empty(0), name="")
@@ -146,8 +145,8 @@ class GUI(QMainWindow):
         self.canvas_voltage_spectrum.getAxis("left").autoSIPrefix = False
         self.canvas_current_spectrum.getAxis("bottom").autoSIPrefix = False
         self.canvas_voltage_spectrum.getAxis("bottom").autoSIPrefix = False
-        self.canvas_voltage_trend.setXLink(self.canvas_current_trend)
-        self.canvas_voltage_spectrum.setXLink(self.canvas_current_spectrum)
+        self.canvas_voltage_trend.vb.setXLink(self.canvas_current_trend)
+        self.canvas_voltage_spectrum.vb.setXLink(self.canvas_current_spectrum)
         self.canvas_current_spectrum.setMenuEnabled(enableMenu=False)
         self.canvas_voltage_spectrum.setMenuEnabled(enableMenu=False)
         self.canvas_current_spectrum.setLogMode(x=True, y=True)
@@ -219,11 +218,13 @@ class GUI(QMainWindow):
         self.save_settings()
         event.accept()
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.parameters_box.setDisabled(True)
         self.button_stop.setEnabled(True)
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         self.button_stop.setDisabled(True)
         self.parameters_box.setEnabled(True)
@@ -238,12 +239,13 @@ class App(GUI):
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
 
-        self.results_queue: Queue[tuple[float, np.ndarray]] = Queue()
+        self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = Queue()
         self.measurement: IVNoiseMeasurement | None = None
 
-        self.i: np.ndarray = np.empty(0)
-        self.v: np.ndarray = np.empty(0)
+        self.i: NDArray[np.float64] = np.empty(0)
+        self.v: NDArray[np.float64] = np.empty(0)
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         super(App, self).on_button_start_clicked()
         self.timer.start(40)
@@ -258,6 +260,7 @@ class App(GUI):
         )
         self.measurement.start()
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         if self.measurement is not None:
             self.measurement.terminate()
@@ -265,9 +268,10 @@ class App(GUI):
         self.timer.stop()
         super(App, self).on_button_stop_clicked()
 
+    @Slot()
     def on_timeout(self) -> None:
-        i: np.ndarray
-        v: np.ndarray
+        i: NDArray[np.float64]
+        v: NDArray[np.float64]
         sample_rate: float = -1.0
         points_to_display: int
         points_for_spectrum: int

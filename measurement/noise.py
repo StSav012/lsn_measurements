@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import annotations
-
 import time
 from multiprocessing import Process, Queue
 from typing import Final
@@ -8,7 +6,9 @@ from typing import Final
 import numpy as np
 from nidaqmx.constants import AcquisitionType
 from nidaqmx.stream_readers import AnalogMultiChannelReader
+from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.task import Task
+from numpy.typing import NDArray
 
 from hardware import (
     DIVIDER_RESISTANCE,
@@ -34,7 +34,7 @@ class IVNoiseMeasurement(Process):
         resistance_in_series: float = 0.0,
     ) -> None:
         super(IVNoiseMeasurement, self).__init__()
-        self.results_queue: Queue[tuple[float, np.ndarray]] = results_queue
+        self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
 
         self.sample_rate: Final[float] = sample_rate
         self.current: Final[float] = current
@@ -63,14 +63,18 @@ class IVNoiseMeasurement(Process):
 
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
+            number_of_channels: int = task_adc.number_of_channels
+            number_of_samples_per_channel: int = task_adc.timing.samp_quant_samp_per_chan
+            sample_clock_rate: float = task_adc.timing.samp_clk_rate
+
             task_adc.start()
 
             while adc_stream.verify_array_shape:
-                data: np.ndarray = np.empty((2, task_adc.timing.samp_quant_samp_per_chan))
-                adc_stream.read_many_sample(data, task_adc.timing.samp_quant_samp_per_chan)
+                data: NDArray[np.float64] = np.empty((number_of_channels, number_of_samples_per_channel))
+                adc_stream.read_many_sample(data, number_of_samples_per_channel)
                 data[1] = (data[1] - offsets[adc_voltage.name]) / self.voltage_gain
                 data[0] = (data[0] - offsets[adc_current.name] - data[1]) / self.ballast_resistance
                 data[1] -= data[0] * self.resistance_in_series
-                self.results_queue.put((task_adc.timing.samp_clk_rate, data))
+                self.results_queue.put((sample_clock_rate, data))
 
         zero_sources()

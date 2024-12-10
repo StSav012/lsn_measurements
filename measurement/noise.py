@@ -1,6 +1,6 @@
 # coding: utf-8
 import time
-from multiprocessing import Process, Queue
+from multiprocessing import Event, Process, Queue
 from typing import Final
 
 import numpy as np
@@ -39,7 +39,14 @@ class NoiseMeasurement(Process):
         self.scale: Final[float] = scale
         self.measure_offset: Final[bool] = measure_offset
 
+        self._done: Event = Event()
+
+    def stop(self) -> None:
+        self._done.set()
+
     def run(self) -> None:
+        self._done.clear()
+
         if self.measure_offset:
             measure_offsets()
 
@@ -62,7 +69,7 @@ class NoiseMeasurement(Process):
 
             task_adc.start()
 
-            while adc_stream.verify_array_shape:
+            while not self._done.is_set():
                 data: NDArray[np.float64] = np.empty((number_of_channels, number_of_samples_per_channel))
                 adc_stream.read_many_sample(data, number_of_samples_per_channel)
                 self.results_queue.put((sample_clock_rate, data))
@@ -91,7 +98,14 @@ class IVNoiseMeasurement(Process):
         self.voltage_gain: Final[float] = voltage_gain
         self.current_divider: Final[float] = current_divider
 
+        self._done: Event = Event()
+
+    def stop(self) -> None:
+        self._done.set()
+
     def run(self) -> None:
+        self._done.clear()
+
         measure_offsets()
         task_adc: Task
         task_dac: Task
@@ -117,7 +131,7 @@ class IVNoiseMeasurement(Process):
 
             task_adc.start()
 
-            while adc_stream.verify_array_shape:
+            while not self._done.is_set():
                 data: NDArray[np.float64] = np.empty((number_of_channels, number_of_samples_per_channel))
                 adc_stream.read_many_sample(data, number_of_samples_per_channel)
                 data[1] = (data[1] - offsets[adc_voltage.name]) / self.voltage_gain

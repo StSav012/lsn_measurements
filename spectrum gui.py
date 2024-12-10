@@ -277,13 +277,14 @@ class App(GUI):
                 points_for_spectrum = round(sample_rate * self.spin_averaging_time_span.value())
                 self.v = np.concatenate((self.v, v))[-max(points_to_display, points_for_spectrum) :]
 
-        points_to_display = round(sample_rate * self.spin_display_time_span.value())
-        self.voltage_trend_plot_line.setData(
-            np.arange(min(self.v.size, points_to_display)) / sample_rate,
-            self.v[-points_to_display:],
-        )
+        if not np.isnan(sample_rate):
+            points_to_display = round(sample_rate * self.spin_display_time_span.value())
+            self.voltage_trend_plot_line.setData(
+                np.arange(min(self.v.size, points_to_display)) / sample_rate,
+                self.v[-points_to_display:],
+            )
 
-        self._draw_spectrum(sample_rate)
+            self._draw_spectrum(sample_rate)
 
     def _draw_spectrum(self, sample_rate: float) -> None:
         points_to_display: int = round(sample_rate * self.spin_display_time_span.value())

@@ -71,4 +71,7 @@ def get_scipy_signal_windows_by_name() -> Iterator[tuple[str, str]]:
         if summary.startswith("Return") and "window" in summary:
             summary = summary[: summary.index("window") + len("window")]
             summary = " ".join(summary.split()[1:])
+            if summary == "a window":
+                # fixup, back to the beginning
+                summary = " ".join(doc.splitlines()[0].split()[1:]).rstrip(".")
             yield wn, summary

@@ -219,6 +219,7 @@ class App(GUI):
 
         self.check_power_or_magnitude.toggled.connect(self.on_check_power_or_magnitude_toggled)
         self.combo_welch_window.currentTextChanged.connect(self.on_combo_welch_window_current_text_changed)
+        self.spin_display_time_span.valueChanged.connect(self.on_spin_display_time_span_value_changed)
 
     @Slot(bool)
     def on_check_power_or_magnitude_toggled(self, checked: bool) -> None:
@@ -247,6 +248,18 @@ class App(GUI):
     def on_combo_welch_window_current_text_changed(self, text: str) -> None:
         if not text:
             return
+        if not self.v.size:
+            return
+
+        x_data: NDArray[np.float64] | None = self.voltage_trend_plot_line.xData
+        if x_data is None:
+            return
+        sample_rate: float = (x_data.shape[0] - 1) / (x_data[-1] - x_data[0])
+
+        self._draw_spectrum(sample_rate)
+
+    @Slot(float)
+    def on_spin_display_time_span_value_changed(self, _value: float) -> None:
         if not self.v.size:
             return
 

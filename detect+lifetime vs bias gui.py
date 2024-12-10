@@ -240,9 +240,9 @@ class App(DetectLifetimeBase):
             self._add_plot_point_lifetime(set_bias, lifetime)
             self.last_lifetime_0 = lifetime_0
 
-        self._watch_temperature()
-
-        if self.good_to_go.is_set() and self.button_pause.isChecked():
+        if self._is_temperature_good() and not self.button_pause.isChecked():
+            self.good_to_go.set()
+        else:
             self.good_to_go.clear()
         if self.button_drop_measurement.isPushed():
             self.user_aborted.set()

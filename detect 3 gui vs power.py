@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 from typing import final
@@ -192,9 +190,9 @@ class App(DetectBase):
             self._add_plot_point(self.power_dbm, prob, err)
         self.last_prob = prob
 
-        self._watch_temperature()
-
-        if self.good_to_go.is_set() and self.button_pause.isChecked():
+        if self._is_temperature_good() and not self.button_pause.isChecked():
+            self.good_to_go.set()
+        else:
             self.good_to_go.clear()
         if self.button_drop_measurement.isPushed():
             self.user_aborted.set()

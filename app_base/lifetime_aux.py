@@ -413,7 +413,7 @@ class LifetimeBase(LifetimeGUI):
         td: timedelta
         actual_temperature: Quantity = self.triton.query_temperature(6)
         self.actual_temperature.value = actual_temperature.to_value("mK")
-        good_to_go: bool = True
+        good_to_go: bool
         if not (
             (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature.to_value(K)

@@ -175,9 +175,9 @@ class App(SwitchingCurrentDistributionBase):
             mean, std = self.results_queue.get(block=True)
             self._add_plot_point(self.temperature, mean, std)
 
-        self._watch_temperature()
-
-        if self.good_to_go.is_set() and self.button_pause.isChecked():
+        if self._is_temperature_good() and not self.button_pause.isChecked():
+            self.good_to_go.set()
+        else:
             self.good_to_go.clear()
         if self.button_drop_measurement.isPushed():
             self.user_aborted.set()

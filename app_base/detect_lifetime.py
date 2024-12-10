@@ -499,16 +499,17 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         y_data: NDArray[np.float64] = np.append(old_y_data, lifetime)
         self.plot_line_lifetime.setData(x_data, y_data)
 
-    def _watch_temperature(self) -> None:
+    def _is_temperature_good(self) -> bool:
         td: timedelta
         actual_temperature: Quantity = self.triton.query_temperature(6)
         self.actual_temperature.value = actual_temperature.to_value("mK")
+        good_to_go: bool
         if not (
             (1.0 - self.temperature_tolerance) * self.temperature
             < actual_temperature.to_value(K)
             < (1.0 + self.temperature_tolerance) * self.temperature
         ):
-            self.good_to_go.clear()
+            good_to_go = False
             self.bad_temperature_time = datetime.now()
             self.timer.setInterval(1000)
             print(f"temperature {actual_temperature} is too far from {self.temperature:.3f} K")
@@ -529,10 +530,10 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             td = datetime.now() - self.bad_temperature_time
             if td > self.temperature_delay:
                 self.timer.setInterval(50)
-                self.good_to_go.set()
+                good_to_go = True
                 self.temperature_just_set = False
             else:
-                self.good_to_go.clear()
+                good_to_go = False
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
@@ -540,7 +541,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 )
                 self.timer.setInterval(1000)
         else:
-            self.good_to_go.set()
+            good_to_go = True
+
+        return good_to_go
 
     def _stat_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (

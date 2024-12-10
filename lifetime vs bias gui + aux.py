@@ -231,9 +231,8 @@ class App(LifetimeBase):
             self._add_plot_point(set_bias, lifetime)
             self.last_lifetime_0 = lifetime_0
 
-        if self._is_temperature_good():
-            if not self.button_pause.isChecked():
-                self.good_to_go.set()
+        if self._is_temperature_good() and not self.button_pause.isChecked():
+            self.good_to_go.set()
         else:
             self.good_to_go.clear()
         if self.button_drop_measurement.isPushed():

@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (
 )
 
 from hardware import device_adc
-from measurement.noise import NoiseMeasurement
+from measurement.noise import IVNoiseMeasurement
 from utils.processing import welch
 
 _MAX_ADC_SAMPLE_RATE: Final[float] = device_adc.ai_max_multi_chan_rate
@@ -239,7 +239,7 @@ class App(GUI):
         self.timer.timeout.connect(self.on_timeout)
 
         self.results_queue: Queue[tuple[float, np.ndarray]] = Queue()
-        self.measurement: NoiseMeasurement | None = None
+        self.measurement: IVNoiseMeasurement | None = None
 
         self.i: np.ndarray = np.empty(0)
         self.v: np.ndarray = np.empty(0)
@@ -247,7 +247,7 @@ class App(GUI):
     def on_button_start_clicked(self) -> None:
         super(App, self).on_button_start_clicked()
         self.timer.start(40)
-        self.measurement = NoiseMeasurement(
+        self.measurement = IVNoiseMeasurement(
             self.results_queue,
             sample_rate=self.spin_sample_rate.value(),
             current=self.spin_current.value(),

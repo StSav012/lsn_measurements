@@ -19,10 +19,10 @@ from hardware import (
 )
 from utils.ni import measure_offsets, zero_sources
 
-__all__ = ["NoiseMeasurement"]
+__all__ = ["IVNoiseMeasurement"]
 
 
-class NoiseMeasurement(Process):
+class IVNoiseMeasurement(Process):
     def __init__(
         self,
         results_queue: Queue,
@@ -33,7 +33,7 @@ class NoiseMeasurement(Process):
         current_divider: float,
         resistance_in_series: float = 0.0,
     ) -> None:
-        super(NoiseMeasurement, self).__init__()
+        super(IVNoiseMeasurement, self).__init__()
         self.results_queue: Queue[tuple[float, np.ndarray]] = results_queue
 
         self.sample_rate: Final[float] = sample_rate

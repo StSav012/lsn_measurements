@@ -256,10 +256,8 @@ class App(GUI):
     def on_button_stop_clicked(self) -> None:
         if silent_alive(self.measurement):
             self.measurement.stop()
-            self.measurement.join()
-        else:
-            clear_queue_after_process(self.measurement, self.results_queue)
-            self.measurement = None
+        clear_queue_after_process(self.measurement, self.results_queue)
+        self.measurement = None
         self.timer.stop()
         super().on_button_stop_clicked()
 

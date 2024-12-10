@@ -271,7 +271,7 @@ class App(GUI):
             try:
                 sample_rate, v = self.results_queue.get()
             except Empty:
-                return
+                break
             else:
                 points_to_display = round(sample_rate * self.spin_display_time_span.value())
                 points_for_spectrum = round(sample_rate * self.spin_averaging_time_span.value())

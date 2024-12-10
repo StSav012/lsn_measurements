@@ -51,10 +51,10 @@ class GUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
-        self.canvas_voltage_trend: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
-        self.canvas_voltage_spectrum: pg.PlotItem = self.figure.ci.addPlot(row=1, col=0)
-        self.voltage_trend_plot_line: pg.PlotDataItem = self.canvas_voltage_trend.plot(np.empty(0), name="")
-        self.voltage_spectrum_plot_line: pg.PlotDataItem = self.canvas_voltage_spectrum.plot(np.empty(0), name="")
+        self.canvas_trend: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
+        self.canvas_spectrum: pg.PlotItem = self.figure.ci.addPlot(row=1, col=0)
+        self.line_trend: pg.PlotDataItem = self.canvas_trend.plot(np.empty(0), name="")
+        self.line_spectrum: pg.PlotDataItem = self.canvas_spectrum.plot(np.empty(0), name="")
 
         self.combo_channel: pg.ComboBox = pg.ComboBox(self.central_widget)
         self.spin_sample_rate: pg.SpinBox = pg.SpinBox(self.central_widget)
@@ -113,20 +113,20 @@ class GUI(QMainWindow):
         self.spin_display_time_span.setSuffix(self.tr(" s"))
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        self.canvas_voltage_trend.setLabels(
+        self.canvas_trend.setLabels(
             left=(self.tr("Voltage"), self.tr("V")),
             bottom=(self.tr("Time"), self.tr("s")),
         )
-        self.canvas_voltage_trend.showGrid(x=True, y=False)
-        self.canvas_voltage_spectrum.setLabels(
+        self.canvas_trend.showGrid(x=True, y=False)
+        self.canvas_spectrum.setLabels(
             left=(self.tr("Voltage PSD"), self.tr("V / sqrt(Hz)")),
             bottom=(self.tr("Frequency"), self.tr("Hz")),
         )
-        self.canvas_voltage_spectrum.getAxis("left").autoSIPrefix = False
-        self.canvas_voltage_spectrum.getAxis("bottom").autoSIPrefix = False
-        self.canvas_voltage_spectrum.setMenuEnabled(enableMenu=False)
-        self.canvas_voltage_spectrum.setLogMode(x=True, y=True)
-        self.canvas_voltage_spectrum.showGrid(x=True, y=True)
+        self.canvas_spectrum.getAxis("left").autoSIPrefix = False
+        self.canvas_spectrum.getAxis("bottom").autoSIPrefix = False
+        self.canvas_spectrum.setMenuEnabled(enableMenu=False)
+        self.canvas_spectrum.setLogMode(x=True, y=True)
+        self.canvas_spectrum.showGrid(x=True, y=True)
 
         self.main_layout.addWidget(self.figure)
         self.main_layout.addLayout(self.controls_layout)
@@ -196,8 +196,8 @@ class GUI(QMainWindow):
         self.button_start.setDisabled(True)
         self.parameters_box.setDisabled(True)
         self.button_stop.setEnabled(True)
-        self.voltage_trend_plot_line.setData([], [])
-        self.voltage_spectrum_plot_line.setData([], [])
+        self.line_trend.setData([], [])
+        self.line_spectrum.setData([], [])
 
     @Slot()
     def on_button_stop_clicked(self) -> None:
@@ -226,12 +226,12 @@ class App(GUI):
     @Slot(bool)
     def on_check_power_or_magnitude_toggled(self, checked: bool) -> None:
         if checked:
-            self.canvas_voltage_spectrum.setLabels(
+            self.canvas_spectrum.setLabels(
                 left=(self.tr("Voltage PSD"), self.tr("V² / Hz")),
                 bottom=(self.tr("Frequency"), self.tr("Hz")),
             )
         else:
-            self.canvas_voltage_spectrum.setLabels(
+            self.canvas_spectrum.setLabels(
                 left=(self.tr("Voltage PSD"), self.tr("V / sqrt(Hz)")),
                 bottom=(self.tr("Frequency"), self.tr("Hz")),
             )
@@ -239,7 +239,7 @@ class App(GUI):
         if not self.v.size:
             return
 
-        x_data: NDArray[np.float64] | None = self.voltage_trend_plot_line.xData
+        x_data: NDArray[np.float64] | None = self.line_trend.xData
         if x_data is None:
             return
         sample_rate: float = (x_data.shape[0] - 1) / (x_data[-1] - x_data[0])
@@ -253,7 +253,7 @@ class App(GUI):
         if not self.v.size:
             return
 
-        x_data: NDArray[np.float64] | None = self.voltage_trend_plot_line.xData
+        x_data: NDArray[np.float64] | None = self.line_trend.xData
         if x_data is None:
             return
         sample_rate: float = (x_data.shape[0] - 1) / (x_data[-1] - x_data[0])
@@ -265,7 +265,7 @@ class App(GUI):
         if not self.v.size:
             return
 
-        x_data: NDArray[np.float64] | None = self.voltage_trend_plot_line.xData
+        x_data: NDArray[np.float64] | None = self.line_trend.xData
         if x_data is None:
             return
         sample_rate: float = (x_data.shape[0] - 1) / (x_data[-1] - x_data[0])
@@ -312,7 +312,7 @@ class App(GUI):
 
         if not np.isnan(sample_rate):
             points_to_display = round(sample_rate * self.spin_display_time_span.value())
-            self.voltage_trend_plot_line.setData(
+            self.line_trend.setData(
                 np.arange(min(self.v.size, points_to_display)) / sample_rate,
                 self.v[-points_to_display:],
             )
@@ -333,9 +333,9 @@ class App(GUI):
             window=self.combo_welch_window.value(),
         )
         if self.check_power_or_magnitude.isChecked():
-            self.voltage_spectrum_plot_line.setData(freq, pn_xx)
+            self.line_spectrum.setData(freq, pn_xx)
         else:
-            self.voltage_spectrum_plot_line.setData(freq, np.sqrt(pn_xx))
+            self.line_spectrum.setData(freq, np.sqrt(pn_xx))
 
 
 if __name__ == "__main__":

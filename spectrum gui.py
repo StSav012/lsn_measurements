@@ -296,7 +296,7 @@ class App(GUI):
         freq, pn_xx = welch(
             self.v[-points_for_spectrum:],
             fs=sample_rate,
-            nperseg=points_to_display,
+            nperseg=min(points_to_display, points_for_spectrum, self.v.shape[0]),
             window=self.combo_welch_window.value(),
         )
         if self.check_power_or_magnitude.isChecked():

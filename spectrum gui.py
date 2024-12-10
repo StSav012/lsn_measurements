@@ -1,5 +1,6 @@
 # coding: utf-8
 import sys
+from contextlib import suppress
 from multiprocessing import Queue
 from queue import Empty
 from typing import Final, final
@@ -86,6 +87,15 @@ class GUI(QMainWindow):
         self.spin_sample_rate.setOpts(**opts)
         self.spin_sample_rate.setRange(1.0, _MAX_ADC_SAMPLE_RATE)
 
+        opts = {
+            "siPrefix": True,
+            "decimals": 3,
+            "dec": True,
+            "compactHeight": False,
+            "format": "{scaledValue:.{decimals}f}{suffixGap}{siPrefix}{suffix}",
+        }
+        self.spin_scale.setOpts(**opts)
+
         self.check_power_or_magnitude.setText(self.tr("Power units"))
 
         self.combo_welch_window.setItems({key: value for value, key in get_scipy_signal_windows_by_name()})
@@ -122,6 +132,7 @@ class GUI(QMainWindow):
         self.controls_layout.addWidget(self.parameters_box)
         self.controls_layout.addLayout(self.buttons_layout)
 
+        self.parameters_layout.addRow(self.tr("Channel:"), self.combo_channel)
         self.parameters_layout.addRow(self.tr("Sample rate:"), self.spin_sample_rate)
         self.parameters_layout.addRow(self.tr("Voltage scale:"), self.spin_scale)
         self.parameters_layout.addWidget(self.check_power_or_magnitude)
@@ -147,6 +158,9 @@ class GUI(QMainWindow):
         self.restoreState(self.settings.value("windowState", b""))
 
         self.settings.beginGroup("parameters")
+        with suppress(ValueError):
+            # `ValueError` might occur when there is no such channel present
+            self.combo_channel.setText(self.settings.value("channel", self.combo_channel.currentText(), str))
         self.spin_sample_rate.setValue(self.settings.value("sampleRate", 32678.0, float))
         self.spin_scale.setValue(self.settings.value("voltageScale", 100.0, float))
         self.check_power_or_magnitude.setChecked(self.settings.value("powerUnits", True, bool))
@@ -160,6 +174,7 @@ class GUI(QMainWindow):
         self.settings.setValue("windowState", self.saveState())
 
         self.settings.beginGroup("parameters")
+        self.settings.setValue("channel", self.combo_channel.currentText())
         self.settings.setValue("sampleRate", self.spin_sample_rate.value())
         self.settings.setValue("voltageScale", self.spin_scale.value())
         self.settings.setValue("powerUnits", self.check_power_or_magnitude.isChecked())

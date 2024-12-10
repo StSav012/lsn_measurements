@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from typing import Callable, TypeVar
+from typing import Callable, Iterator, Sized, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy import signal
 
-__all__ = ["welch", "moving_mean", "moving_median"]
+__all__ = ["welch", "moving_mean", "moving_median", "get_scipy_signal_windows_by_name"]
 
 _T = TypeVar("_T")
 
@@ -40,3 +40,35 @@ def moving_mean(x: NDArray[_T], n: int) -> NDArray[_T]:
 
 def moving_median(x: NDArray[_T], n: int) -> NDArray[_T]:
     return moving_average(x, n, np.median)
+
+
+def get_scipy_signal_windows_by_name() -> Iterator[tuple[str, str]]:
+    from inspect import FullArgSpec, getdoc, getfullargspec
+
+    from scipy.signal import windows
+
+    def none_len(o: Sized | None) -> int:
+        if o is None:
+            return 0
+        return len(o)
+
+    for wn in windows.__dict__.get("__all__", []):
+        w: object = getattr(windows, wn)
+        if not callable(w):
+            continue
+
+        arg_spec: FullArgSpec = getfullargspec(w)
+        if none_len(arg_spec.args) + none_len(arg_spec.varargs) - none_len(arg_spec.defaults) != 1 and none_len(
+            arg_spec.kwonlyargs
+        ) == none_len(arg_spec.kwonlydefaults):
+            continue
+
+        doc: str = getdoc(w)
+        if not doc:
+            continue
+
+        summary: str = doc.splitlines()[0]
+        if summary.startswith("Return") and "window" in summary:
+            summary = summary[: summary.index("window") + len("window")]
+            summary = " ".join(summary.split()[1:])
+            yield wn, summary

@@ -275,7 +275,7 @@ class App(GUI):
             else:
                 points_to_display = round(sample_rate * self.spin_display_time_span.value())
                 points_for_spectrum = round(sample_rate * self.spin_averaging_time_span.value())
-                self.v = np.concatenate((self.v, v))[-max(points_to_display, points_for_spectrum) :]
+                self.v = np.concatenate((self.v, v[0]))[-max(points_to_display, points_for_spectrum) :]
 
         if not np.isnan(sample_rate):
             points_to_display = round(sample_rate * self.spin_display_time_span.value())

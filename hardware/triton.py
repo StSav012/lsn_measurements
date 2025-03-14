@@ -1,6 +1,4 @@
-# coding: utf-8
-from __future__ import annotations
-
+import time
 from collections import OrderedDict
 from datetime import datetime, timezone
 from math import nan
@@ -137,7 +135,7 @@ class Triton(Thread):
     def issue_temperature(self, index: int, value: float | Quantity) -> bool:
         if isinstance(value, Quantity):
             value = value.to_value("K")
-        return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:T" "SET", value)
+        return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:TSET", value)
 
     def ensure_temperature(self, index: int, value: float | Quantity) -> bool:
         if isinstance(value, Quantity):
@@ -173,6 +171,7 @@ class Triton(Thread):
                 self._has_pending_data.wait_for(self.conversation.__len__, 0.1)
                 for command in list(self.conversation):
                     self.communicate(command)
+                time.sleep(1)
 
 
 class TritonScript(socket):

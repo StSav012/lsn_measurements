@@ -10,7 +10,7 @@ import pyqtgraph as pg
 from nidaqmx.system.physical_channel import PhysicalChannel
 from numpy.typing import NDArray
 from qtpy import QT5
-from qtpy.QtCore import QSettings, QTimer, Qt, Slot
+from qtpy.QtCore import QSettings, Qt, QTimer, Slot
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
     QApplication,
@@ -103,13 +103,13 @@ class GUI(QMainWindow):
         self.spin_averaging_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)
         self.spin_averaging_time_span.setMaximum(np.inf)
         self.spin_averaging_time_span.setSingleStep(1.0 / _MAX_ADC_SAMPLE_RATE)
-        self.spin_averaging_time_span.setDecimals(max(0, np.ceil(np.log10(_MAX_ADC_SAMPLE_RATE))))
+        self.spin_averaging_time_span.setDecimals(max(0, int(np.ceil(np.log10(_MAX_ADC_SAMPLE_RATE)))))
         self.spin_averaging_time_span.setSuffix(self.tr(" s"))
 
         self.spin_display_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)
         self.spin_display_time_span.setMaximum(np.inf)
         self.spin_display_time_span.setSingleStep(1.0 / _MAX_ADC_SAMPLE_RATE)
-        self.spin_display_time_span.setDecimals(max(0, np.ceil(np.log10(_MAX_ADC_SAMPLE_RATE))))
+        self.spin_display_time_span.setDecimals(max(0, int(np.ceil(np.log10(_MAX_ADC_SAMPLE_RATE)))))
         self.spin_display_time_span.setSuffix(self.tr(" s"))
 
         self.figure.setFocusPolicy(Qt.FocusPolicy.ClickFocus)

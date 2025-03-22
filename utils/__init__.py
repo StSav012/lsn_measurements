@@ -1,12 +1,9 @@
 import sys
-
 from contextlib import suppress
-
 from ipaddress import IPv4Address, ip_address
 from multiprocessing import Process
-from queue import Empty
 from multiprocessing.queues import Queue as QueueType
-
+from queue import Empty
 from socket import AF_INET, SOCK_DGRAM, socket
 from typing import Any, Callable
 

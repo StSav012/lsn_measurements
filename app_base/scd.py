@@ -275,8 +275,25 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
         self.switching_current = []
         self.switching_voltage = []
+
         self.synthesizer.output = self.synthesizer_output
         self.synthesizer.power.alc.low_noise = True
+        self.triton.ensure_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.label_current_speed.setValue(self.current_speed)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.setValue(self.frequency)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.setValue(self.power_dbm)
+
+        self.temperature_just_set = not (
+            (1.0 - self.temperature_tolerance) * self.temperature
+            < self.triton.query_temperature(6).to_value(K)
+            < (1.0 + self.temperature_tolerance) * self.temperature
+        )
+
+        self.button_drop_measurement.reset()
 
         self.measurement = SCDMeasurement(
             results_queue=self.results_queue,
@@ -306,21 +323,6 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             adc_rate=self.adc_rate,
         )
         self.measurement.start()
-
-        self.triton.ensure_temperature(6, self.temperature)
-        self.label_temperature.setValue(self.temperature * 1000)
-        self.label_current_speed.setValue(self.current_speed)
-        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
-        self.synthesizer.frequency = self.frequency * 1e9
-        self.label_frequency.setValue(self.frequency)
-        self.synthesizer.power.level = self.power_dbm
-        self.label_power.setValue(self.power_dbm)
-
-        self.temperature_just_set = not (
-            (1.0 - self.temperature_tolerance) * self.temperature
-            < self.triton.query_temperature(6).to_value(K)
-            < (1.0 + self.temperature_tolerance) * self.temperature
-        )
 
         print(f"\nsaving to {self.stat_file}")
         self.setWindowTitle(f"Switching Current Distribution — {self.stat_file}")

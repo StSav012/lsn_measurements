@@ -294,6 +294,25 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.synthesizer.pulse_modulation.source = "ext"
         self.synthesizer.pulse_modulation.state = True
         self.synthesizer.output = True
+        self.triton.ensure_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.label_setting_time.setValue(self.setting_time * 1000)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.setValue(self.frequency)
+        self.label_bias.setValue(self.bias_current)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.setValue(self.power_dbm)
+        self.label_pulse_duration.setValue(self.pulse_duration * 1000)
+        self.label_spent_time.clear()
+
+        self.temperature_just_set = not (
+            (1.0 - self.temperature_tolerance) * self.temperature
+            < self.triton.query_temperature(6).to_value(K)
+            < (1.0 + self.temperature_tolerance) * self.temperature
+        )
+
+        self.button_drop_measurement.reset()
 
         self.measurement = DetectMeasurement(
             results_queue=self.results_queue_detect,
@@ -324,24 +343,6 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         )
         self.measurement.start()
 
-        self.triton.ensure_temperature(6, self.temperature)
-        self.label_temperature.setValue(self.temperature * 1000)
-        self.label_setting_time.setValue(self.setting_time * 1000)
-        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
-        self.synthesizer.frequency = self.frequency * 1e9
-        self.label_frequency.setValue(self.frequency)
-        self.label_bias.setValue(self.bias_current)
-        self.synthesizer.power.level = self.power_dbm
-        self.label_power.setValue(self.power_dbm)
-        self.label_pulse_duration.setValue(self.pulse_duration * 1000)
-        self.label_spent_time.clear()
-
-        self.temperature_just_set = not (
-            (1.0 - self.temperature_tolerance) * self.temperature
-            < self.triton.query_temperature(6).to_value(K)
-            < (1.0 + self.temperature_tolerance) * self.temperature
-        )
-
         print(f"saving to {self.stat_file}")
         self.setWindowTitle(f"Detect+Lifetime — {self.stat_file}")
         self.timer.start(50)
@@ -353,6 +354,25 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.synthesizer.power.alc.low_noise = True
         self.synthesizer.output = False
+        self.triton.ensure_temperature(6, self.temperature)
+        self.label_temperature.setValue(self.temperature * 1000)
+        self.label_setting_time.setValue(self.setting_time * 1000)
+        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
+        self.synthesizer.frequency = self.frequency * 1e9
+        self.label_frequency.clear()
+        self.label_bias.setValue(self.bias_current)
+        self.synthesizer.power.level = self.power_dbm
+        self.label_power.clear()
+        self.label_pulse_duration.clear()
+        self.label_loop_count.setValue(self.cycles_count_lifetime)
+
+        self.temperature_just_set = not (
+            (1.0 - self.temperature_tolerance) * self.temperature
+            < self.triton.query_temperature(6).to_value(K)
+            < (1.0 + self.temperature_tolerance) * self.temperature
+        )
+
+        self.button_drop_measurement.reset()
 
         self.measurement = LifetimeMeasurement(
             results_queue=self.results_queue_lifetime,
@@ -381,24 +401,6 @@ class DetectLifetimeBase(DetectLifetimeGUI):
             delay_between_cycles=self.delay_between_cycles,
         )
         self.measurement.start()
-
-        self.triton.ensure_temperature(6, self.temperature)
-        self.label_temperature.setValue(self.temperature * 1000)
-        self.label_setting_time.setValue(self.setting_time * 1000)
-        self.label_delay_between_cycles.setValue(self.delay_between_cycles * 1000)
-        self.synthesizer.frequency = self.frequency * 1e9
-        self.label_frequency.clear()
-        self.label_bias.setValue(self.bias_current)
-        self.synthesizer.power.level = self.power_dbm
-        self.label_power.clear()
-        self.label_pulse_duration.clear()
-        self.label_loop_count.setValue(self.cycles_count_lifetime)
-
-        self.temperature_just_set = not (
-            (1.0 - self.temperature_tolerance) * self.temperature
-            < self.triton.query_temperature(6).to_value(K)
-            < (1.0 + self.temperature_tolerance) * self.temperature
-        )
 
         print(f"saving to {self.stat_file}")
         self.setWindowTitle(f"Detect+Lifetime — {self.stat_file}")

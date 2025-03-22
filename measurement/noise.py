@@ -1,7 +1,7 @@
 # coding: utf-8
 import time
 from multiprocessing import Event, Process, Queue
-from typing import Final
+from typing import Final, Sequence
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -26,14 +26,14 @@ class NoiseMeasurement(Process):
     def __init__(
         self,
         results_queue: Queue,
-        channel: PhysicalChannel,
+        *channels: PhysicalChannel,
         sample_rate: float,
         measure_offset: bool = False,
     ) -> None:
         super().__init__()
         self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
 
-        self.channel: PhysicalChannel = channel
+        self.channels: Sequence[PhysicalChannel] = channels
         self.sample_rate: Final[float] = sample_rate
         self.measure_offset: Final[bool] = measure_offset
 
@@ -51,7 +51,8 @@ class NoiseMeasurement(Process):
         task_adc: Task
 
         with Task() as task_adc:
-            task_adc.ai_channels.add_ai_voltage_chan(self.channel.name)
+            for channel in self.channels:
+                task_adc.ai_channels.add_ai_voltage_chan(channel.name)
 
             task_adc.timing.cfg_samp_clk_timing(
                 rate=self.sample_rate,

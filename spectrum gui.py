@@ -281,7 +281,7 @@ class App(GUI):
         self.timer.start(40)
         self.measurement = NoiseMeasurement(
             self.results_queue,
-            channel=self.combo_channel.value(),
+            self.combo_channel.value(),
             sample_rate=self.spin_sample_rate.value(),
         )
         self.measurement.start()

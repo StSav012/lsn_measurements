@@ -1,16 +1,20 @@
-# -*- coding: utf-8 -*-
 import sys
 
 from contextlib import suppress
 
 from ipaddress import IPv4Address, ip_address
 from multiprocessing import Process
-from queue import Empty, Queue
+from queue import Empty
+from multiprocessing.queues import Queue as QueueType
 
 from socket import AF_INET, SOCK_DGRAM, socket
 from typing import Any, Callable
 
-__all__ = ["Auto", "warning", "error", "get_local_ip", "silent_alive", "clear_queue_after_process"]
+if not hasattr(QueueType, "__class_getitem__"):
+    # Python < 3.12 or so
+    QueueType.__class_getitem__ = lambda *_, **__: QueueType
+
+__all__ = ["Auto", "warning", "error", "get_local_ip", "silent_alive", "drain_queue", "clear_queue_after_process"]
 
 Auto = None
 
@@ -40,18 +44,32 @@ def silent_alive(process: Any) -> bool:
     return bool(is_alive)
 
 
-def clear_queue_after_process(process: Process, queue: Queue) -> None:
-    while silent_alive(process):
-        while queue.qsize():
-            with suppress(Empty):
-                queue.get_nowait()
-    while queue.qsize():
+def drain_queue(queue: QueueType[Any]) -> None:
+    while not queue.empty():
         with suppress(Empty):
             queue.get_nowait()
-    with suppress(
-        ValueError,  # ValueError: the process object is closed
-        AssertionError,  # AssertionError: can only join a started process
-        AttributeError,  # AttributeError: 'NoneType' object has no attribute 'join'
-    ):
-        process.join()
-        process.close()
+
+
+def clear_queue_after_process(process: Process, *queue: QueueType[Any]) -> None:
+    while True:
+        while silent_alive(process):
+            for q in queue:
+                if isinstance(q, QueueType):  # ensure the correct type
+                    drain_queue(q)
+        for q in queue:
+            if isinstance(q, QueueType):
+                drain_queue(q)
+        if process is None:
+            break
+        try:
+            process.join(timeout=0.1)
+            process.close()
+        except (
+            ValueError,  # ValueError: the process object is closed
+            AssertionError,  # AssertionError: can only join a started process
+        ):
+            break
+        except TimeoutError:
+            continue
+        else:
+            break

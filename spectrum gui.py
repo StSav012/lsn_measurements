@@ -283,7 +283,6 @@ class App(GUI):
             self.results_queue,
             channel=self.combo_channel.value(),
             sample_rate=self.spin_sample_rate.value(),
-            scale=self.spin_scale.value(),
         )
         self.measurement.start()
 
@@ -316,7 +315,7 @@ class App(GUI):
             points_to_display = round(sample_rate * self.spin_display_time_span.value())
             self.line_trend.setData(
                 np.arange(min(self.v.size, points_to_display)) / sample_rate,
-                self.v[-points_to_display:],
+                self.v[-points_to_display:] * self.spin_scale.value(),
             )
 
             self._draw_spectrum(sample_rate)
@@ -334,6 +333,7 @@ class App(GUI):
             nperseg=min(points_to_display, points_for_spectrum, self.v.shape[0]),
             window=self.combo_welch_window.value(),
         )
+        pn_xx *= self.spin_scale.value() ** 2
         if self.check_power_or_magnitude.isChecked():
             self.line_spectrum.setData(freq, pn_xx)
         else:

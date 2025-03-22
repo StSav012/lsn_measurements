@@ -28,7 +28,6 @@ class NoiseMeasurement(Process):
         results_queue: Queue,
         channel: PhysicalChannel,
         sample_rate: float,
-        scale: float,
         measure_offset: bool = False,
     ) -> None:
         super().__init__()
@@ -36,7 +35,6 @@ class NoiseMeasurement(Process):
 
         self.channel: PhysicalChannel = channel
         self.sample_rate: Final[float] = sample_rate
-        self.scale: Final[float] = scale
         self.measure_offset: Final[bool] = measure_offset
 
         self._done: Event = Event()

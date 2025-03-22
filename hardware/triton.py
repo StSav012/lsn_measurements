@@ -282,7 +282,6 @@ class TritonScript(socket):
 
 
 if __name__ == "__main__":
-    import time
     from pprint import pp
 
     t: Triton = Triton()

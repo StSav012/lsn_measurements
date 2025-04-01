@@ -1,17 +1,18 @@
-# coding: utf-8
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
-from ipaddress import IPv4Address, IPv4Network, ip_address, ip_network
-from socket import AF_INET, SOCK_STREAM, error, gethostbyname_ex, gethostname, socket
+from ipaddress import IPv4Address, IPv4Network, ip_network
+from socket import AF_INET, SOCK_STREAM, socket
 
 from netifaces import ifaddresses, interfaces
 
 __all__ = ["port_scanner"]
 
-from utils import get_local_ip
 
-
-def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
+def port_scanner(
+    *ports: int,
+    timeout: float = 0.1,
+    max_network_capacity: int = 0x100,
+) -> list[IPv4Address]:
     ports = list(ports)
 
     if not ports:
@@ -22,15 +23,12 @@ def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
         sock.settimeout(timeout)
         try:
             sock.connect((str(host_to_try), port_to_try))
-        except error:
+        except OSError:
             return False
         else:
             return True
         finally:
             sock.close()
-
-    local_ips: set[IPv4Address] = set(map(ip_address, gethostbyname_ex(gethostname())[2]))
-    local_ips.add(get_local_ip())
 
     connectable_hosts: dict[int, set[IPv4Address]] = defaultdict(set)
 
@@ -38,27 +36,28 @@ def port_scanner(*ports: int, timeout: float = 0.1) -> list[IPv4Address]:
     for interface in interfaces():
         address: dict[str, str]
         for address in ifaddresses(interface).get(AF_INET, []):
-            for local_ip in local_ips:
-                if address["addr"] != str(local_ip):
-                    continue
-                network: IPv4Network = ip_network(f'{local_ip}/{address["net""mask"]}', strict=False)
-                with ThreadPoolExecutor(max_workers=255) as executor:
-                    host: IPv4Address
-                    port: int
-                    futures: dict[Future[bool], (IPv4Address, int)] = {
-                        executor.submit(connectable_host, host, port): (host, port)
-                        for port in ports
-                        for host in network.hosts()
-                        if host != local_ip
-                    }
-                    future: Future[bool]
-                    for future in as_completed(futures):
-                        try:
-                            if future.result():
-                                host, port = futures[future]
-                                connectable_hosts[port].add(host)
-                        except Exception as ex:
-                            print(f"{futures[future]} generated an exception: {ex}")
+            network: IPv4Network = ip_network(f"{address['addr']}/{address['netmask']}", strict=False)
+
+            if network.num_addresses > max_network_capacity:
+                continue
+
+            with ThreadPoolExecutor(max_workers=255) as executor:
+                host: IPv4Address
+                port: int
+                futures: dict[Future[bool], (IPv4Address, int)] = {
+                    executor.submit(connectable_host, host, port): (host, port)
+                    for port in ports
+                    for host in network.hosts()
+                    if host != address["addr"]
+                }
+                future: Future[bool]
+                for future in as_completed(futures):
+                    try:
+                        if future.result():
+                            host, port = futures[future]
+                            connectable_hosts[port].add(host)
+                    except Exception as ex:
+                        print(f"{futures[future]} generated an exception: {ex}")
 
     if not connectable_hosts:
         return []

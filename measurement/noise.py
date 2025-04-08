@@ -1,7 +1,7 @@
 # coding: utf-8
 import time
 from multiprocessing import Event, Process, Queue
-from typing import Final, Sequence
+from typing import Any, Final, Literal, Sequence
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -57,21 +57,32 @@ class NoiseMeasurement(Process):
             task_adc.timing.cfg_samp_clk_timing(
                 rate=self.sample_rate,
                 sample_mode=AcquisitionType.CONTINUOUS,
-                samps_per_chan=task_adc.in_stream.input_onbrd_buf_size,
             )
 
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             number_of_channels: int = task_adc.number_of_channels
-            number_of_samples_per_channel: int = task_adc.timing.samp_quant_samp_per_chan
             sample_clock_rate: float = task_adc.timing.samp_clk_rate
+
+            def reading_task_callback(
+                _task_idx: int,
+                _event_type: int,
+                num_samples: int,
+                _callback_data: Any,
+            ) -> Literal[0]:
+                data: NDArray[np.float64] = np.empty((number_of_channels, num_samples), dtype=np.float64)
+                adc_stream.read_many_sample(data, num_samples)
+                self.results_queue.put((sample_clock_rate, data))
+                return 0
+
+            # noinspection PyTypeChecker
+            task_adc.register_every_n_samples_acquired_into_buffer_event(
+                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+            )
 
             task_adc.start()
 
-            while not self._done.is_set():
-                data: NDArray[np.float64] = np.empty((number_of_channels, number_of_samples_per_channel))
-                adc_stream.read_many_sample(data, number_of_samples_per_channel)
-                self.results_queue.put((sample_clock_rate, data))
+            self._done.wait()
 
             task_adc.stop()
 

@@ -5,13 +5,24 @@ from multiprocessing import Process
 from multiprocessing.queues import Queue as QueueType
 from queue import Empty
 from socket import AF_INET, SOCK_DGRAM, socket
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
+
+import numpy as np
 
 if not hasattr(QueueType, "__class_getitem__"):
     # Python < 3.12 or so
     QueueType.__class_getitem__ = lambda *_, **__: QueueType
 
-__all__ = ["Auto", "warning", "error", "get_local_ip", "silent_alive", "drain_queue", "clear_queue_after_process"]
+__all__ = [
+    "Auto",
+    "warning",
+    "error",
+    "get_local_ip",
+    "silent_alive",
+    "drain_queue",
+    "clear_queue_after_process",
+    "all_equally_shaped",
+]
 
 Auto = None
 
@@ -70,3 +81,14 @@ def clear_queue_after_process(process: Process, *queue: QueueType[Any]) -> None:
             continue
         else:
             break
+
+
+def all_equally_shaped(arrays: Iterable[np.ndarray]) -> bool:
+    s: tuple[int, ...] | None = None
+    for a in arrays:
+        if s is None:
+            s = a.shape
+            continue
+        if s != a.shape:
+            return False
+    return True

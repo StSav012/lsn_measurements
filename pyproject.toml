@@ -2,9 +2,41 @@
 name = "lsn_measurements"
 version = "2025.04.17"
 requires-python = ">=3.12"
+dependencies = [
+    "QtPy",
+    "pathvalidate",
+    "numpy",
+    "scipy",
+    "pyqtgraph",
+    "pandas",
+
+    # for quantities with units
+    "astropy",
+
+    # for communication with hardware
+    "netifaces",
+    "requests",
+    "nidaqmx>=1.0.0",
+    "pyserial",
+    "PyVISA",
+    "python-vxi11",
+    "telnetlib3",
+    "PyMeasure",
+
+    'tomli; python_version < "3.11"',
+]
+[project.optional-dependencies]
+matplotlib = ['matplotlib']
+formatting = [
+    'black',
+    'ruff<0.4.3; platform_system=="Windows" and platform_release<"10"',
+    'ruff; platform_system!="Windows" or platform_release>="10"',
+]
+pyside6 = ['PySide6_Essentials >=6.1, !=6.8.0, !=6.8.0.1']
+pyqt5 = ['PyQt5 >=5.15']
+pyqt6 = ['PyQt6 >=6.1']
 
 [tool.black]
-target-version = ["py312", "py313"]
 line-length = 120
 
 [tool.ruff]
@@ -14,9 +46,3 @@ line-length = 120
 fixable = ["ALL"]
 unfixable = []
 select = ["NPY201"]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"

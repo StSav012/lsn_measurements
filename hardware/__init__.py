@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 try:
     from tomllib import loads
 except ImportError:
@@ -27,6 +24,7 @@ __all__ = [
     "DIVIDER_RESISTANCE",
     "device_dac",
     "device_adc",
+    "device_dio",
     "adc_sync",
     "adc_voltage",
     "adc_current",
@@ -48,6 +46,7 @@ if not config_file.exists():
 [PXI]
 ADC = "PXI-..."
 DAC = "PXI-..."
+DIO = "PXI-..."
 
 [physical_chans.AI]
 voltage = <int>
@@ -95,6 +94,7 @@ def find_device(**kwargs: Any) -> Device:
 
 device_adc: Final[Device] = find_device(product_type=pxi["ADC"])
 device_dac: Final[Device] = find_device(product_type=pxi["DAC"])
+device_dio: Final[Device] = find_device(product_type=pxi["DIO"])
 
 physical_chans: Final[dict[str, dict[str, int]]] = config["physical_chans"]
 

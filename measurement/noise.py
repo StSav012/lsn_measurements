@@ -10,13 +10,6 @@ from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.task import Task
 from numpy.typing import NDArray
 
-from hardware import (
-    DIVIDER_RESISTANCE,
-    adc_current,
-    adc_voltage,
-    dac_current,
-    offsets,
-)
 from utils.ni import measure_offsets
 
 __all__ = ["IVNoiseMeasurement", "NoiseMeasurement"]
@@ -128,6 +121,14 @@ class IVNoiseMeasurement(Process):
         self._done.set()
 
     def run(self) -> None:
+        from hardware import (
+            DIVIDER_RESISTANCE,
+            adc_current,
+            adc_voltage,
+            dac_current,
+            offsets,
+        )
+
         self._done.clear()
 
         measure_offsets()

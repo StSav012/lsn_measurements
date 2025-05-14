@@ -1,7 +1,8 @@
 import sys
 from collections import deque
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Final, cast
+from functools import cached_property
+from typing import cast
 
 import numpy as np
 from nidaqmx.constants import WAIT_INFINITELY, AcquisitionType
@@ -10,8 +11,6 @@ from nidaqmx.task import Task
 from nidaqmx.task.channels import AIChannel
 from numpy.typing import NDArray
 from scipy import signal
-
-from hardware import adc_current, adc_voltage, device_adc, device_dac, offsets
 
 __all__ = [
     "measure_noise_fft",
@@ -23,10 +22,17 @@ __all__ = [
     "zero_sources",
 ]
 
-_RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
+
+@cached_property
+def _RESET_ADC_DEFAULT() -> bool:  # noqa N802
+    from hardware import device_adc, device_dac
+
+    return device_adc.name != device_dac.name
 
 
 def zero_sources(*, reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
+    from hardware import device_dac
+
     if reset_dac:
         device_dac.reset_device()
     task_dac: Task
@@ -45,6 +51,8 @@ def measure_offsets(
     do_zero_sources: bool = True,
     reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> None:
+    from hardware import device_adc, offsets
+
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -82,6 +90,8 @@ def measure_noise_fft(
     tuple[NDArray[np.float64], str],
     tuple[NDArray[np.float64], str],
 ]:
+    from hardware import adc_current, adc_voltage, device_adc
+
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -119,6 +129,8 @@ def measure_noise_welch(
     reset_adc: bool = _RESET_ADC_DEFAULT,
     progress: str = "",
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    from hardware import device_adc
+
     if averaging < 1:
         raise ValueError("Averaging must be a positive number")
 
@@ -173,6 +185,8 @@ def measure_noise_welch_iter(
     rate: float | None = None,
     reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> Iterator[tuple[NDArray[np.float64], NDArray[np.float64]]]:
+    from hardware import device_adc
+
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task
@@ -229,6 +243,8 @@ def measure_noise_trend(
     out_channel: PhysicalChannel | None = None,
     out_value: float = np.nan,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    from hardware import device_adc
+
     if reset_adc:
         device_adc.reset_device()
     task_adc: Task

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from inspect import getfullargspec
 from pathlib import Path
 from tomllib import loads
@@ -78,6 +79,30 @@ DIVIDER_RESISTANCE: float = circuitry["DIVIDER_RESISTANCE"]
 system: Final[System] = System.local()
 
 
+device_adc: Device = ...
+device_dac: Device = ...
+device_dio: Device = ...
+
+adc_voltage: PhysicalChannel = ...
+adc_current: PhysicalChannel = ...
+adc_sync: PhysicalChannel = ...
+dac_current: PhysicalChannel = ...
+dac_aux: PhysicalChannel = ...
+dac_synth_pulse: PhysicalChannel = ...
+dac_sync: PhysicalChannel = ...
+
+del device_adc
+del device_dac
+del device_dio
+del adc_voltage
+del adc_current
+del adc_sync
+del dac_current
+del dac_aux
+del dac_synth_pulse
+del dac_sync
+
+
 def find_device(**kwargs: Any) -> Device:
     device: Device
     for device in system.devices:
@@ -87,21 +112,38 @@ def find_device(**kwargs: Any) -> Device:
     raise LookupError(f"No device matching {kwargs} found")
 
 
-device_adc: Final[Device] = find_device(product_type=pxi["ADC"])
-device_dac: Final[Device] = find_device(product_type=pxi["DAC"])
-device_dio: Final[Device] = find_device(product_type=pxi["DIO"])
-
 physical_chans: Final[dict[str, dict[str, int]]] = config["physical_chans"]
 
-adc_voltage: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["voltage"]]
-adc_current: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["current"]]
-adc_sync: Final[PhysicalChannel] = device_adc.ai_physical_chans[physical_chans["AI"]["sync"]]
-dac_current: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["current"]]
-dac_aux: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["aux"]]
-dac_synth_pulse: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["synth_pulse"]]
-dac_sync: Final[PhysicalChannel] = device_dac.ao_physical_chans[physical_chans["AO"]["sync"]]
 
-offsets: dict[str, float] = {adc_current.name: 0.0, adc_voltage.name: 0.0}
+def __getattr__(name: str) -> object:
+    match name:
+        case "device_adc":
+            o = find_device(product_type=pxi["ADC"])
+        case "device_dac":
+            o = find_device(product_type=pxi["DAC"])
+        case "device_dio":
+            o = find_device(product_type=pxi["DIO"])
+        case "adc_voltage":
+            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["voltage"]]
+        case "adc_current":
+            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["current"]]
+        case "adc_sync":
+            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["sync"]]
+        case "dac_current":
+            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["current"]]
+        case "dac_aux":
+            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["aux"]]
+        case "dac_synth_pulse":
+            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["synth_pulse"]]
+        case "dac_sync":
+            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["sync"]]
+        case _:
+            raise AttributeError
+    globals()[name] = o
+    return o
+
+
+offsets: dict[str, float] = defaultdict(float)
 
 
 # don't convert the samples read from NDArray into a list

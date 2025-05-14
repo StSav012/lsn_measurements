@@ -1,4 +1,3 @@
-# coding: utf-8
 import sys
 from contextlib import suppress
 from multiprocessing import Queue
@@ -7,10 +6,9 @@ from typing import Final, final
 
 import numpy as np
 import pyqtgraph as pg
-from nidaqmx.system.physical_channel import PhysicalChannel
 from numpy.typing import NDArray
 from qtpy import QT5
-from qtpy.QtCore import QSettings, Qt, QTimer, Slot
+from qtpy.QtCore import QSettings, QTimer, Qt, Slot
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
     QApplication,
@@ -72,7 +70,6 @@ class GUI(QMainWindow):
         self.setup_actions()
 
     def setup_ui_appearance(self) -> None:
-        ch: PhysicalChannel
         self.combo_channel.setItems({ch.name: ch for ch in device_adc.ai_physical_chans})
 
         opts: dict[str, bool | str | int]
@@ -151,7 +148,7 @@ class GUI(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
 
@@ -165,7 +162,7 @@ class GUI(QMainWindow):
             self.combo_channel.setText(self.settings.value("channel", self.combo_channel.currentText(), str))
         self.spin_sample_rate.setValue(self.settings.value("sampleRate", 32678.0, float))
         self.spin_scale.setValue(self.settings.value("voltageScale", 100.0, float))
-        self.check_power_or_magnitude.setChecked(self.settings.value("powerUnits", True, bool))
+        self.check_power_or_magnitude.setChecked(self.settings.value("powerUnits", True, bool))  # noqa: FBT003
         with suppress(ValueError):
             # `ValueError` might occur when there is no such item present
             self.combo_welch_window.setValue(self.settings.value("welchWindow", "hann", str))

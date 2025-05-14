@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
+import sys
 from collections import deque
-from typing import Final, Iterable, Iterator, Optional, Sequence, cast
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Final, cast
 
 import numpy as np
-from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
+from nidaqmx.constants import WAIT_INFINITELY, AcquisitionType
 from nidaqmx.system.physical_channel import PhysicalChannel
 from nidaqmx.task import Task
 from nidaqmx.task.channels import AIChannel
@@ -13,18 +14,19 @@ from scipy import signal
 from hardware import adc_current, adc_voltage, device_adc, device_dac, offsets
 
 __all__ = [
-    "zero_sources",
-    "measure_offsets",
     "measure_noise_fft",
     "measure_noise_trend",
     "measure_noise_welch",
     "measure_noise_welch_iter",
+    "measure_noise_welch_iter_multiple",
+    "measure_offsets",
+    "zero_sources",
 ]
 
 _RESET_ADC_DEFAULT: Final[bool] = device_adc.name != device_dac.name
 
 
-def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
+def zero_sources(*, reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] = ()) -> None:
     if reset_dac:
         device_dac.reset_device()
     task_dac: Task
@@ -39,6 +41,7 @@ def zero_sources(reset_dac: bool = True, exceptions: Sequence[PhysicalChannel] =
 
 def measure_offsets(
     duration: float = 0.04,
+    *,
     do_zero_sources: bool = True,
     reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> None:
@@ -66,12 +69,13 @@ def measure_offsets(
         data: NDArray[np.float64] = np.concatenate(data_chunks)
         index: int
         for index, channel in enumerate(device_adc.ai_physical_chans):
-            offsets[channel.name] = cast(float, np.mean(data[index]))
+            offsets[channel.name] = cast("float", np.mean(data[index]))
 
 
 def measure_noise_fft(
     length: int,
-    rate: Optional[float] = None,
+    *,
+    rate: float | None = None,
     reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> tuple[
     NDArray[np.float64],
@@ -108,7 +112,7 @@ def measure_noise_fft(
 def measure_noise_welch(
     channel: str,
     resolution: float,
-    rate: Optional[float] = None,
+    rate: float | None = None,
     *,
     averaging: int = 1,
     averaging_shift: float = 0.0,
@@ -134,10 +138,10 @@ def measure_noise_welch(
         task_adc.timing.cfg_samp_clk_timing(rate=rate, sample_mode=AcquisitionType.CONTINUOUS)
         task_adc.start()
         if progress:
-            print(progress, end="", flush=True)
+            sys.stdout.write(progress)
         data: NDArray[np.float64] = np.asarray(task_adc.read(length, timeout=WAIT_INFINITELY), dtype=np.float64)
         if progress:
-            print(progress, end="", flush=True)
+            sys.stdout.write(progress)
         task_adc.stop()
 
     freq: NDArray[np.float64]
@@ -147,7 +151,7 @@ def measure_noise_welch(
     else:
         freq, pn_xx = signal.welch(
             np.column_stack(
-                [data[a * averaging_step : -((averaging - a - 1) * averaging_step) or None] for a in range(averaging)]
+                [data[a * averaging_step : -((averaging - a - 1) * averaging_step) or None] for a in range(averaging)],
             ),
             fs=rate,
             nperseg=data.size - (averaging - 1) * averaging_step,
@@ -164,8 +168,9 @@ def measure_noise_welch(
 def measure_noise_welch_iter(
     channel: str,
     length: int,
+    *,
     count: int = 1,
-    rate: Optional[float] = None,
+    rate: float | None = None,
     reset_adc: bool = _RESET_ADC_DEFAULT,
 ) -> Iterator[tuple[NDArray[np.float64], NDArray[np.float64]]]:
     if reset_adc:
@@ -187,35 +192,41 @@ def measure_noise_welch_iter(
             pn_xx: NDArray[np.float64]
             freq, pn_xx = signal.welch(data, fs=rate, nperseg=length)
             yield freq, pn_xx
-        print("done")
 
 
-# def measure_noise_welch_iter_multiple(channel: str, length: int, count: int = 1, rate: Optional[float] = None) \
-#         -> Iterator[Tuple[NDArray[np.float64], NDArray[np.float64]]]:
-#     task_adc: Task
-#     with Task() as task_adc:
-#         task_adc.ai_channels.add_ai_voltage_chan(channel)
-#         if rate is None:
-#             rate = task_adc.timing.samp_clk_max_rate
-#         task_adc.timing.cfg_samp_clk_timing(rate=rate,
-#                                             sample_mode=AcquisitionType.FINITE,  # don't use continuous
-#                                             samps_per_chan=length)
-#         for _ in range(count):
-#             _data: NDArray[np.float64] = np.asarray(task_adc.read(length))
-#
-#             _freq: NDArray[np.float64]
-#             _pn_xx: NDArray[np.float64]
-#             _freq, _pn_xx = signal.welch(_data, fs=rate, nperseg=length)
-#             yield _freq, _pn_xx
-#         print('done')
+def measure_noise_welch_iter_multiple(
+    channel: str,
+    length: int,
+    *,
+    count: int = 1,
+    rate: float | None = None,
+) -> Iterator[tuple[NDArray[np.float64], NDArray[np.float64]]]:
+    task_adc: Task
+    with Task() as task_adc:
+        task_adc.ai_channels.add_ai_voltage_chan(channel)
+        if rate is None:
+            rate = task_adc.timing.samp_clk_max_rate
+        task_adc.timing.cfg_samp_clk_timing(
+            rate=rate,
+            sample_mode=AcquisitionType.FINITE,  # don't use continuous
+            samps_per_chan=length,
+        )
+        for _ in range(count):
+            _data: NDArray[np.float64] = np.asarray(task_adc.read(length))
+
+            _freq: NDArray[np.float64]
+            _pn_xx: NDArray[np.float64]
+            _freq, _pn_xx = signal.welch(_data, fs=rate, nperseg=length)
+            yield _freq, _pn_xx
 
 
 def measure_noise_trend(
     channel: PhysicalChannel | Iterable[PhysicalChannel],
     duration: float,
-    rate: Optional[float] = None,
+    *,
+    rate: float | None = None,
     reset_adc: bool = _RESET_ADC_DEFAULT,
-    out_channel: Optional[PhysicalChannel] = None,
+    out_channel: PhysicalChannel | None = None,
     out_value: float = np.nan,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     if reset_adc:
@@ -228,8 +239,8 @@ def measure_noise_trend(
             c = task_adc.ai_channels.add_ai_voltage_chan(channel.name)
             c.ai_enhanced_alias_rejection_enable = rate is not None and rate < 1000.0
         else:
-            for channel in list(channel):
-                c = task_adc.ai_channels.add_ai_voltage_chan(channel.name)
+            for _channel in list(channel):
+                c = task_adc.ai_channels.add_ai_voltage_chan(_channel.name)
                 c.ai_enhanced_alias_rejection_enable = rate is not None and rate < 1000.0
         if out_channel is not None:
             task_dac.ao_channels.add_ao_voltage_chan(out_channel.name)

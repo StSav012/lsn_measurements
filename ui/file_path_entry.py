@@ -1,10 +1,7 @@
-# coding: utf-8
-from __future__ import annotations
-
 from pathlib import Path
 
 import pathvalidate
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -19,7 +16,7 @@ __all__ = ["FilePathEntry"]
 
 
 class FilePathEntry(QWidget):
-    path_changed: Signal = Signal(str, name="clicked")
+    path_changed: Signal = Signal(str, name="path_changed")
 
     def __init__(
         self,
@@ -51,9 +48,9 @@ class FilePathEntry(QWidget):
         if initial_file_path:
             self.on_text_changed(initial_file_path, emit=False)
 
-    def on_text_changed(self, text: str, emit: bool = True) -> None:
-        """display an icon showing whether the entered file name is acceptable"""
-
+    @Slot(str)
+    def on_text_changed(self, text: str, *, emit: bool = True) -> None:
+        """Display an icon showing whether the entered file name is acceptable."""
         self.text.setToolTip(text)
 
         if not text:
@@ -66,7 +63,7 @@ class FilePathEntry(QWidget):
         path: Path = Path(text).resolve()
         if path.is_dir():
             self.status.setPixmap(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height()),
             )
             self.path = None
             if emit:
@@ -74,7 +71,7 @@ class FilePathEntry(QWidget):
             return
         if not path.exists():
             self.status.setPixmap(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height()),
             )
             self.path = None
             if emit:
@@ -85,7 +82,7 @@ class FilePathEntry(QWidget):
         except pathvalidate.error.ValidationError as ex:
             print(ex.description)
             self.status.setPixmap(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height())
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(self.text.height()),
             )
             self.path = None
             if emit:
@@ -96,6 +93,7 @@ class FilePathEntry(QWidget):
             if emit:
                 self.path_changed.emit(str(path))
 
+    @Slot()
     def on_browse_button_clicked(self) -> None:
         new_file_name: str
         new_file_name, _ = QFileDialog.getOpenFileName(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -8,7 +7,7 @@ import numpy as np
 from astropy.units import K, Quantity
 from pyqtgraph.functions import intColor
 from qtpy import QT5
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
@@ -21,7 +20,7 @@ from utils.string_utils import format_float
 @final
 class App(SwitchingCurrentDistributionBase):
     def setup_ui_appearance(self) -> None:
-        super(App, self).setup_ui_appearance()
+        super().setup_ui_appearance()
 
         self.canvas_mean.getAxis("bottom").setLabel(text=self.tr("Aux Voltage"), units=self.tr("mV"))
         self.canvas_std.getAxis("bottom").setLabel(text=self.tr("Aux Voltage"), units=self.tr("mV"))
@@ -47,7 +46,7 @@ class App(SwitchingCurrentDistributionBase):
                     format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                     format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                     self.config.get("output", "suffix", fallback=""),
-                )
+                ),
             )
             .replace("  ", " ")
             .replace("  ", " ")
@@ -107,7 +106,7 @@ class App(SwitchingCurrentDistributionBase):
                         else ""
                     ),
                 ),
-            )
+            ),
         )
 
     def _line_color(self, index: int) -> QColor:
@@ -188,6 +187,7 @@ class App(SwitchingCurrentDistributionBase):
         self.power_index += 1
         return self._next_indices()
 
+    @Slot()
     def on_timeout(self) -> None:
         self._read_state_queue()
         self._read_switching_data_queue()

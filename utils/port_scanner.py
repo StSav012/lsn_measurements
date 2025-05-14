@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from ipaddress import IPv4Address, IPv4Network, ip_network
@@ -57,7 +58,7 @@ def port_scanner(
                             host, port = futures[future]
                             connectable_hosts[port].add(host)
                     except Exception as ex:
-                        print(f"{futures[future]} generated an exception: {ex}")
+                        sys.stderr.write(f"{futures[future]} generated an exception: {ex}\n")
 
     if not connectable_hosts:
         return []

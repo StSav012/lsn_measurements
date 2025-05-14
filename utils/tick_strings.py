@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import functools
-from typing import Iterable, cast
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 from pyqtgraph import AxisItem
@@ -26,9 +24,8 @@ def superscript_number(number: str) -> str:
         "-": "?",
         "?": "?",
     }
-    d: str
-    for d in ss_dict:
-        number = number.replace(d, ss_dict[d])
+    for old, new in ss_dict.items():
+        number = number.replace(old, new)
     return number
 
 
@@ -38,10 +35,9 @@ def tick_strings(
     scale: float,
     spacing: float,
 ) -> list[str]:
-    """improve formatting of `AxisItem.tickStrings`"""
-
+    """Improve formatting of `AxisItem.tickStrings`."""
     if self.logMode:
-        return cast(list[str], self.logTickStrings(values, scale, spacing))
+        return cast("list[str]", self.logTickStrings(values, scale, spacing))
 
     places: int = max(0, int(np.ceil(-np.log10(spacing * scale))))
     strings: list[str] = []

@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable, SupportsFloat, SupportsIndex
+from typing import Any, SupportsFloat, SupportsIndex
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-__all__ = ["load_txt", "save_txt", "read_340_table"]
+__all__ = ["load_txt", "read_340_table", "save_txt"]
 
 
-def is_float(val: Any) -> bool:
+def is_float(val: Any) -> bool:  # noqa: ANN401
     if not isinstance(val, (SupportsFloat, SupportsIndex, str, bytes, bytearray)):
         return False
     try:
@@ -33,9 +31,7 @@ def save_txt(
     comments: str = "# ",
     encoding: str | None = "utf-8",
 ) -> None:
-    """
-    from `numpy.savetxt`
-    Save an array to a text file.
+    """From `numpy.savetxt`: Save an array to a text file.
 
     Parameters
     ----------
@@ -112,15 +108,15 @@ def save_txt(
     .. [1] `Format Specification Mini-Language
            <https://docs.python.org/library/string.html#format-specification-mini-language>`_,
            Python Documentation.
-    """
 
+    """
     try:
         x = np.asarray(x)
 
         # Handle 1-dimensional arrays
         if x.ndim == 0 or x.ndim > 2:
-            raise ValueError("Expected 1D or 2D array, got %dD array instead" % x.ndim)
-        elif x.ndim == 1:
+            raise ValueError(f"Expected 1D or 2D array, got {x.ndim:d}D array instead")
+        if x.ndim == 1:
             # Common case -- 1d array of numbers
             if x.dtype.names is None:
                 x = np.atleast_2d(x).T
@@ -160,13 +156,13 @@ def save_txt(
                 try:
                     fh.write(row_pack_fmt % tuple(x[row : row + row_pack, ...].ravel()))
                 except TypeError:
-                    raise TypeError("Mismatch between array data type and format specifier")
+                    raise TypeError("Mismatch between array data type and format specifier") from None
             row_pack = x.shape[0] % row_pack
             row_pack_fmt = "\n".join([fmt] * row_pack) + "\n"
             try:
                 fh.write(row_pack_fmt % tuple(x[-row_pack:, ...].ravel()))
             except TypeError:
-                raise TypeError("Mismatch between array data type and format specifier")
+                raise TypeError("Mismatch between array data type and format specifier") from None
 
             if footer:
                 footer = footer.replace("\n", "\n" + comments)
@@ -180,9 +176,8 @@ def load_txt(
     sep: str | None = None,
     encoding: str | None = None,
     errors: str | None = None,
-) -> tuple[NDArray[float], tuple[str]]:
-    """
-    Load data from a text file, possibly with a header.
+) -> tuple[NDArray[float], tuple[str, ...]]:
+    """Load data from a text file, possibly with a header.
 
     Parameters
     ----------
@@ -209,18 +204,18 @@ def load_txt(
         An array object containing the numerical data read from the file.
     titles : tuple[str]
         The first line of the file split by `sep`.
-    """
 
+    """
     filename = Path(filename)
     data: list[list[str]] = [
         word.split(sep=sep) for word in filename.read_text(encoding=encoding, errors=errors).splitlines() if word
     ]
     if not data:
-        return np.empty(0, float), tuple()
-    header: tuple[str]
+        return np.empty(0, float), ()
+    header: tuple[str, ...]
     numeric_data: NDArray[float]
     if all(is_float(word) for word in data[0]):
-        header = tuple()
+        header = ()
         numeric_data = np.array(
             [[float(word) for word in line] for line in data],
             dtype=float,

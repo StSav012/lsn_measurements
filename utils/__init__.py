@@ -1,11 +1,12 @@
 import sys
+from collections.abc import Callable, Iterable
 from contextlib import suppress
 from ipaddress import IPv4Address, ip_address
 from multiprocessing import Process
 from multiprocessing.queues import Queue as QueueType
 from queue import Empty
 from socket import AF_INET, SOCK_DGRAM, socket
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import numpy as np
 
@@ -15,13 +16,13 @@ if not hasattr(QueueType, "__class_getitem__"):
 
 __all__ = [
     "Auto",
-    "warning",
+    "all_equally_shaped",
+    "clear_queue_after_process",
+    "drain_queue",
     "error",
     "get_local_ip",
     "silent_alive",
-    "drain_queue",
-    "clear_queue_after_process",
-    "all_equally_shaped",
+    "warning",
 ]
 
 Auto = None
@@ -44,7 +45,7 @@ def get_local_ip() -> IPv4Address:
     return ip_address(ip)
 
 
-def silent_alive(process: Any) -> bool:
+def silent_alive(process: Process | None) -> bool:
     is_alive: bool | Callable[[], bool] = getattr(process, "is_alive", False)
     if callable(is_alive):
         with suppress(ValueError):
@@ -53,20 +54,19 @@ def silent_alive(process: Any) -> bool:
 
 
 def drain_queue(queue: QueueType[Any]) -> None:
-    while not queue.empty():
-        with suppress(Empty):
-            queue.get_nowait()
+    if isinstance(queue, QueueType):  # ensure the correct type
+        while not queue.empty():
+            with suppress(Empty):
+                queue.get_nowait()
 
 
 def clear_queue_after_process(process: Process, *queue: QueueType[Any]) -> None:
     while True:
         while silent_alive(process):
             for q in queue:
-                if isinstance(q, QueueType):  # ensure the correct type
-                    drain_queue(q)
-        for q in queue:
-            if isinstance(q, QueueType):
                 drain_queue(q)
+        for q in queue:
+            drain_queue(q)
         if process is None:
             break
         try:

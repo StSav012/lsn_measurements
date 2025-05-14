@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import functools
 import math
 from typing import Any
@@ -9,10 +6,10 @@ import numpy as np
 
 __all__ = [
     "SI_PREFIX_EXPONENTS",
-    "parse_temperature",
-    "si_prefix",
-    "si_factor",
     "parse_si_number",
+    "parse_temperature",
+    "si_factor",
+    "si_prefix",
 ]
 
 SI_PREFIX_EXPONENTS: dict[str, int] = {
@@ -60,8 +57,7 @@ def si_prefix(unit: str) -> str:
     matching_prefixes: list[str] = [prefix for prefix in SI_PREFIX_EXPONENTS if unit.startswith(prefix)]
     if not matching_prefixes:
         return ""
-    else:
-        return sorted(matching_prefixes, key=len, reverse=True)[0]
+    return sorted(matching_prefixes, key=len, reverse=True)[0]
 
 
 @functools.lru_cache(maxsize=128, typed=True)
@@ -70,7 +66,7 @@ def si_factor(unit: str) -> float:
 
 
 @functools.lru_cache(maxsize=128, typed=True)
-def parse_si_number(number_text: Any) -> float:
+def parse_si_number(number_text: Any) -> float:  # noqa: ANN401
     if isinstance(number_text, float):
         return number_text
     if not isinstance(number_text, str):
@@ -83,5 +79,4 @@ def parse_si_number(number_text: Any) -> float:
             leftovers -= 1
         else:
             return float(number_text[:leftovers]) * si_factor(number_text[leftovers:].strip())
-    else:
-        return math.nan
+    return math.nan

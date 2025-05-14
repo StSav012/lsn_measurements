@@ -1,19 +1,19 @@
 import enum
 import sys
 from collections import deque
+from collections.abc import Callable, Sequence
 from contextlib import suppress
 from functools import partial
 from multiprocessing import Queue
 from pathlib import Path
 from queue import Empty
-from typing import Any, Callable, Final, Sequence, final
+from typing import Any, Final, final
 
 import numpy as np
 import pyqtgraph as pg
-from nidaqmx.system.physical_channel import PhysicalChannel
 from numpy.typing import NDArray
 from qtpy import QT5
-from qtpy.QtCore import QSettings, Qt, QTimer, Slot
+from qtpy.QtCore import QSettings, QTimer, Qt, Slot
 from qtpy.QtGui import QCloseEvent, QColor, QIcon, QPalette
 from qtpy.QtWidgets import (
     QAbstractButton,
@@ -71,7 +71,7 @@ class GUI(QMainWindow):
         self.canvas: pg.PlotItem = self.figure.plotItem
         self.lines: list[pg.PlotDataItem] = [
             self.canvas.plot(np.empty(0), name=ch.name, pen=color)
-            for ch, color in zip(device_adc.ai_physical_chans, colors)
+            for ch, color in zip(device_adc.ai_physical_chans, colors, strict=False)
         ]
 
         self.menu_bar: QMenuBar = QMenuBar(self)
@@ -82,7 +82,7 @@ class GUI(QMainWindow):
         self.channels_box: QDockWidget = QDockWidget(self)
         self.channels_box.setObjectName("channels_box")
         self.channel_buttons: list[QAbstractButton] = []
-        for index, (color, ch) in enumerate(zip(colors, device_adc.ai_physical_chans)):
+        for index, (color, ch) in enumerate(zip(colors, device_adc.ai_physical_chans, strict=False)):
             self.channel_buttons.append(button := QPushButton(ch.name))
             palette: QPalette = button.palette()
             palette.setColor(QPalette.ColorRole.Button, color.darker())
@@ -125,10 +125,9 @@ class GUI(QMainWindow):
 
     def setup_ui_appearance(self) -> None:
         self.combo_mode.setItems({self.tr("Auto"): "auto", self.tr("Normal"): "normal"})
-        ch: PhysicalChannel
         self.combo_trigger_channel.setItems({ch.name: ch for ch in device_adc.ai_physical_chans})
         self.combo_trigger_edge.setItems(
-            {self.tr("Rising"): "rising", self.tr("Falling"): "falling", self.tr("Any"): "any"}
+            {self.tr("Rising"): "rising", self.tr("Falling"): "falling", self.tr("Any"): "any"},
         )
 
         opts: dict[str, bool | str | int]
@@ -181,7 +180,9 @@ class GUI(QMainWindow):
         self.canvas.showGrid(x=True, y=True)
 
         self.menu_file.addAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton), self.tr("&Save As…"), self.save_data
+            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
+            self.tr("&Save As…"),
+            self.save_data,
         )
         self.menu_file.addSeparator()
         self.menu_file.addAction(
@@ -243,7 +244,7 @@ class GUI(QMainWindow):
 
         self.setCentralWidget(self.figure)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_single.clicked.connect(self.on_button_single_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
@@ -259,7 +260,7 @@ class GUI(QMainWindow):
         with suppress(ValueError):
             # `ValueError` might occur when there is no such channel present
             self.combo_trigger_channel.setText(
-                self.settings.value("triggerChannel", self.combo_trigger_channel.currentText(), str)
+                self.settings.value("triggerChannel", self.combo_trigger_channel.currentText(), str),
             )
         self.spin_trigger_level.setValue(self.settings.value("triggerLevel", 0.0, float))
         with suppress(ValueError):
@@ -304,7 +305,10 @@ class GUI(QMainWindow):
             return
         self.settings.beginGroup("location")
         fn, _ = QFileDialog.getSaveFileName(
-            self, self.tr("Save Data"), self.settings.value("saveDirectory", "", str), self.tr("CSV File") + "(*.csv)"
+            self,
+            self.tr("Save Data"),
+            self.settings.value("saveDirectory", "", str),
+            self.tr("CSV File") + "(*.csv)",
         )
         self.settings.endGroup()
         if not fn:
@@ -481,16 +485,16 @@ class App(GUI):
         match self.combo_trigger_edge.value():
             case "rising":
                 triggers = np.argwhere(
-                    (trigger_channel_trend[:-1] <= trigger_level) & (trigger_channel_trend[1:] >= trigger_level)
+                    (trigger_channel_trend[:-1] <= trigger_level) & (trigger_channel_trend[1:] >= trigger_level),
                 )
             case "falling":
                 triggers = np.argwhere(
-                    (trigger_channel_trend[:-1] >= trigger_level) & (trigger_channel_trend[1:] <= trigger_level)
+                    (trigger_channel_trend[:-1] >= trigger_level) & (trigger_channel_trend[1:] <= trigger_level),
                 )
             case "any":
                 triggers = np.argwhere(
                     ((trigger_channel_trend[:-1] <= trigger_level) & (trigger_channel_trend[1:] >= trigger_level))
-                    | ((trigger_channel_trend[:-1] >= trigger_level) & (trigger_channel_trend[1:] <= trigger_level))
+                    | ((trigger_channel_trend[:-1] >= trigger_level) & (trigger_channel_trend[1:] <= trigger_level)),
                 )
             case _ as edge:
                 raise ValueError(f"Invalid edge value: {edge}")

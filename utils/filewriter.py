@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import time
+from collections.abc import Iterable
 from pathlib import Path
 from threading import Lock, Thread
-from typing import Any, Iterable, NamedTuple, TextIO, Union
+from typing import Any, NamedTuple, TextIO
 
 import numpy as np
 from numpy.typing import NDArray
@@ -15,7 +13,7 @@ __all__ = ["FileWriter"]
 class QueueRecord(NamedTuple):
     file_name: Path
     file_mode: str
-    x: Union[NDArray[float], Iterable[Any]]
+    x: NDArray[float] | Iterable[Any]
 
 
 class FileWriter(Thread):

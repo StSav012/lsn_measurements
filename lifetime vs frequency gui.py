@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 from typing import cast, final
@@ -8,7 +7,7 @@ from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from pyqtgraph.functions import intColor
 from qtpy import QT5
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
@@ -21,7 +20,7 @@ from utils.string_utils import format_float
 @final
 class App(LifetimeBase):
     def setup_ui_appearance(self) -> None:
-        super(App, self).setup_ui_appearance()
+        super().setup_ui_appearance()
 
         self.figure.getAxis("bottom").setLabel(text=self.tr("Frequency"), units=self.tr("GHz"))
 
@@ -48,7 +47,7 @@ class App(LifetimeBase):
                         format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -101,7 +100,7 @@ class App(LifetimeBase):
                         else ""
                     ),
                 ),
-            )
+            ),
         )
 
     def _line_color(self, index: int) -> QColor:
@@ -124,7 +123,7 @@ class App(LifetimeBase):
         if measured_data.shape[0] == 7:
             bias_current: NDArray[float] = measured_data[3]
             lifetime: NDArray[float] = measured_data[2]
-            median_bias_current: float = cast(float, np.nanmedian(bias_current))
+            median_bias_current: float = cast("float", np.nanmedian(bias_current))
             min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
             max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
@@ -132,10 +131,10 @@ class App(LifetimeBase):
             )
             lifetime = lifetime[reasonable]
             self._add_plot_point(
-                cast(float, np.mean(measured_data[0])),
-                cast(float, np.mean(lifetime[lifetime > 0.0])),
+                cast("float", np.mean(measured_data[0])),
+                cast("float", np.mean(lifetime[lifetime > 0.0])),
             )
-            self.last_lifetime_0 = cast(float, np.mean(lifetime[lifetime > 0.0]))
+            self.last_lifetime_0 = cast("float", np.mean(lifetime[lifetime > 0.0]))
 
     def _next_indices(self) -> bool:
         while True:
@@ -200,6 +199,7 @@ class App(LifetimeBase):
         self.frequency_index += 1
         return self._next_indices()
 
+    @Slot()
     def on_timeout(self) -> None:
         self._read_state_queue()
 

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-from typing import Final, Iterator
+from collections.abc import Iterator
+from typing import Final
 
 __all__ = ["FloatSlice"]
 

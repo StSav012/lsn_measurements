@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import abc
 from datetime import date, datetime, timedelta
 from multiprocessing import Event, Queue, Value
@@ -11,7 +8,7 @@ import numpy as np
 import pyqtgraph as pg
 from astropy.units import K, Quantity
 from numpy.typing import NDArray
-from qtpy.QtCore import QTimer
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtGui import QCloseEvent, QColor
 from qtpy.QtWidgets import QMessageBox
 
@@ -81,10 +78,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             raise ValueError("Unsupported current reset function:", self.reset_function)
         self.max_bias_current: Final[float] = self.config.get_float("scd", "max bias current [nA]")
         self.initial_biases: Final[list[float]] = self.config.get_float_list(
-            "current", "initial current [nA]", fallback=[0.0]
+            "current",
+            "initial current [nA]",
+            fallback=[0.0],
         )
         self.current_speed_values: Final[SliceSequence] = self.config.get_slice_sequence(
-            "scd", "current speed [nA/sec]"
+            "scd",
+            "current speed [nA/sec]",
         )
         self.stop_key_current_speed.setDisabled(len(self.current_speed_values) <= 1)
 
@@ -95,10 +95,11 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         )
         self.cycles_count: Final[int] = self.config.getint("scd", "number of cycles")
         self.max_measurement_time: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]") * 60
+            seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]") * 60,
         )
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
-            "measurement", "delay between cycles [sec]"
+            "measurement",
+            "delay between cycles [sec]",
         )
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
@@ -121,21 +122,25 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
         self.aux_voltage_delay: timedelta = timedelta(
             seconds=self.config.getfloat(
-                "measurement", "time to wait after aux voltage changed [minutes]", fallback=0.0
+                "measurement",
+                "time to wait after aux voltage changed [minutes]",
+                fallback=0.0,
             )
-            * 60.0
+            * 60.0,
         )
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
         self.temperature_delay: Final[timedelta] = timedelta(
-            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
+            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0,
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
             abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
-            "measurement", "change filtered readings in Triton", fallback=True
+            "measurement",
+            "change filtered readings in Triton",
+            fallback=True,
         )
 
         self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"D:\ttt\scd"))
@@ -201,7 +206,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 filter(
                     None,
                     (
-                        "I" "SCD",
+                        "ISCD",
                         self.config.get("output", "prefix", fallback=""),
                         format_float(self.temperature * 1e3, suffix="mK"),
                         format_float(self.aux_voltage * 1e3, prefix="aux", suffix="mV"),
@@ -214,7 +219,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                         format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -226,7 +231,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 filter(
                     None,
                     (
-                        "I" "SCD-hist",
+                        "ISCD-hist",
                         self.config.get("output", "prefix", fallback=""),
                         format_float(self.temperature * 1e3, suffix="mK"),
                         format_float(self.aux_voltage * 1e3, prefix="aux", suffix="mV"),
@@ -239,7 +244,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                         format_float(self.trigger_voltage * 1e3, prefix="threshold", suffix="mV"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -354,7 +359,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super(SwitchingCurrentDistributionBase, self).on_button_start_clicked()
+        super().on_button_start_clicked()
 
         if self.check_exists and not self._next_indices():
             error("nothing left to measure")
@@ -382,7 +387,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         self.synthesizer.output = False
         self.saved_files.add(self.data_file)
         self.histogram.save(self.hist_file)
-        super(SwitchingCurrentDistributionBase, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:
         cycle_index: int
@@ -431,14 +436,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
         measured_data: NDArray[float] = self._get_data_file_content()
         if measured_data.shape[0] == 3:
             current: NDArray[float] = measured_data[0] * 1e9
-            median_bias_current: float = cast(float, np.nanmedian(current))
+            median_bias_current: float = cast("float", np.nanmedian(current))
             min_reasonable_bias_current: float = median_bias_current * (1.0 - 0.01 * self.max_reasonable_bias_error)
             max_reasonable_bias_current: float = median_bias_current * (1.0 + 0.01 * self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (current >= min_reasonable_bias_current) & (
                 current <= max_reasonable_bias_current
             )
             current = current[reasonable]
-            self._add_plot_point(x, cast(float, np.mean(current)), cast(float, np.std(current)))
+            self._add_plot_point(x, cast("float", np.mean(current)), cast("float", np.std(current)))
 
     def _is_temperature_good(self) -> bool:
         td: timedelta
@@ -458,11 +463,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
-            if self.change_filtered_readings:
-                if not self.triton.ensure_filter_readings(6, self.triton.filter_readings(self.temperature)):
-                    error("failed to change the state of filtered readings")
-                    self.timer.stop()
-                    self.measurement.terminate()
+            if self.change_filtered_readings and not self.triton.ensure_filter_readings(
+                6,
+                self.triton.filter_readings(self.temperature),
+            ):
+                error("failed to change the state of filtered readings")
+                self.timer.stop()
+                self.measurement.terminate()
             if not self.triton.ensure_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
@@ -478,7 +485,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
-                    f": {self.temperature_delay - td} left"
+                    f": {self.temperature_delay - td} left",
                 )
                 self.timer.setInterval(1000)
         else:
@@ -492,7 +499,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
 
         return good_to_go
 
-    def _data_file_exists(self, verbose: bool = True) -> bool:
+    def _data_file_exists(self, *, verbose: bool = True) -> bool:
         exists: bool = (
             self.power_index < len(self.power_dbm_values)
             and self.frequency_index < len(self.frequency_values)
@@ -503,9 +510,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
             and self.data_file.exists()
             and self._get_data_file_content().size
         )
-        if exists and verbose:
-            if self.data_file not in self.saved_files:
-                warning(f"{self.data_file} already exists")
+        if exists and verbose and self.data_file not in self.saved_files:
+            warning(f"{self.data_file} already exists")
         return exists
 
     def _get_data_file_content(self) -> NDArray[float]:
@@ -514,8 +520,9 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI):
                 [float(cell) for cell in row.split("\t")]
                 for row in self.data_file.read_text(encoding="utf-8").splitlines()
                 if row and (row.startswith("nan") or not row[0].isalpha())
-            ]
+            ],
         ).T
 
     @abc.abstractmethod
+    @Slot()
     def on_timeout(self) -> None: ...

@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import time
+from collections.abc import Sequence
 from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
-from typing import Any, Final, Literal, Sequence
+from typing import Any, Final, Literal
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -38,8 +36,8 @@ fw.start()
 class DetectMeasurement(Process):
     def __init__(
         self,
-        results_queue: "Queue[tuple[float, float]]",
-        state_queue: "Queue[tuple[int, int, int]]",
+        results_queue: Queue[tuple[float, float]],
+        state_queue: Queue[tuple[int, int, int]],
         good_to_go: Event,
         user_aborted: Event,
         actual_temperature: Value,
@@ -66,7 +64,7 @@ class DetectMeasurement(Process):
         temperature: float = np.nan,
         adc_rate: float = np.nan,
     ) -> None:
-        super(DetectMeasurement, self).__init__()
+        super().__init__()
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
         self.state_queue: Queue[tuple[int, int, int]] = state_queue
@@ -163,7 +161,7 @@ class DetectMeasurement(Process):
                         2.0 * trigger_trigger,
                     ),
                     np.zeros(bias_current_steps_count + spare_sample_count),
-                )
+                ),
             )
 
             task_adc.timing.cfg_samp_clk_timing(
@@ -229,7 +227,7 @@ class DetectMeasurement(Process):
                 / min(
                     ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
                     bias_current_steps_count,
-                )
+                ),
             )
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
@@ -260,7 +258,7 @@ class DetectMeasurement(Process):
                                     bias_current_steps_count,
                                 ),
                                 [self.initial_biases[-1]] * spare_sample_count,
-                            )
+                            ),
                         )
                         * 1e-9
                         * self.r
@@ -283,7 +281,7 @@ class DetectMeasurement(Process):
                                     bias_current_steps_count,
                                 ),
                                 [self.initial_biases[-1]] * spare_sample_count,
-                            )
+                            ),
                         )
                         * 1e-9
                         * self.r
@@ -306,7 +304,7 @@ class DetectMeasurement(Process):
                                     bias_current_steps_count,
                                 ),
                                 [self.initial_biases[-1]] * spare_sample_count,
-                            )
+                            ),
                         )
                         * 1e-9
                         * self.r
@@ -321,14 +319,14 @@ class DetectMeasurement(Process):
                     np.full(pulse_duration_points_count, 1.5),
                     np.full(waiting_after_pulse_points_count, 0.0),
                     np.full(bias_current_steps_count + spare_sample_count, 0.0),
-                )
+                ),
             )
             period_sequence: NDArray[np.float64] = np.vstack(
                 (
                     i_set * (1.0 + DIVIDER_RESISTANCE / self.r),
                     am_voltage_sequence,
                     trigger_sequence,
-                )
+                ),
             )
 
             # set initial state
@@ -347,7 +345,7 @@ class DetectMeasurement(Process):
                         ),
                         np.zeros(task_dac.timing.samp_quant_samp_per_chan),
                         np.zeros(task_dac.timing.samp_quant_samp_per_chan),
-                    )
+                    ),
                 ),
                 auto_start=True,
             )
@@ -392,7 +390,7 @@ class DetectMeasurement(Process):
                 task_dac.wait_until_done()
                 task_dac.stop()
 
-                while not self.c.loadable or not self.pulse_ended and not self.user_aborted.is_set():
+                while not self.c.loadable or (not self.pulse_ended and not self.user_aborted.is_set()):
                     time.sleep(0.01)
                 if self.user_aborted.is_set():
                     print("user aborted")
@@ -407,7 +405,7 @@ class DetectMeasurement(Process):
                     i = (i - v - offsets[adc_current.name]) / self.r
 
                     switches_count += 1
-                    print("switching at" f" t = {t:.5f} s, {i * 1e9:.4f} nA, {v * 1e3:.4f} mV")
+                    print(f"switching at t = {t:.5f} s, {i * 1e9:.4f} nA, {v * 1e3:.4f} mV")
                     fw.write(self.data_file, "at", (i * 1e9, v * 1e3, t))
                 else:
                     print("no switching events detected")
@@ -424,8 +422,7 @@ class DetectMeasurement(Process):
             prob: float = 100.0 * switches_count / actual_cycles_count if actual_cycles_count > 0 else np.nan
             err: float = np.sqrt(prob * (100.0 - prob) / actual_cycles_count) if actual_cycles_count > 0 else np.nan
             print(
-                f"for bias current set to {self.bias_current} nA, "
-                f"switching probability is {prob:.3f}% ± {err:.3f}%\n"
+                f"for bias current set to {self.bias_current} nA, switching probability is {prob:.3f}% ± {err:.3f}%\n",
             )
             self.results_queue.put((prob, err))
             if not self.stat_file.exists():
@@ -441,7 +438,7 @@ class DetectMeasurement(Process):
                             "Actual Cycles Count",
                             "Probability Uncertainty [%]",
                             "Actual Temperature [mK]",
-                        )
+                        ),
                     )
                     + "\n",
                     encoding="utf-8",
@@ -459,7 +456,7 @@ class DetectMeasurement(Process):
                             str(actual_cycles_count),
                             str(err),
                             format_float(self.actual_temperature.value),
-                        )
+                        ),
                     )
-                    + "\n"
+                    + "\n",
                 )

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
+from collections.abc import Iterable
 from os import PathLike
-from typing import Iterable, NamedTuple, TypeVar
+from typing import NamedTuple, TypeVar
 
 import numpy as np
 import pyqtgraph as pg
@@ -85,7 +85,7 @@ class Histogram(pg.PlotWidget):
         x_axis.setLabel(text=self._text, units=self._unit)
         y_axis: pg.AxisItem = self.getAxis("left")
         y_axis.setLabel(text=self.tr("Density"), units=f"1/{self._unit}")
-        y_axis.enableAutoSIPrefix(False)
+        y_axis.enableAutoSIPrefix(enable=False)
 
     def hist(
         self,
@@ -168,14 +168,12 @@ class Histogram(pg.PlotWidget):
     def setLogMode(self, x: bool | None = None, y: bool | None = None) -> None:
         recompute_hist: bool = False
 
-        if x is not None:
-            if self._x_log != x:
-                recompute_hist |= True
-                self._x_log = x
-        if y is not None:
-            if self._y_log != y:
-                recompute_hist |= True
-                self._y_log = y
+        if x is not None and self._x_log != x:
+            recompute_hist |= True
+            self._x_log = x
+        if y is not None and self._y_log != y:
+            recompute_hist |= True
+            self._y_log = y
         self.plotItem.setLogMode(x=x, y=y)
 
         if recompute_hist and self._last_hist is not None:
@@ -193,7 +191,7 @@ class Histogram(pg.PlotWidget):
                         f"Density [1/{self._unit}]",
                         f"Positive error [1/{self._unit}]",
                         f"Negative error [1/{self._unit}]",
-                    )
+                    ),
                 ),
                 comments="",
             )

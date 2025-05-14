@@ -1,22 +1,21 @@
-# coding=utf-8
-
+import sys
 from collections.abc import Callable
 from select import select
 from sys import stdin
 from typing import TypeVar
 
 __all__ = [
-    "show_info",
-    "show_warning",
-    "show_error",
-    "ask_question",
-    "ask_yes_no",
-    "ask_yes_no_cancel",
+    "ask_float",
+    "ask_int",
     "ask_ok_cancel",
+    "ask_question",
     "ask_retry_cancel",
     "ask_string",
-    "ask_int",
-    "ask_float",
+    "ask_yes_no",
+    "ask_yes_no_cancel",
+    "show_error",
+    "show_info",
+    "show_warning",
 ]
 
 _T = TypeVar("_T")
@@ -37,7 +36,7 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
     def show_gui_message() -> None:
         _kwargs: dict[str, str]
         if "\n\n" in message:
-            _kwargs = dict(zip(["message", "detail"], message.split("\n\n", maxsplit=1)))
+            _kwargs = dict(zip(["message", "detail"], message.split("\n\n", maxsplit=1), strict=False))
         else:
             _kwargs = {"message": message}
         with s:
@@ -45,7 +44,7 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
 
     def show_cli_message() -> None:
         with s:
-            print(f"{title}: {message}" if title else message)
+            sys.stdout.write(f"{title}: {message}" if title else message)
             select([stdin], [], [])
             res.append(input())
 
@@ -60,6 +59,7 @@ def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None
 
     if res:
         return res[0]
+    return None
 
 
 def show_info(title: str, message: str) -> str | None:
@@ -123,7 +123,7 @@ def _ask(method: Callable[_P, _T], title: str, prompt: str) -> _T | str | None:
 
     def show_cli_message() -> None:
         with s:
-            print(f"{title}: {prompt}" if title else prompt, end="", flush=True)
+            sys.stdout.write(f"{title}: {prompt}" if title else prompt)
             select([stdin], [], [])
             res.append(input())
 
@@ -138,6 +138,7 @@ def _ask(method: Callable[_P, _T], title: str, prompt: str) -> _T | str | None:
 
     if res:
         return res[0]
+    return None
 
 
 def ask_string(title: str, prompt: str) -> str | None:

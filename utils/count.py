@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from typing import Tuple
 
 import numpy as np
 
@@ -11,7 +9,7 @@ class Count:
         self._count: int = 0
         self._last_value: int = 0
 
-        self.payload: Tuple[float, float, float] = (np.nan, np.nan, np.nan)
+        self.payload: tuple[float, float, float] = (np.nan, np.nan, np.nan)
         self.loaded: bool = False
         self.loadable: bool = True
 

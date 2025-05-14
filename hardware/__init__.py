@@ -1,11 +1,6 @@
-try:
-    from tomllib import loads
-except ImportError:
-    # noinspection PyUnresolvedReferences,PyPackageRequirements
-    from tomli import loads
-
 from inspect import getfullargspec
 from pathlib import Path
+from tomllib import loads
 from typing import Any, Final
 
 from nidaqmx.constants import ChannelType, FillMode, UsageTypeAI
@@ -116,7 +111,7 @@ NUM_SAMPLES_UNSET, default_timeout = getfullargspec(Task.read).defaults
 
 def _read_ai_faster(
     self: Task,
-    number_of_samples_per_channel=NUM_SAMPLES_UNSET,
+    number_of_samples_per_channel: int = NUM_SAMPLES_UNSET,
     timeout: float = default_timeout,
 ) -> float64 | NDArray[float64]:
     channels_to_read = self.in_stream.channels_to_read
@@ -146,7 +141,11 @@ def _read_ai_faster(
     data: NDArray[float64] = zeros(array_shape, dtype=float64)
     samples_read: int
     _, samples_read = self._interpreter.read_analog_f64(
-        self._handle, number_of_samples_per_channel, timeout, FillMode.GROUP_BY_CHANNEL.value, data
+        self._handle,
+        number_of_samples_per_channel,
+        timeout,
+        FillMode.GROUP_BY_CHANNEL.value,
+        data,
     )
 
     if num_samples_not_set and array_shape == 1:
@@ -155,8 +154,7 @@ def _read_ai_faster(
     if samples_read != number_of_samples_per_channel:
         if number_of_channels > 1:
             return data[:, :samples_read]
-        else:
-            return data[:samples_read]
+        return data[:samples_read]
 
     return data
 

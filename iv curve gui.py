@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 import sys
 from multiprocessing import Queue
 from typing import final
@@ -169,7 +166,7 @@ class GUI(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
         self.button_filter.clicked.connect(self.on_button_filter_clicked)
@@ -237,7 +234,7 @@ class GUI(QMainWindow):
 @final
 class App(GUI):
     def __init__(self) -> None:
-        super(App, self).__init__()
+        super().__init__()
 
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
@@ -246,7 +243,7 @@ class App(GUI):
         self.measurement: IVCurveMeasurement | None = None
 
     def on_button_start_clicked(self) -> None:
-        super(App, self).on_button_start_clicked()
+        super().on_button_start_clicked()
         self.plot_line.clear()
         self.timer.start(10)
         self.measurement = IVCurveMeasurement(
@@ -273,7 +270,7 @@ class App(GUI):
             y_data: NDArray[np.float64] = self.plot_line.yData
             k, b = list(np.polyfit(y_data, x_data, 1))
             self.status_bar.showMessage(self.tr(f"Average resistance is {k} Ω"))
-        super(App, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     def on_button_filter_clicked(self) -> None:
         if self.plot_line.xData is None or self.plot_line.yData is None:
@@ -294,7 +291,7 @@ class App(GUI):
         y_data = rolling_median["y"]
         self.plot_line.setData(x_data, y_data)
 
-        super(App, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     def on_timeout(self) -> None:
         while not self.results_queue.empty():

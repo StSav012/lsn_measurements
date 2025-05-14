@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import time
+from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta
 from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
-from typing import Any, Callable, Final, Literal, Sequence, cast
+from typing import Any, Final, Literal, cast
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -39,8 +37,8 @@ __all__ = ["LifetimeMeasurement"]
 class LifetimeMeasurement(Process):
     def __init__(
         self,
-        results_queue: "Queue[tuple[float, float, float]]",
-        state_queue: "Queue[tuple[int, timedelta]]",
+        results_queue: Queue[tuple[float, float, float]],
+        state_queue: Queue[tuple[int, timedelta]],
         good_to_go: Event,
         user_aborted: Event,
         actual_temperature: Value,
@@ -67,7 +65,7 @@ class LifetimeMeasurement(Process):
         temperature: float = np.nan,
         adc_rate: float = np.nan,
     ) -> None:
-        super(LifetimeMeasurement, self).__init__()
+        super().__init__()
 
         self.results_queue: Queue[tuple[float, float, float]] = results_queue
         self.state_queue: Queue[tuple[int, timedelta]] = state_queue
@@ -203,7 +201,8 @@ class LifetimeMeasurement(Process):
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(
-                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+                task_adc.timing.samp_quant_samp_per_chan,
+                reading_task_callback,
             )
 
             task_adc.start()
@@ -217,7 +216,7 @@ class LifetimeMeasurement(Process):
                         ),
                         trigger_off_sequence,
                         np.full(bias_current_steps_count, self.aux_voltage),
-                    )
+                    ),
                 ),
                 auto_start=True,
             )
@@ -233,7 +232,7 @@ class LifetimeMeasurement(Process):
                     * 1e-9
                     * self.r
                     * self.divider
-                    / ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution))
+                    / ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
                 ),
                 bias_current_steps_count,
             )
@@ -288,21 +287,21 @@ class LifetimeMeasurement(Process):
                     initial_i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_on_sequence,
                     np.full(bias_current_steps_count, self.aux_voltage),
-                )
+                ),
             )
             i_set = np.vstack(
                 (
                     i_set * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_on_sequence,
                     np.full(bias_current_steps_count, self.aux_voltage),
-                )
+                ),
             )
             i_unset = np.vstack(
                 (
                     i_unset * (1.0 + DIVIDER_RESISTANCE / self.r) * 1e-9,
                     trigger_off_sequence,
                     np.full(bias_current_steps_count, self.aux_voltage),
-                )
+                ),
             )
 
             task_dac.write(initial_i_set, auto_start=True)
@@ -346,7 +345,7 @@ class LifetimeMeasurement(Process):
                             ),
                             np.zeros(bias_current_steps_count),
                             np.full(bias_current_steps_count, self.aux_voltage),
-                        )
+                        ),
                     ),
                     auto_start=True,
                 )
@@ -401,28 +400,27 @@ class LifetimeMeasurement(Process):
                     )
 
                     self.c.loaded = False
+                elif self.user_aborted.is_set():
+                    print("user aborted")
                 else:
-                    if self.user_aborted.is_set():
-                        print("user aborted")
-                    else:
-                        print("no switching events detected")
-                        if not self.ignore_never_switched:
-                            i, v = np.nan, np.nan
-                            switching_time[cycle_index] = self.max_waiting_time.total_seconds()
-                            self.state_queue.put((cycle_index, self.max_waiting_time))
-                            fw.write(
-                                self.data_file,
-                                "at",
-                                [
-                                    self.frequency,
-                                    self.bias_current,
-                                    self.max_waiting_time.total_seconds(),
-                                    i * 1e9,
-                                    v * 1e3,
-                                    (datetime.now() - measurement_start_time).total_seconds(),
-                                    self.actual_temperature.value,
-                                ],
-                            )
+                    print("no switching events detected")
+                    if not self.ignore_never_switched:
+                        i, v = np.nan, np.nan
+                        switching_time[cycle_index] = self.max_waiting_time.total_seconds()
+                        self.state_queue.put((cycle_index, self.max_waiting_time))
+                        fw.write(
+                            self.data_file,
+                            "at",
+                            [
+                                self.frequency,
+                                self.bias_current,
+                                self.max_waiting_time.total_seconds(),
+                                i * 1e9,
+                                v * 1e3,
+                                (datetime.now() - measurement_start_time).total_seconds(),
+                                self.actual_temperature.value,
+                            ],
+                        )
 
                 task_dac.write(i_unset, auto_start=True)
                 task_dac.wait_until_done()
@@ -434,7 +432,7 @@ class LifetimeMeasurement(Process):
                 print(
                     f"for bias current set to {self.bias_current} nA, "
                     f"mean switching time is {np.nanmean(switching_time)} s "
-                    f"± {np.nanstd(switching_time)} s"
+                    f"± {np.nanstd(switching_time)} s",
                 )
                 # set_bias_current = (set_bias_current - offsets[adc_current.name]) / r
 
@@ -493,7 +491,7 @@ class LifetimeMeasurement(Process):
                                 "1/τ₀ [1/s]",
                                 "1/τ [1/s]",
                                 "Cycles",
-                            )
+                            ),
                         )
                         + "\n",
                         encoding="utf-8",
@@ -542,19 +540,18 @@ class LifetimeMeasurement(Process):
                                 format_float(1.0 / mean_switching_time_rnz) if mean_switching_time_rnz else "nan",
                                 # Cycles
                                 str(np.count_nonzero(~np.isnan(switching_time))),
-                            )
+                            ),
                         )
-                        + "\n"
+                        + "\n",
                     )
                 self.results_queue.put(
                     (
-                        cast(float, mean_set_bias_current_reasonable),
-                        cast(float, mean_switching_time_reasonable),
-                        cast(float, mean_switching_time_rnz),
-                    )
+                        cast("float", mean_set_bias_current_reasonable),
+                        cast("float", mean_switching_time_reasonable),
+                        cast("float", mean_switching_time_rnz),
+                    ),
                 )
+            elif self.user_aborted.is_set():
+                print("user aborted")
             else:
-                if self.user_aborted.is_set():
-                    print("user aborted")
-                else:
-                    print(f"no switching event detected for bias current set to {self.bias_current} nA")
+                print(f"no switching event detected for bias current set to {self.bias_current} nA")

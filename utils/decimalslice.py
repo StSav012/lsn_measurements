@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
+from collections.abc import Iterator
 from decimal import Decimal
-from typing import Final, Iterator
+from typing import Final
 
 __all__ = ["DecimalSlice"]
 

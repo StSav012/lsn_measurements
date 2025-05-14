@@ -1,7 +1,7 @@
-# coding: utf-8
 import time
+from collections.abc import Sequence
 from multiprocessing import Event, Process, Queue
-from typing import Any, Final, Literal, Sequence
+from typing import Any, Final, Literal
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -19,7 +19,7 @@ from hardware import (
 )
 from utils.ni import measure_offsets
 
-__all__ = ["NoiseMeasurement", "IVNoiseMeasurement"]
+__all__ = ["IVNoiseMeasurement", "NoiseMeasurement"]
 
 
 class NoiseMeasurement(Process):
@@ -86,7 +86,8 @@ class NoiseMeasurement(Process):
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(
-                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+                task_adc.timing.samp_quant_samp_per_chan,
+                reading_task_callback,
             )
 
             task_adc.start()
@@ -111,7 +112,7 @@ class IVNoiseMeasurement(Process):
         current_divider: float,
         resistance_in_series: float = 0.0,
     ) -> None:
-        super(IVNoiseMeasurement, self).__init__()
+        super().__init__()
         self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
 
         self.sample_rate: Final[float] = sample_rate

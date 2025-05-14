@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 from socket import AF_INET, SOCK_STREAM, socket
 from typing import Any
 
@@ -30,7 +27,7 @@ class SCPIDevice:
             if not connectable_hosts:
                 raise RuntimeError(
                     f"{self.__class__.__name__} with open port {port} could not be found automatically. "
-                    "Try specifying an IP address."
+                    "Try specifying an IP address.",
                 )
             if len(connectable_hosts) > 1:
                 raise RuntimeError(
@@ -54,7 +51,7 @@ class SCPIDevice:
                 if reset:
                     self.reset()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.socket is not None:
             self.socket.close()
 
@@ -73,7 +70,7 @@ class SCPIDevice:
             return ""
         self.socket.send((command.strip()).encode() + self.terminator)
         if not command.endswith("?"):
-            return
+            return None
         resp: bytes = b""
         while not resp.endswith(self.terminator):
             resp += self.socket.recv(1)

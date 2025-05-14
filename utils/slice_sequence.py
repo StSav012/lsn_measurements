@@ -1,8 +1,6 @@
-# coding: utf-8
-from __future__ import annotations
-
 import math
-from typing import Iterator, Self, Sequence
+from collections.abc import Iterator, Sequence
+from typing import Self
 
 from .si import parse_si_number
 from .string_utils import multi_split, nth_occurrence
@@ -52,21 +50,20 @@ class SliceSequence:
             _slice: list[float] = list(map(parse_si_number, parts))
             if len(_slice) == 1:
                 return _slice
-            elif len(_slice) == 2 and not any(map(math.isnan, _slice)):
+            if len(_slice) == 2 and not any(map(math.isnan, _slice)):
                 return float_range(_slice[0], _slice[-1])
-            elif len(_slice) == 3 and not any(map(math.isnan, _slice)):
+            if len(_slice) == 3 and not any(map(math.isnan, _slice)):
                 return float_range(_slice[0], _slice[-1], step=_slice[1])
-            else:
-                error_text: str = f"Invalid slice notation: {slice_text}"
-                if any(map(math.isnan, _slice)):
-                    nan_index: int = _slice.index(math.nan)
-                    line_length: int = 29 + nth_occurrence(slice_text, self._slice_separators, nan_index)
-                    if parts[nan_index]:
-                        line_length += 1 + len(parts[nan_index]) // 2
-                    error_text += "\n" + "-" * line_length + " here -^"
-                elif len(_slice) > 3:
-                    error_text += "\n" + "-" * (28 + len(slice_text)) + " here -^"
-                raise ValueError(error_text)
+            error_text: str = f"Invalid slice notation: {slice_text}"
+            if any(map(math.isnan, _slice)):
+                nan_index: int = _slice.index(math.nan)
+                line_length: int = 29 + nth_occurrence(slice_text, self._slice_separators, nan_index)
+                if parts[nan_index]:
+                    line_length += 1 + len(parts[nan_index]) // 2
+                error_text += "\n" + "-" * line_length + " here -^"
+            elif len(_slice) > 3:
+                error_text += "\n" + "-" * (28 + len(slice_text)) + " here -^"
+            raise ValueError(error_text)
 
         values: list[float] = []
         word: str
@@ -84,7 +81,7 @@ class SliceSequence:
         try:
             return self._items[item]
         except IndexError:
-            raise IndexError(f"item number {item} does not exist among {self._items}")
+            raise IndexError(f"item number {item} does not exist among {self._items}") from None
 
     def __iter__(self) -> Iterator[float]:
         yield from self._items
@@ -98,18 +95,3 @@ class SliceSequence:
 
     def __bool__(self) -> bool:
         return bool(self._items)
-
-
-if __name__ == "__main__":
-    # print(multi_split('1,2;3 ,4, 5,', (',', ';')))
-    # print(SliceSequence('1,2;3 ,4, 5'))
-    # print(SliceSequence('1:2;3:0.2:4, 5'))
-    # print(f"{SliceSequence('1:2;3:0.2:4, 5'):.6f}")
-    # print(f"{SliceSequence('1;2,'):8.4f}")
-    # print(si_prefix('mK'), si_prefix('dam'))
-    # print(f"{SliceSequence('1:2;3:80m:4, 5K')}")
-    # print(f"{SliceSequence('1:2;3:80m:4:, 5K')}")
-    # SliceSequence('1:2;3:80m:4, 1:abc:2')
-    print(SliceSequence("1:2;3:50m:4, 5k"))
-    print(SliceSequence(SliceSequence("1:2;3:50m:4, 5k")))
-    print(4 in SliceSequence("1:2;3:50m:4, 5k"))

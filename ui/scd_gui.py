@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import pyqtgraph as pg
-from qtpy.QtCore import QSettings, Qt
+from qtpy.QtCore import QSettings, Qt, Slot
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
     QFormLayout,
@@ -45,8 +42,8 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.figure: pg.GraphicsLayoutWidget = pg.GraphicsLayoutWidget(self.central_widget)
         self.canvas_mean: pg.PlotItem = self.figure.ci.addPlot(row=0, col=0)
         self.canvas_std: pg.PlotItem = self.figure.ci.addPlot(row=1, col=0)
-        self.plot_lines_mean: dict[int, pg.PlotDataItem] = dict()
-        self.plot_lines_std: dict[int, pg.PlotDataItem] = dict()
+        self.plot_lines_mean: dict[int, pg.PlotDataItem] = {}
+        self.plot_lines_std: dict[int, pg.PlotDataItem] = {}
 
         self.label_loop_number: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_remaining_time: QLabel = QLabel(self.central_widget)
@@ -77,18 +74,18 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         y_axis: pg.AxisItem
 
         x_axis = self.canvas_mean.getAxis("bottom")
-        x_axis.enableAutoSIPrefix(False)
+        x_axis.enableAutoSIPrefix(enable=False)
         y_axis = self.canvas_mean.getAxis("left")
         y_axis.setLabel(text=self.tr("Mean"), units=self.tr("nA"))
-        y_axis.enableAutoSIPrefix(False)
+        y_axis.enableAutoSIPrefix(enable=False)
         self.canvas_mean.ctrl.averageGroup.setChecked(False)
         self.canvas_mean.showGrid(x=True, y=True)
 
         x_axis = self.canvas_std.getAxis("bottom")
-        x_axis.enableAutoSIPrefix(False)
+        x_axis.enableAutoSIPrefix(enable=False)
         y_axis = self.canvas_std.getAxis("left")
         y_axis.setLabel(text=self.tr("StD"), units=self.tr("nA"))
-        y_axis.enableAutoSIPrefix(False)
+        y_axis.enableAutoSIPrefix(enable=False)
         self.canvas_std.ctrl.averageGroup.setChecked(False)
         self.canvas_std.showGrid(x=True, y=True)
         self.canvas_std.vb.setXLink(self.canvas_mean)
@@ -170,7 +167,7 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_topmost.toggled.connect(self.on_button_topmost_toggled)
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
@@ -189,23 +186,26 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.save_settings()
         event.accept()
 
+    @Slot(bool)
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint,
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint),
             )
             self.show()
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.button_pause.setChecked(False)
         self.button_stop.setEnabled(True)
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         self.button_stop.setDisabled(True)
         self.button_start.setEnabled(True)

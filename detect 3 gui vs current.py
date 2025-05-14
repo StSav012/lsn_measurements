@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 from typing import final
@@ -8,7 +7,7 @@ from astropy.units import K, Quantity
 from numpy.typing import NDArray
 from pyqtgraph.functions import intColor
 from qtpy import QT5
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
@@ -20,7 +19,7 @@ from utils.string_utils import format_float
 @final
 class App(DetectBase):
     def setup_ui_appearance(self) -> None:
-        super(App, self).setup_ui_appearance()
+        super().setup_ui_appearance()
 
         self.figure.getAxis("bottom").setLabel(text=self.tr("Current"), units=self.tr("nA"))
 
@@ -43,7 +42,7 @@ class App(DetectBase):
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -88,7 +87,7 @@ class App(DetectBase):
                         else ""
                     ),
                 ),
-            )
+            ),
         )
 
     def _line_color(self, index: int) -> QColor:
@@ -180,6 +179,7 @@ class App(DetectBase):
         self.bias_current_index += 1
         return self._next_indices()
 
+    @Slot()
     def on_timeout(self) -> None:
         self._read_state_queue()
 

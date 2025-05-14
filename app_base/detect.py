@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import abc
 from datetime import date, datetime, timedelta
 from multiprocessing import Event, Queue, Value
@@ -29,7 +26,7 @@ __all__ = ["DetectBase"]
 
 class DetectBase(DetectGUI):
     def __init__(self) -> None:
-        super(DetectBase, self).__init__()
+        super().__init__()
 
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
@@ -82,7 +79,9 @@ class DetectBase(DetectGUI):
         self.bias_current_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "bias current [nA]")
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
         self.initial_biases: Final[list[float]] = self.config.get_float_list(
-            "current", "initial current [nA]", fallback=[0.0]
+            "current",
+            "initial current [nA]",
+            fallback=[0.0],
         )
 
         self.setting_time_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "setting time [sec]")
@@ -96,10 +95,13 @@ class DetectBase(DetectGUI):
         self.cycles_count: Final[int] = self.config.getint("detect", "number of cycles")
         self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
         self.minimal_probability_to_measure: Final[float] = self.config.getfloat(
-            "detect", "minimal probability to measure [%]", fallback=0.0
+            "detect",
+            "minimal probability to measure [%]",
+            fallback=0.0,
         )
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
-            "measurement", "delay between cycles [sec]"
+            "measurement",
+            "delay between cycles [sec]",
         )
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
@@ -109,20 +111,23 @@ class DetectBase(DetectGUI):
         self.power_dbm_values: Final[SliceSequence] = self.config.get_slice_sequence("GHz signal", "power [dBm]")
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
         self.pulse_duration_values: Final[SliceSequence] = self.config.get_slice_sequence(
-            "detect", "GHz pulse duration [sec]"
+            "detect",
+            "GHz pulse duration [sec]",
         )
         self.waiting_after_pulse: Final[float] = self.config.get_float("detect", "waiting after GHz pulse [sec]")
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
         self.temperature_delay: Final[timedelta] = timedelta(
-            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
+            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0,
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
             abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
-            "measurement", "change filtered readings in Triton", fallback=True
+            "measurement",
+            "change filtered readings in Triton",
+            fallback=True,
         )
 
         self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"D:\ttt\detect"))
@@ -201,7 +206,7 @@ class DetectBase(DetectGUI):
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -299,7 +304,7 @@ class DetectBase(DetectGUI):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super(DetectBase, self).on_button_start_clicked()
+        super().on_button_start_clicked()
 
         if self.check_exists and not self._next_indices():
             error("nothing left to measure")
@@ -323,7 +328,7 @@ class DetectBase(DetectGUI):
         self.synthesizer.pulse_modulation.state = False
         self.synthesizer.output = False
         self.saved_files.add(self.data_file)
-        super(DetectBase, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     def _read_state_queue(self) -> None:
         cycle_index: int
@@ -364,11 +369,12 @@ class DetectBase(DetectGUI):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
-            if self.change_filtered_readings:
-                if not self.triton.ensure_filter_readings(6, self.triton.filter_readings(self.temperature)):
-                    error("failed to change the state of filtered readings")
-                    self.timer.stop()
-                    self.measurement.terminate()
+            if self.change_filtered_readings and not self.triton.ensure_filter_readings(
+                6, self.triton.filter_readings(self.temperature)
+            ):
+                error("failed to change the state of filtered readings")
+                self.timer.stop()
+                self.measurement.terminate()
             if not self.triton.ensure_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
@@ -384,7 +390,7 @@ class DetectBase(DetectGUI):
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
-                    f": {self.temperature_delay - td} left"
+                    f": {self.temperature_delay - td} left",
                 )
                 self.timer.setInterval(1000)
         else:
@@ -406,9 +412,8 @@ class DetectBase(DetectGUI):
             and self.data_file.exists()
             and self._get_data_file_content().size
         )
-        if exists and verbose:
-            if self.data_file not in self.saved_files:
-                warning(f"{self.data_file} already exists")
+        if exists and verbose and self.data_file not in self.saved_files:
+            warning(f"{self.data_file} already exists")
         return exists
 
     def _get_data_file_content(self) -> NDArray[float]:
@@ -417,7 +422,7 @@ class DetectBase(DetectGUI):
                 [float(cell) for cell in row.split("\t")]
                 for row in self.data_file.read_text(encoding="utf-8").splitlines()
                 if row and (row.startswith("nan") or not row[0].isalpha())
-            ]
+            ],
         ).T
 
     @abc.abstractmethod

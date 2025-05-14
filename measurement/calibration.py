@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 from numbers import Real
 
 import numpy as np
@@ -133,7 +130,7 @@ def attenuation(attenuation_voltage: Real | NDArray[Real], cal_source: str = "ps
     else:
         raise ValueError("Invalid calibration source:", cal_source)
     cal_data: NDArray[np.float64] = np.array(
-        [[float(i) for i in line.split()[:2]] for line in cal_text.strip().splitlines() if line.strip()]
+        [[float(i) for i in line.split()[:2]] for line in cal_text.strip().splitlines() if line.strip()],
     ).T
     cal_x: NDArray[np.float64] = cal_data[0]
     cal_y: NDArray[np.float64] = cal_data[1]

@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 from math import nan
 from typing import Final, Literal
 
@@ -62,7 +59,7 @@ class _AmplitudeModulationPerChannel:
 
     @linear_depth.setter
     def linear_depth(self, new_value: float) -> None:
-        """Sets the depth of the linear amplitude modulation in percent / volt."""
+        """Set the depth of the linear amplitude modulation in percent / volt."""
         if not (0 <= new_value <= 100):
             raise ValueError(f"Invalid AM Depth: {new_value}")
         self._parent.issue(f":am{self._channel}:depth:linear", new_value)
@@ -75,7 +72,7 @@ class _AmplitudeModulationPerChannel:
 
     @exponential_depth.setter
     def exponential_depth(self, new_value: float) -> None:
-        """Sets the depth of the exponential amplitude modulation in dB/volt."""
+        """Set the depth of the exponential amplitude modulation in dB/volt."""
         if not (0 <= new_value <= 100):
             raise ValueError(f"Invalid AM Depth: {new_value}")
         self._parent.issue(f":am{self._channel}:depth:exponential", new_value)
@@ -88,7 +85,7 @@ class _AmplitudeModulationPerChannel:
 
     @linear_sensitivity.setter
     def linear_sensitivity(self, new_value: float) -> None:
-        """Sets the sensitivity of the external signal source for amplitude modulation."""
+        """Set the sensitivity of the external signal source for amplitude modulation."""
         if not (0 <= new_value <= 100):
             raise ValueError(f"Invalid AM Sensitivity: {new_value}")
         self._parent.issue(f":am{self._channel}:sensitivity:linear", new_value)
@@ -101,7 +98,7 @@ class _AmplitudeModulationPerChannel:
 
     @exponential_sensitivity.setter
     def exponential_sensitivity(self, new_value: float) -> None:
-        """Sets the sensitivity of the external signal source for amplitude modulation."""
+        """Set the sensitivity of the external signal source for amplitude modulation."""
         if not (0 <= new_value <= 100):
             raise ValueError(f"Invalid AM Sensitivity: {new_value}")
         self._parent.issue(f":am{self._channel}:sensitivity:exponential", new_value)
@@ -121,7 +118,7 @@ class _AmplitudeModulation:
 
     @am_mode.setter
     def am_mode(self, new_value: str) -> None:
-        """Selects the mode of the amplitude modulation: scan or normal."""
+        """Select the mode of the amplitude modulation: scan or normal."""
         if new_value.casefold() not in ("scan", "norm", "normal"):
             raise ValueError(f"Invalid AM Mode: {new_value}")
         self._parent.issue(":am:mode", new_value)
@@ -134,7 +131,7 @@ class _AmplitudeModulation:
 
     @am_type.setter
     def am_type(self, new_value: str) -> None:
-        """Selects the type of amplitude modulation: linear or exponential."""
+        """Select the type of amplitude modulation: linear or exponential."""
         if new_value.casefold() not in ("lin", "exp", "linear", "exponential"):
             raise ValueError(f"Invalid AM Type: {new_value}")
         self._parent.issue(":am:type", new_value)
@@ -147,7 +144,8 @@ class _AmplitudeModulation:
 
     @am_deviation_mode.setter
     def am_deviation_mode(self, new_value: str) -> None:
-        """Selects the coupling mode.
+        """Select the coupling mode.
+
         The coupling mode parameter also determines the mode for fixing the total depth.
         """
         if new_value.casefold() not in ("uncoupled", "total", "ratio"):
@@ -170,7 +168,7 @@ class _LFOutputPerChannel:
 
     @state.setter
     def state(self, new_value: bool) -> None:
-        """Activates LF signal output."""
+        """Activate LF signal output."""
         self._parent.issue(f":lfOutput{self._channel}", int(bool(new_value)))
 
     @property
@@ -181,13 +179,13 @@ class _LFOutputPerChannel:
 
     @source.setter
     def source(self, new_value: str) -> None:
-        """Determines the LF signal to be synchronized, when monitoring is enabled."""
+        """Determine the LF signal to be synchronized, when monitoring is enabled."""
         if new_value.casefold() not in (
             "lf1",
             "lf2",
             "noise",
             "am",
-            "fm" "pm",
+            "fmpm",
             "ext1",
             "ext2",
         ):
@@ -217,7 +215,7 @@ class _ExternalModulationPerChannel:
 
     @coupling.setter
     def coupling(self, new_value: str) -> None:
-        """Selects the coupling mode for an externally applied modulation signal: AC or DC."""
+        """Select the coupling mode for an externally applied modulation signal: AC or DC."""
         if new_value.casefold() not in ("ac", "dc"):
             raise ValueError(f"Invalid Coupling: {new_value}")
         self._parent.issue(f":input:modExt:coupling{self._channel}", new_value)
@@ -244,87 +242,87 @@ class _PulseModulation:
     def state(self) -> bool:
         if self._parent.socket is None:
             return False
-        return bool(int(self._parent.query(":pul" "m:state")))
+        return bool(int(self._parent.query(":pulm:state")))
 
     @state.setter
     def state(self, new_value: bool) -> None:
-        """Activates pulse modulation."""
-        self._parent.issue(":pul" "m:state", int(bool(new_value)))
+        """Activate pulse modulation."""
+        self._parent.issue(":pulm:state", int(bool(new_value)))
 
     @property
     def source(self) -> str:
         if self._parent.socket is None:
             return ""
-        return self._parent.query(":pul" "m:source")
+        return self._parent.query(":pulm:source")
 
     @source.setter
     def source(self, new_value: str) -> None:
-        """Selects between the internal Pulse Generator or an External pulse signal for the modulation."""
+        """Select between the internal Pulse Generator or an External pulse signal for the modulation."""
         if new_value.casefold() == "ext":
             new_value = "external"
         elif new_value.casefold() == "int":
             new_value = "internal"
         if new_value.casefold() not in ("internal", "external"):
             raise ValueError(f"Invalid Pulse Modulation Transition Mode: {new_value}")
-        self._parent.issue(":pul" "m:source", new_value)
+        self._parent.issue(":pulm:source", new_value)
 
     @property
     def transition_type(self) -> str:
         if self._parent.socket is None:
             return ""
-        return self._parent.query(":pul" "m:t" "type")
+        return self._parent.query(":pulm:ttype")
 
     @transition_type.setter
     def transition_type(self, new_value: str) -> None:
-        """Selects between Fast or Smoothed slew rate (slope)."""
+        """Select between Fast or Smoothed slew rate (slope)."""
         if new_value.casefold() == "smo":
             new_value = "smoothed"
         if new_value.casefold() not in ("smoothed", "fast"):
             raise ValueError(f"Invalid Pulse Modulation Transition Mode: {new_value}")
-        self._parent.issue(":pul" "m:t" "type", new_value)
+        self._parent.issue(":pulm:ttype", new_value)
 
     @property
     def polarity(self) -> str:
         if self._parent.socket is None:
             return ""
-        return self._parent.query(":pul" "m:polarity")
+        return self._parent.query(":pulm:polarity")
 
     @polarity.setter
     def polarity(self, new_value: str) -> None:
-        """Sets the polarity of the externally applied modulation signal."""
+        """Set the polarity of the externally applied modulation signal."""
         if new_value.casefold() == "norm":
             new_value = "normal"
         elif new_value.casefold() == "inv":
             new_value = "inverted"
         if new_value.casefold() not in ("normal", "inverted"):
             raise ValueError(f"Invalid Pulse Modulation Polarity: {new_value}")
-        self._parent.issue(":pul" "m:polarity", new_value)
+        self._parent.issue(":pulm:polarity", new_value)
 
     @property
     def impedance(self) -> str:
         if self._parent.socket is None:
             return ""
-        return self._parent.query(":pul" "m:impedance")
+        return self._parent.query(":pulm:impedance")
 
     @impedance.setter
     def impedance(self, new_value: str) -> None:
-        """Sets the impedance for the external pulse trigger and pulse modulation input."""
+        """Set the impedance for the external pulse trigger and pulse modulation input."""
         if new_value.casefold() not in ("g50", "g10k"):
             raise ValueError(f"Invalid Pulse Impedance: {new_value}")
-        self._parent.issue(":pul" "m:impedance", new_value)
+        self._parent.issue(":pulm:impedance", new_value)
 
     @property
     def threshold(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(":pul" "m:threshold"))
+        return float(self._parent.query(":pulm:threshold"))
 
     @threshold.setter
     def threshold(self, new_value: float) -> None:
-        """Sets the threshold for the input signal at the Pulse Ext connector."""
+        """Set the threshold for the input signal at the Pulse Ext connector."""
         if not (0.0 <= new_value <= 2.0):
             raise ValueError(f"Invalid Pulse Modulation Threshold: {new_value}")
-        self._parent.issue(":pul" "m:threshold", new_value)
+        self._parent.issue(":pulm:threshold", new_value)
 
 
 class SMA100B(SCPIDevice):

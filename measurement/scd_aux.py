@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import time
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from multiprocessing import Event, Process, Queue, Value
 from pathlib import Path
-from typing import Any, Final, Literal, Sequence, cast
+from typing import Any, Final, Literal, cast
 
 import numpy as np
-from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
+from nidaqmx.constants import WAIT_INFINITELY, AcquisitionType
 from nidaqmx.errors import DaqReadError
 from nidaqmx.stream_readers import AnalogMultiChannelReader
 from nidaqmx.task import Task
@@ -43,9 +41,9 @@ __all__ = ["SCDMeasurement"]
 class SCDMeasurement(Process):
     def __init__(
         self,
-        results_queue: "Queue[tuple[float, float]]",
-        state_queue: "Queue[tuple[int, timedelta]]",
-        switching_data_queue: "Queue[tuple[np.float64, np.float64]]",
+        results_queue: Queue[tuple[float, float]],
+        state_queue: Queue[tuple[int, timedelta]],
+        switching_data_queue: Queue[tuple[np.float64, np.float64]],
         good_to_go: Event,
         user_aborted: Event,
         actual_temperature: Value,
@@ -71,7 +69,7 @@ class SCDMeasurement(Process):
         temperature: float = np.nan,
         adc_rate: float = np.nan,
     ) -> None:
-        super(SCDMeasurement, self).__init__()
+        super().__init__()
 
         self.results_queue: Queue[tuple[float, float]] = results_queue
         self.state_queue: Queue[tuple[int, timedelta | None]] = state_queue
@@ -151,7 +149,7 @@ class SCDMeasurement(Process):
                 / min(
                     ((current_channel.ao_max - current_channel.ao_min) / (2**current_channel.ao_resolution)),
                     bias_current_steps_count,
-                )
+                ),
             )
             actual_bias_current_step: float = bias_current_amplitude / (actual_bias_current_steps_count - 1)
 
@@ -169,7 +167,7 @@ class SCDMeasurement(Process):
                 (
                     np.full(bias_current_steps_count, 2.0 * trigger_trigger),
                     np.zeros(bias_current_steps_count),
-                )
+                ),
             )
 
             task_adc.timing.cfg_samp_clk_timing(
@@ -211,7 +209,7 @@ class SCDMeasurement(Process):
                         if (v[0] < self.trigger_voltage) and (self.trigger_voltage < v[-1]):
                             if not self.ignore_switch:
                                 i: NDArray[np.float64] = (data[0] - v - offsets[adc_current.name]) / self.r
-                                _index: int = cast(int, np.searchsorted(v, self.trigger_voltage))
+                                _index: int = cast("int", np.searchsorted(v, self.trigger_voltage))
 
                                 _switching_events_count = np.count_nonzero(~np.isnan(switching_current))
                                 switching_current[_switching_events_count] = i[_index]
@@ -243,21 +241,21 @@ class SCDMeasurement(Process):
                                 )
                                 self.switching_data_queue.put((_i, _v))
                                 pq.write(
-                                    f"switching current is {_i * 1e9:.2f} nA " f"(voltage is {_v * 1e6:.3f} uV)",
+                                    f"switching current is {_i * 1e9:.2f} nA (voltage is {_v * 1e6:.3f} uV)",
                                     end="",
                                 )
                             self.switch_registered = True
-                else:
-                    if self.pulse_started:
-                        self.pulse_ended = True
-                        self.pulse_started = False
-                        if not self.switch_registered:
-                            pq.write("no switching events", end="")
+                elif self.pulse_started:
+                    self.pulse_ended = True
+                    self.pulse_started = False
+                    if not self.switch_registered:
+                        pq.write("no switching events", end="")
                 return 0
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(
-                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+                task_adc.timing.samp_quant_samp_per_chan,
+                reading_task_callback,
             )
 
             # calculating the current sequence
@@ -289,7 +287,7 @@ class SCDMeasurement(Process):
                                     bias_current_steps_count,
                                 ),
                             }[self.reset_function.casefold()],
-                        )
+                        ),
                     )
                     * self.r
                     * self.divider
@@ -297,7 +295,7 @@ class SCDMeasurement(Process):
                     * 1e-9,
                     trigger_sequence,
                     np.full(2 * bias_current_steps_count, self.aux_voltage),
-                )
+                ),
             )
 
             task_adc.start()
@@ -311,7 +309,7 @@ class SCDMeasurement(Process):
                         ),
                         trigger_sequence,
                         np.full(2 * bias_current_steps_count, self.aux_voltage),
-                    )
+                    ),
                 ),
                 auto_start=True,
             )
@@ -331,7 +329,7 @@ class SCDMeasurement(Process):
                 t1: datetime = datetime.now()
                 pq.write(
                     f"\nmeasurement took {(t1 - t0).total_seconds()} seconds "
-                    f"({(t1 - t0).total_seconds() / bias_current_steps_count} seconds per point)"
+                    f"({(t1 - t0).total_seconds() / bias_current_steps_count} seconds per point)",
                 )
 
             while not self.pulse_ended:
@@ -427,7 +425,7 @@ class SCDMeasurement(Process):
                                 "Measurement Duration [s]",
                                 "Actual Temperature [mK]",
                                 "Cycles",
-                            )
+                            ),
                         )
                         + "\n",
                         encoding="utf-8",
@@ -444,13 +442,13 @@ class SCDMeasurement(Process):
                                 format_float((datetime.now() - measurement_start_time).total_seconds()),
                                 format_float(self.actual_temperature.value),
                                 str(np.count_nonzero(~np.isnan(switching_current))),
-                            )
+                            ),
                         )
-                        + "\n"
+                        + "\n",
                     )
                 self.results_queue.put(
                     (
-                        cast(float, mean_switching_current),
-                        cast(float, switching_current_std),
-                    )
+                        cast("float", mean_switching_current),
+                        cast("float", switching_current_std),
+                    ),
                 )

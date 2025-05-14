@@ -1,6 +1,6 @@
 import time
 from collections import OrderedDict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Condition, Lock, Thread
@@ -31,13 +31,11 @@ class Triton(Thread):
 
     @staticmethod
     def filter_readings(temperature: float) -> bool:
-        if temperature < 0.2:
-            return False
-        return True
+        return not temperature < 0.2
 
     def __init__(self, ip: str | None = None, port: int = 33576) -> None:
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
-        self.conversation: dict[str, str] = dict()
+        self.conversation: dict[str, str] = {}
 
         self._issuing: Lock = Lock()
         self._has_pending_data: Condition = Condition()
@@ -74,12 +72,11 @@ class Triton(Thread):
                     resp += self.socket.recv(1)
                 except ConnectionResetError:
                     error(self.socket.getpeername())
-                if not resp:
-                    if command.startswith("READ:"):
-                        self.conversation[command] = ""
-                        with self._has_pending_data:
-                            self._has_pending_data.notify()
-                        return ""
+                if not resp and command.startswith("READ:"):
+                    self.conversation[command] = ""
+                    with self._has_pending_data:
+                        self._has_pending_data.notify()
+                    return ""
         if command.startswith("READ:"):
             self.conversation[command] = resp.decode().strip()
             with self._has_pending_data:
@@ -94,11 +91,7 @@ class Triton(Thread):
     def query_value(self, command: str, blocking: bool = False) -> bool | Quantity:
         if not command.startswith("READ:"):
             command = "READ:" + command
-        response: str
-        if blocking:
-            response = self.communicate(command)
-        else:
-            response = self.query(command)
+        response: str = self.communicate(command) if blocking else self.query(command)
         if not response:
             return Quantity(nan)
         response_start: str = ":".join(["STAT"] + command.split(":")[1:]) + ":"
@@ -108,7 +101,7 @@ class Triton(Thread):
         response = response[len(response_start) :]
         if response == "OFF":
             return False
-        elif response == "ON":
+        if response == "ON":
             return True
         return Quantity(response)
 
@@ -266,7 +259,7 @@ class TritonScript(socket):
                     if part_key == "enabled":
                         ch_data_part[part_key] = bool(int(part_value))
                     elif part_key == "time":
-                        ch_data_part[part_key] = datetime.fromtimestamp(float(part_value), tz=timezone.utc)
+                        ch_data_part[part_key] = datetime.fromtimestamp(float(part_value), tz=UTC)
                     else:
                         try:
                             ch_data_part[part_key] = float(part_value)
@@ -297,4 +290,3 @@ if __name__ == "__main__":
     # pp(ts.status)
     # pp(ts.pressures)
     # pp(ts.thermometry)
-    ...

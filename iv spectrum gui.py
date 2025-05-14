@@ -1,4 +1,3 @@
-# coding: utf-8
 import sys
 from multiprocessing import Queue
 from typing import Final, final
@@ -178,7 +177,7 @@ class GUI(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
 
@@ -234,7 +233,7 @@ class GUI(QMainWindow):
 @final
 class App(GUI):
     def __init__(self) -> None:
-        super(App, self).__init__()
+        super().__init__()
 
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
@@ -247,7 +246,7 @@ class App(GUI):
 
     @Slot()
     def on_button_start_clicked(self) -> None:
-        super(App, self).on_button_start_clicked()
+        super().on_button_start_clicked()
         self.timer.start(40)
         self.measurement = IVNoiseMeasurement(
             self.results_queue,
@@ -266,7 +265,7 @@ class App(GUI):
             self.measurement.terminate()
             self.measurement.join()
         self.timer.stop()
-        super(App, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     @Slot()
     def on_timeout(self) -> None:

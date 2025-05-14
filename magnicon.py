@@ -14,7 +14,7 @@ from nidaqmx.system.system import System
 from nidaqmx.task import Task
 from numpy.typing import NDArray
 from pyqtgraph import DateAxisItem, GraphicsLayoutWidget, PlotDataItem, PlotItem, PlotWidget
-from qtpy.QtCore import QDateTime, Qt, QThread, Signal, Slot
+from qtpy.QtCore import QDateTime, QThread, Qt, Signal, Slot
 from qtpy.QtGui import QCloseEvent
 from qtpy.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QTabWidget, QVBoxLayout, QWidget
 from scipy.optimize import curve_fit
@@ -251,7 +251,7 @@ class MagniCon:
             for line in peak_path.read_text().splitlines():
                 if line:
                     words: list[str] = line.split()
-                    if len(words) == 2:  # noqa: PLR2004
+                    if len(words) == 2:
                         self.rejected_bands.append(Band(float(words[0]), float(words[1])))
 
         system: Final[System] = System.local()
@@ -448,7 +448,7 @@ class MagniCon:
 
         return FitResult(fit_s0, fit_fc, fit_p1, fit_p2, *np.sqrt(np.diag(p_cov)), avg=avg, band=band)
 
-    def write_cal(  # noqa: PLR0913
+    def write_cal(
         self,
         filename: int | str | bytes | PathLike[str] | PathLike[bytes],
         t_ref: float,

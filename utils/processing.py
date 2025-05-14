@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
-from typing import Callable, Iterator, Sized, TypeVar
+from collections.abc import Callable, Iterator, Sized
+from typing import TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy import signal
 
-__all__ = ["welch", "moving_mean", "moving_median", "get_scipy_signal_windows_by_name"]
+__all__ = ["get_scipy_signal_windows_by_name", "moving_mean", "moving_median", "welch"]
 
 _T = TypeVar("_T")
 
@@ -27,7 +25,8 @@ def moving_average(
     n: int,
     averaging_function: Callable[[NDArray[_T]], _T],
 ) -> NDArray[_T]:
-    assert n > 0
+    if n < 0:
+        raise ValueError("Window ust have positive length")
     return np.fromiter(
         (averaging_function(x[max(m - n, 0) : m + n]) for m in range(x.size)),
         dtype=x.dtype,
@@ -59,7 +58,7 @@ def get_scipy_signal_windows_by_name() -> Iterator[tuple[str, str]]:
 
         arg_spec: FullArgSpec = getfullargspec(w)
         if none_len(arg_spec.args) + none_len(arg_spec.varargs) - none_len(arg_spec.defaults) != 1 and none_len(
-            arg_spec.kwonlyargs
+            arg_spec.kwonlyargs,
         ) == none_len(arg_spec.kwonlydefaults):
             continue
 

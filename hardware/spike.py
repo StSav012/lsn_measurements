@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 from math import isnan, nan
 from typing import cast
 
@@ -161,25 +158,25 @@ class _Power:
     def reference_level(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(":power:r" "level"))
+        return float(self._parent.query(":power:rlevel"))
 
     @reference_level.setter
     def reference_level(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(":power:r" "level", f"{new_value}dbm")
+        self._parent.issue(":power:rlevel", f"{new_value}dbm")
 
     @property
     def division(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(":power:p" "division"))
+        return float(self._parent.query(":power:pdivision"))
 
     @division.setter
     def division(self, new_value: float) -> None:
         if isnan(new_value):
             return
-        self._parent.issue(":power:p" "division", new_value)
+        self._parent.issue(":power:pdivision", new_value)
 
 
 class _Detector:
@@ -196,7 +193,7 @@ class _Detector:
     def function(self, new_value: str) -> None:
         if new_value.casefold() == "aver":
             new_value = "average"
-        elif new_value.casefold() not in ("average", "min" "max", "min", "max"):
+        elif new_value.casefold() not in ("average", "minmax", "min", "max"):
             raise ValueError(f"Invalid Sweep Detector Function: {new_value}")
         self._parent.issue(":sweep:detector:function", new_value)
 
@@ -210,7 +207,7 @@ class _Detector:
     def units(self, new_value: str) -> None:
         if new_value.casefold() == "pow":
             new_value = "power"
-        if new_value.casefold() == "sam" "pl":
+        if new_value.casefold() == "sampl":
             new_value = "sample"
         if new_value.casefold() == "volt":
             new_value = "voltage"
@@ -285,15 +282,15 @@ class _Trace:
 
     @type.setter
     def type(self, new_value: str) -> None:
-        if new_value.casefold() == "wr" "it":
+        if new_value.casefold() == "writ":
             new_value = "write"
         if new_value.casefold() == "aver":
             new_value = "average"
         if new_value.casefold() == "max":
-            new_value = "max" "hold"
+            new_value = "maxhold"
         if new_value.casefold() == "min":
-            new_value = "min" "hold"
-        elif new_value.casefold() not in ("off", "write", "average", "max" "hold", "min" "hold", "min" "max"):
+            new_value = "minhold"
+        elif new_value.casefold() not in ("off", "write", "average", "maxhold", "minhold", "minmax"):
             raise ValueError(f"Invalid Sweep Detector Units: {new_value}")
         self._parent.issue(":trace:type", new_value)
 
@@ -333,13 +330,13 @@ class _Trace:
     def start_frequency(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(":trace:x" "start"))
+        return float(self._parent.query(":trace:xstart"))
 
     @property
     def frequency_step(self) -> float:
         if self._parent.socket is None:
             return nan
-        return float(self._parent.query(":trace:x" "increment"))
+        return float(self._parent.query(":trace:xincrement"))
 
 
 class Spike(SCPIDevice):
@@ -396,7 +393,7 @@ if __name__ == "__main__":
     # Set un-hidden
     s.trace.display = True
 
-    for i in range(3):
+    for _ in range(3):
         # Trigger a sweep, and wait for it to complete
         s.init()
         s.opc()
@@ -409,7 +406,7 @@ if __name__ == "__main__":
         bin_size: float = s.trace.frequency_step
 
         # Find the peak point in the sweep
-        peak_idx: int = cast(int, np.argmax(points))
+        peak_idx: int = cast("int", np.argmax(points))
         peak_val: float = points[peak_idx]
         peak_freq: float = start_freq + peak_idx * bin_size
 

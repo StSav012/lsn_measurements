@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
 import sys
 from io import BytesIO, TextIOWrapper
 from pathlib import WindowsPath
-from typing import Literal, Optional, TextIO
+from typing import Literal, TextIO
 
-__all__ = ["TeePath", "TeeBytesIO", "TeeTextIOWrapper"]
+__all__ = ["TeeBytesIO", "TeePath", "TeeTextIOWrapper"]
 
 
 class TeeBytesIO(BytesIO):
-    def write(self, __s: bytes) -> int:
+    def write(self, /, __s: bytes) -> int:
         sys.stdout.write(repr(__s))
         return super().write(__s)
 
 
 class TeeTextIOWrapper(TextIOWrapper):
-    def write(self, __s: str) -> int:
+    def write(self, /, __s: str) -> int:
         sys.stdout.write(__s)
         return super().buffer.write(__s)
 
@@ -27,9 +26,9 @@ class TeePath(WindowsPath):
         self,
         mode: OpenTextModeWriting = "wt",
         buffering: int = 1,
-        encoding: Optional[str] = "utf-8",
-        errors: Optional[str] = None,
-        newline: Optional[str] = None,
+        encoding: str | None = "utf-8",
+        errors: str | None = None,
+        newline: str | None = None,
     ) -> TeeTextIOWrapper:
         return TeeTextIOWrapper(super().open(mode, buffering, encoding, errors, newline))
 

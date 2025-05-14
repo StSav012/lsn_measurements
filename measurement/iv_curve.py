@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import time
 from datetime import datetime
 from multiprocessing import Process, Queue
 from typing import Any, Final, Literal
 
 import numpy as np
-from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
+from nidaqmx.constants import WAIT_INFINITELY, AcquisitionType
 from nidaqmx.errors import DaqError
 from nidaqmx.stream_readers import AnalogMultiChannelReader, AnalogSingleChannelReader
 from nidaqmx.stream_writers import AnalogSingleChannelWriter
@@ -18,9 +15,9 @@ from numpy.typing import NDArray
 from hardware import (
     DIVIDER,
     DIVIDER_RESISTANCE,
-    R,
     R_SERIES,
     VOLTAGE_GAIN,
+    R,
     adc_current,
     adc_sync,
     adc_voltage,
@@ -33,17 +30,17 @@ from utils.ni import measure_offsets, zero_sources
 
 __all__ = [
     "IVCurveMeasurement",
+    "fast_iv_curve",
     "iv_curve",
     "iv_curve_2",
     "iv_curve_of_rate",
-    "fast_iv_curve",
 ]
 
 
 class IVCurveMeasurement(Process):
     def __init__(
         self,
-        results_queue: "Queue[NDArray[np.float64]]",
+        results_queue: Queue[NDArray[np.float64]],
         min_current: float,
         max_current: float,
         current_rate: float,
@@ -55,7 +52,7 @@ class IVCurveMeasurement(Process):
         resistance_in_series: float = 0.0,
         current_mode: str = "linear",
     ) -> None:
-        super(IVCurveMeasurement, self).__init__()
+        super().__init__()
 
         self.results_queue: Queue[NDArray[np.float64]] = results_queue
 
@@ -128,7 +125,10 @@ class IVCurveMeasurement(Process):
             adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
             def reading_task_callback(
-                _task_idx: int, _event_type: int, num_samples: int, _callback_data: Any
+                _task_idx: int,
+                _event_type: int,
+                num_samples: int,
+                _callback_data: Any,
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
@@ -150,7 +150,8 @@ class IVCurveMeasurement(Process):
 
             # noinspection PyTypeChecker
             task_adc.register_every_n_samples_acquired_into_buffer_event(
-                task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+                task_adc.timing.samp_quant_samp_per_chan,
+                reading_task_callback,
             )
 
             # calculate the current sequence
@@ -159,7 +160,7 @@ class IVCurveMeasurement(Process):
                     [0.0],
                     np.full((2 if self.two_way else 1) * points, 2.0 * trigger_trigger),
                     [0.0],
-                )
+                ),
             )
 
             i_set: NDArray[np.float64]
@@ -177,7 +178,7 @@ class IVCurveMeasurement(Process):
                     (
                         i_set,
                         i_set[::-1],
-                    )
+                    ),
                 )
 
             i_set = np.concatenate(([i_set[0]], i_set, [i_set[-1]]))
@@ -203,7 +204,7 @@ class IVCurveMeasurement(Process):
 
 
 def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) -> tuple[list[float], list[float]]:
-    """Measure IV curve without actual current measurement"""
+    """Measure IV curve without actual current measurement."""
     task_adc: Task = Task()
     task_dac_current: Task = Task()
     task_adc.ai_channels.add_ai_voltage_chan(adc_voltage.name)
@@ -220,7 +221,7 @@ def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) ->
 
     adc_voltage_stream: AnalogSingleChannelReader = AnalogSingleChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx, _event_type, num_samples, _callback_data):
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
         # It may be wiser to read slightly more than num_samples here, to make sure one does not miss any sample,
         # see: https://documentation.help/NI-DAQmx-Key-Concepts/contCAcqGen.html
         _data = np.empty(num_samples)
@@ -229,26 +230,26 @@ def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) ->
         except DaqError:
             pass
         else:
-            setattr(task_adc, "last_voltage", _data[-1])
+            task_adc.last_voltage = _data[-1]
         return 0
 
     task_adc.in_stream.auto_start = True
     # noinspection PyTypeChecker
     task_adc.register_every_n_samples_acquired_into_buffer_event(50, reading_task_callback)
-    setattr(task_adc, "last_voltage", np.nan)
+    task_adc.last_voltage = np.nan
     task_adc.start()
 
     t0: float = datetime.now().timestamp()
     for k in range(points):
         current_i: float = limits_min + limits_ptp / points * k
         task_dac_current.write(current_i * R)
-        v.append((getattr(task_adc, "last_voltage") - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
+        v.append((task_adc.last_voltage - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
         i.append(current_i)
     if two_way:
         for k in range(points):
             current_i: float = limits_min + limits_ptp / points * (points - k - 1)
             task_dac_current.write(current_i * R)
-            v.append((getattr(task_adc, "last_voltage") - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
+            v.append((task_adc.last_voltage - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
             i.append(current_i)
     t1: float = datetime.now().timestamp()
     print(f"measurement took {t1 - t0} seconds ({(t1 - t0) / points / (2 if two_way else 1)} seconds per point)")
@@ -261,7 +262,7 @@ def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) ->
 
 
 def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) -> tuple[list[float], list[float]]:
-    """Measure IV curve with actual current measurement"""
+    """Measure IV curve with actual current measurement."""
     task_adc: Task = Task()
     task_dac_current: Task = Task()
     task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
@@ -279,7 +280,7 @@ def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) 
 
     adc_voltage_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx, _event_type, num_samples, _callback_data):
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
         # It may be wiser to read slightly more than num_samples here, to make sure one does not miss any sample,
         # see: https://documentation.help/NI-DAQmx-Key-Concepts/contCAcqGen.html
         _data = np.empty((2, num_samples))
@@ -288,28 +289,28 @@ def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) 
         except DaqError:
             pass
         else:
-            setattr(task_adc, "last_current", _data[0, -1])
-            setattr(task_adc, "last_voltage", _data[1, -1])
+            task_adc.last_current = _data[0, -1]
+            task_adc.last_voltage = _data[1, -1]
         return 0
 
     # noinspection PyTypeChecker
     task_adc.register_every_n_samples_acquired_into_buffer_event(50, reading_task_callback)
-    setattr(task_adc, "last_voltage", np.nan)
-    setattr(task_adc, "last_current", np.nan)
+    task_adc.last_voltage = np.nan
+    task_adc.last_current = np.nan
     task_adc.start()
 
     t0: float = datetime.now().timestamp()
     for k in range(points):
         current_i: float = limits_min + limits_ptp / points * k
         task_dac_current.write(current_i * R)
-        v.append((getattr(task_adc, "last_voltage") - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
-        i.append((getattr(task_adc, "last_current") - offsets[adc_current.name]) / R)
+        v.append((task_adc.last_voltage - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
+        i.append((task_adc.last_current - offsets[adc_current.name]) / R)
     if two_way:
         for k in range(points):
             current_i: float = limits_min + limits_ptp / points * (points - k - 1)
             task_dac_current.write(current_i * R)
-            v.append((getattr(task_adc, "last_voltage") - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
-            i.append((getattr(task_adc, "last_current") - offsets[adc_current.name]) / R)
+            v.append((task_adc.last_voltage - offsets[adc_voltage.name]) / VOLTAGE_GAIN)
+            i.append((task_adc.last_current - offsets[adc_current.name]) / R)
     t1: float = datetime.now().timestamp()
     print(f"measurement took {t1 - t0} seconds ({(t1 - t0) / points / (2 if two_way else 1)} seconds per point)")
     task_adc.stop()
@@ -321,9 +322,11 @@ def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) 
 
 
 def fast_iv_curve(
-    limits: tuple[float, float], points: int, two_way: bool = False
+    limits: tuple[float, float],
+    points: int,
+    two_way: bool = False,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    """Measure IV curve with actual current measurement"""
+    """Measure IV curve with actual current measurement."""
     task_adc: Task = Task()
     task_dac: Task = Task()
     task_adc.ai_channels.add_ai_voltage_chan(adc_current.name)
@@ -342,24 +345,25 @@ def fast_iv_curve(
         samps_per_chan=(2 if two_way else 1) * points,
     )
 
-    setattr(task_adc, "i", np.empty(0))
-    setattr(task_adc, "v", np.empty(0))
+    task_adc.i = np.empty(0)
+    task_adc.v = np.empty(0)
     limits_min: float = min(limits)
     limits_max: float = max(limits)
     limits_ptp: float = limits_max - limits_min
 
     adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx, _event_type, num_samples, _callback_data):
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
         _data = np.empty((2, num_samples))
         adc_stream.read_many_sample(_data, num_samples)
-        setattr(task_adc, "i", np.concatenate((getattr(task_adc, "i"), _data[0])))
-        setattr(task_adc, "v", np.concatenate((getattr(task_adc, "v"), _data[1])))
+        task_adc.i = np.concatenate((task_adc.i, _data[0]))
+        task_adc.v = np.concatenate((task_adc.v, _data[1]))
         return 0
 
     # noinspection PyTypeChecker
     task_adc.register_every_n_samples_acquired_into_buffer_event(
-        task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+        task_adc.timing.samp_quant_samp_per_chan,
+        reading_task_callback,
     )
     i_set: NDArray[np.float64]
     if two_way:
@@ -368,12 +372,12 @@ def fast_iv_curve(
                 (
                     np.linspace(limits_min, limits_max, points, endpoint=True),
                     np.linspace(limits_max, limits_min, points, endpoint=True),
-                )
+                ),
             )
             * R
         )
     else:
-        i_set = np.linspace(limits_min, limits_max, points, endpoint=True) * R
+        i_set = np.linspace(limits_min, limits_max, points, endpoint=True, dtype=np.float64) * R
     i_set[i_set > current_channel.ao_max] = current_channel.ao_max
     i_set[i_set < current_channel.ao_min] = current_channel.ao_min
 
@@ -392,8 +396,8 @@ def fast_iv_curve(
 
     i: NDArray[np.float64]
     v: NDArray[np.float64]
-    i = np.array(getattr(task_adc, "i"))
-    v = np.array(getattr(task_adc, "v"))
+    i = np.array(task_adc.i)
+    v = np.array(task_adc.v)
     samples_left_unread: int = task_adc.in_stream.avail_samp_per_chan
     while samples_left_unread and datetime.now().timestamp() - t3 < 0.1:
         left_data: NDArray[np.float64] = task_adc.read(samples_left_unread)
@@ -418,9 +422,11 @@ def fast_iv_curve(
 
 
 def iv_curve_of_rate_bak(
-    limits: tuple[float, float], current_rate: float, two_way: bool = False
+    limits: tuple[float, float],
+    current_rate: float,
+    two_way: bool = False,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    """Measure IV curve with actual current measurement"""
+    """Measure IV curve with actual current measurement."""
     task_adc: Task
     task_dac: Task
     with Task() as task_adc, Task() as task_dac:
@@ -444,22 +450,23 @@ def iv_curve_of_rate_bak(
             samps_per_chan=(2 if two_way else 1) * points,
         )
 
-        setattr(task_adc, "i", np.empty(0))
-        setattr(task_adc, "v", np.empty(0))
+        task_adc.i = np.empty(0)
+        task_adc.v = np.empty(0)
 
         adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
         dac_stream: AnalogSingleChannelWriter = AnalogSingleChannelWriter(task_dac.out_stream, auto_start=True)
 
-        def reading_task_callback(_task_idx, _event_type, num_samples, _callback_data):
+        def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
             _data = np.empty((2, num_samples))
             adc_stream.read_many_sample(_data, num_samples)
-            setattr(task_adc, "i", np.concatenate((getattr(task_adc, "i"), _data[0])))
-            setattr(task_adc, "v", np.concatenate((getattr(task_adc, "v"), _data[1])))
+            task_adc.i = np.concatenate((task_adc.i, _data[0]))
+            task_adc.v = np.concatenate((task_adc.v, _data[1]))
             return 0
 
         # noinspection PyTypeChecker
         task_adc.register_every_n_samples_acquired_into_buffer_event(
-            task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+            task_adc.timing.samp_quant_samp_per_chan,
+            reading_task_callback,
         )
 
         # calculating the current sequence
@@ -470,12 +477,12 @@ def iv_curve_of_rate_bak(
                     (
                         np.linspace(limits_min, limits_max, points, endpoint=True),
                         np.linspace(limits_max, limits_min, points, endpoint=True),
-                    )
+                    ),
                 )
                 * R
             )
         else:
-            i_set = np.linspace(limits_min, limits_max, points, endpoint=True) * R
+            i_set = np.linspace(limits_min, limits_max, points, endpoint=True, dtype=np.float64) * R
         i_set[i_set > current_channel.ao_max] = current_channel.ao_max
         i_set[i_set < current_channel.ao_min] = current_channel.ao_min
 
@@ -496,8 +503,8 @@ def iv_curve_of_rate_bak(
 
         i: NDArray[np.float64]
         v: NDArray[np.float64]
-        i = np.array(getattr(task_adc, "i"))
-        v = np.array(getattr(task_adc, "v"))
+        i = np.array(task_adc.i)
+        v = np.array(task_adc.v)
         samples_left_unread: int = task_adc.in_stream.avail_samp_per_chan
         while samples_left_unread and datetime.now().timestamp() - t3 < 0.2:
             left_data: NDArray[np.float64] = task_adc.read(samples_left_unread)
@@ -530,7 +537,7 @@ def iv_curve_of_rate(
     resistance_in_series: float = R_SERIES,
     current_mode: str = "linear",
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    """Measure IV curve with actual current measurement"""
+    """Measure IV curve with actual current measurement."""
     min_current: float = min(limits)
     max_current: float = max(limits)
     limits_ptp: float = max_current - min_current
@@ -574,7 +581,10 @@ def iv_curve_of_rate(
         no_data: bool = False
 
         def reading_task_callback(
-            _task_idx: int, _event_type: int, num_samples: int, _callback_data: Any
+            _task_idx: int,
+            _event_type: int,
+            num_samples: int,
+            _callback_data: Any,
         ) -> Literal[0]:
             nonlocal no_data, adc_stream, i, v
             data: NDArray[np.float64] = np.empty((3, num_samples))
@@ -587,7 +597,8 @@ def iv_curve_of_rate(
 
         # noinspection PyTypeChecker
         task_adc.register_every_n_samples_acquired_into_buffer_event(
-            task_adc.timing.samp_quant_samp_per_chan, reading_task_callback
+            task_adc.timing.samp_quant_samp_per_chan,
+            reading_task_callback,
         )
 
         # calculating the current sequence
@@ -602,7 +613,7 @@ def iv_curve_of_rate(
                             np.linspace(min_current, max_current, points, endpoint=True),
                             np.linspace(max_current, min_current, points, endpoint=True),
                             [min_current],
-                        )
+                        ),
                     )
                     * ballast_resistance
                     * current_divider
@@ -615,7 +626,7 @@ def iv_curve_of_rate(
                             [min_current],
                             np.linspace(min_current, max_current, points, endpoint=True),
                             [max_current],
-                        )
+                        ),
                     )
                     * ballast_resistance
                     * current_divider
@@ -629,7 +640,7 @@ def iv_curve_of_rate(
                         np.sqrt(-max_current),
                         points,
                         endpoint=True,
-                    )
+                    ),
                 )
             elif min_current <= 0 <= max_current:
                 i_set = np.concatenate(
@@ -640,7 +651,7 @@ def iv_curve_of_rate(
                                 0.0,
                                 round(points * abs(min_current / limits_ptp)),
                                 endpoint=True,
-                            )
+                            ),
                         ),
                         np.square(
                             np.linspace(
@@ -648,9 +659,9 @@ def iv_curve_of_rate(
                                 np.sqrt(max_current),
                                 round(points * abs(max_current / limits_ptp)),
                                 endpoint=True,
-                            )
+                            ),
                         ),
-                    )
+                    ),
                 )
             elif min_current >= 0 >= max_current:
                 i_set = np.concatenate(
@@ -661,7 +672,7 @@ def iv_curve_of_rate(
                                 0.0,
                                 round(points * abs(min_current / limits_ptp)),
                                 endpoint=True,
-                            )
+                            ),
                         ),
                         -np.square(
                             np.linspace(
@@ -669,9 +680,9 @@ def iv_curve_of_rate(
                                 np.sqrt(-max_current),
                                 round(points * abs(max_current / limits_ptp)),
                                 endpoint=True,
-                            )
+                            ),
                         ),
-                    )
+                    ),
                 )
             else:
                 i_set = np.square(
@@ -680,7 +691,7 @@ def iv_curve_of_rate(
                         np.sqrt(max_current),
                         points,
                         endpoint=True,
-                    )
+                    ),
                 )
             if two_way:
                 i_set = (

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
 from typing import final
@@ -7,7 +6,7 @@ import numpy as np
 from astropy.units import K, Quantity
 from pyqtgraph.functions import intColor
 from qtpy import QT5
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QApplication
 
@@ -20,7 +19,7 @@ from utils.string_utils import format_float
 @final
 class App(DetectLifetimeBase):
     def setup_ui_appearance(self) -> None:
-        super(App, self).setup_ui_appearance()
+        super().setup_ui_appearance()
 
         self.canvas_detect.getAxis("bottom").setLabel(
             text=self.tr("Power"),
@@ -49,7 +48,7 @@ class App(DetectLifetimeBase):
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -77,7 +76,7 @@ class App(DetectLifetimeBase):
                         format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -113,7 +112,7 @@ class App(DetectLifetimeBase):
                     format_float(self.delay_between_cycles * 1e3, suffix=self.tr("ms")),
                     format_float(self.frequency, suffix=self.tr("GHz")) if not np.isnan(self.frequency) else "",
                 ),
-            )
+            ),
         )
 
     def _line_color_detect(self, index: int) -> QColor:
@@ -155,7 +154,7 @@ class App(DetectLifetimeBase):
                         suffix=self.tr("ms"),
                     ),
                 ),
-            )
+            ),
         )
 
     def _line_color_lifetime(self, index: int) -> QColor:
@@ -221,6 +220,7 @@ class App(DetectLifetimeBase):
         self.bias_current_index += 1
         return self._next_indices()
 
+    @Slot()
     def on_timeout(self) -> None:
         self._read_state_queue_detect()
 
@@ -258,7 +258,7 @@ class App(DetectLifetimeBase):
                 self.mode = "lifetime"
                 self.start_measurement()
                 return
-            elif self.mode == "lifetime":
+            if self.mode == "lifetime":
                 sys.stderr.write("switching to detect\n".upper())
                 self.mode = "detect"
 

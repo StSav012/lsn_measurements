@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import pyqtgraph as pg
-from qtpy.QtCore import QSettings, Qt
+from qtpy.QtCore import QSettings, Qt, Slot
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import (
     QFormLayout,
@@ -42,7 +39,7 @@ class LifetimeGUI(QMainWindow):
         self.buttons_layout: QHBoxLayout = QHBoxLayout()
 
         self.figure: pg.PlotWidget = pg.PlotWidget(self.central_widget)
-        self.plot_lines: dict[int, pg.PlotDataItem] = dict()
+        self.plot_lines: dict[int, pg.PlotDataItem] = {}
         self.figure.addLegend(offset=(30, -30))
 
         self.label_spent_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
@@ -74,10 +71,10 @@ class LifetimeGUI(QMainWindow):
 
     def setup_ui_appearance(self) -> None:
         x_axis: pg.AxisItem = self.figure.getAxis("bottom")
-        x_axis.enableAutoSIPrefix(False)
+        x_axis.enableAutoSIPrefix(enable=False)
         y_axis: pg.AxisItem = self.figure.getAxis("left")
         y_axis.setLabel(text=self.tr("Lifetime"), units=self.tr("s"))
-        y_axis.enableAutoSIPrefix(False)
+        y_axis.enableAutoSIPrefix(enable=False)
         self.figure.plotItem.ctrl.averageGroup.setChecked(False)
         self.figure.plotItem.setLogMode(x=False, y=True)
         self.figure.plotItem.showGrid(x=True, y=True)
@@ -167,7 +164,7 @@ class LifetimeGUI(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-    def setup_actions(self):
+    def setup_actions(self) -> None:
         self.button_topmost.toggled.connect(self.on_button_topmost_toggled)
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
@@ -186,23 +183,26 @@ class LifetimeGUI(QMainWindow):
         self.save_settings()
         event.accept()
 
+    @Slot(bool)
     def on_button_topmost_toggled(self, on: bool) -> None:
         if on:
             self.setWindowFlags(
-                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint
+                self.windowFlags() | Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint,
             )
             self.show()
         else:
             self.setWindowFlags(
-                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+                self.windowFlags() ^ (Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowStaysOnTopHint),
             )
             self.show()
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.button_pause.setChecked(False)
         self.button_stop.setEnabled(True)
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         self.button_stop.setDisabled(True)
         self.button_start.setEnabled(True)

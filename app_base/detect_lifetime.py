@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-
 import abc
 from datetime import date, datetime, timedelta
 from multiprocessing import Event, Queue, Value
 from pathlib import Path
-from typing import Final, Literal, Optional, TextIO
+from typing import Final, Literal, TextIO
 
 import numpy as np
 import pyqtgraph as pg
@@ -30,7 +27,7 @@ __all__ = ["DetectLifetimeBase"]
 
 class DetectLifetimeBase(DetectLifetimeGUI):
     def __init__(self) -> None:
-        super(DetectLifetimeBase, self).__init__()
+        super().__init__()
 
         self.timer: QTimer = QTimer(self)
         self.timer.timeout.connect(self.on_timeout)
@@ -44,7 +41,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.user_aborted: Event = Event()
         self.user_aborted.clear()
         self.actual_temperature: Value = Value("d")
-        self.measurement: Optional[DetectMeasurement | LifetimeMeasurement] = None
+        self.measurement: DetectMeasurement | LifetimeMeasurement | None = None
 
         self.config: Config = Config()
 
@@ -83,7 +80,9 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.bias_current_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "bias current [nA]")
         self.stop_key_bias.setDisabled(len(self.bias_current_values) <= 1)
         self.initial_biases: Final[list[float]] = self.config.get_float_list(
-            "current", "initial current [nA]", fallback=[0.0]
+            "current",
+            "initial current [nA]",
+            fallback=[0.0],
         )
         self.setting_time_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "setting time [sec]")
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
@@ -97,17 +96,22 @@ class DetectLifetimeBase(DetectLifetimeGUI):
         self.cycles_count_detect: Final[int] = self.config.getint("detect", "number of cycles")
         self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
         self.minimal_probability_to_measure: Final[float] = self.config.getfloat(
-            "detect", "minimal probability to measure [%]", fallback=0.0
+            "detect",
+            "minimal probability to measure [%]",
+            fallback=0.0,
         )
         self.max_waiting_time: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]")
+            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]"),
         )
         self.max_mean: Final[float] = self.config.getfloat(
-            "lifetime", "max mean time to measure [sec]", fallback=np.inf
+            "lifetime",
+            "max mean time to measure [sec]",
+            fallback=np.inf,
         )
         self.ignore_never_switched: Final[bool] = self.config.getboolean("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
-            "measurement", "delay between cycles [sec]"
+            "measurement",
+            "delay between cycles [sec]",
         )
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
@@ -121,10 +125,12 @@ class DetectLifetimeBase(DetectLifetimeGUI):
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
         self.temperature_delay: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0
+            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0,
         )
         self.change_filtered_readings: Final[bool] = self.config.getboolean(
-            "measurement", "change filtered readings in Triton", fallback=True
+            "measurement",
+            "change filtered readings in Triton",
+            fallback=True,
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
@@ -205,7 +211,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                         format_float(self.setting_time, prefix="ST", suffix="s"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -229,7 +235,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                         format_float(self.initial_biases[-1], prefix="from ", suffix="nA"),
                         self.config.get("output", "suffix", fallback=""),
                     ),
-                )
+                ),
             )
             + ".txt"
         )
@@ -419,7 +425,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super(DetectLifetimeBase, self).on_button_start_clicked()
+        super().on_button_start_clicked()
 
         if self.mode == "detect":
             while self.check_exists and self.stat_file.exists():
@@ -455,7 +461,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 self.measurement.join()
         self.timer.stop()
         self.synthesizer.output = False
-        super(DetectLifetimeBase, self).on_button_stop_clicked()
+        super().on_button_stop_clicked()
 
     def _read_state_queue_detect(self) -> None:
         cycle_index: int
@@ -519,11 +525,12 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 error(f"failed to set temperature to {self.temperature} K")
                 self.timer.stop()
                 self.measurement.terminate()
-            if self.change_filtered_readings:
-                if not self.triton.ensure_filter_readings(6, self.triton.filter_readings(self.temperature)):
-                    error("failed to change the state of filtered readings")
-                    self.timer.stop()
-                    self.measurement.terminate()
+            if self.change_filtered_readings and not self.triton.ensure_filter_readings(
+                6, self.triton.filter_readings(self.temperature)
+            ):
+                error("failed to change the state of filtered readings")
+                self.timer.stop()
+                self.measurement.terminate()
             if not self.triton.ensure_heater_range(6, self.triton.heater_range(self.temperature)):
                 error("failed to change the heater range")
                 self.timer.stop()
@@ -539,7 +546,7 @@ class DetectLifetimeBase(DetectLifetimeGUI):
                 print(
                     f"temperature {actual_temperature} "
                     f"is close enough to {self.temperature:.3f} K, but not for long enough yet"
-                    f": {self.temperature_delay - td} left"
+                    f": {self.temperature_delay - td} left",
                 )
                 self.timer.setInterval(1000)
         else:

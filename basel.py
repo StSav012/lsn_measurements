@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import asyncio
 import logging
 from contextlib import suppress
@@ -25,13 +23,12 @@ def silent_float(string: str) -> float | None:
 def silent_bool(s: str) -> bool | None:
     if s in ("1", "on") or silent_float(s) not in (0.0, None):
         return True
-    elif s in ("0", "off") or silent_float(s) == 0.0:
+    if s in ("0", "off") or silent_float(s) == 0.0:
         return False
-    else:
-        return None
+    return None
 
 
-def dac_v(v: float):
+def dac_v(v: float) -> int:
     return max(
         0x00_00_00,
         min(
@@ -91,8 +88,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
                             logger.warning(f"empty command in {data!r}")
                             continue
                         words: list[str] = command.split()
-                        if words[0].startswith(":"):
-                            words[0] = words[0][1:]
+                        words[0] = words[0].removeprefix(":")
                         if not words[0]:
                             logger.warning(f"malformed command: {command!r}")
                             continue
@@ -111,7 +107,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
                                     logger.info(
                                         f"skipping {command!r} issued "
                                         f"within {NOOP_TIMEOUT_AFTER_CONNECTION_ESTABLISHED} "
-                                        "after the connection had been established"
+                                        "after the connection had been established",
                                     )
                                     continue
                                 if s in ("1", "on") or silent_float(s) not in (0.0, None):
@@ -133,7 +129,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
                                     logger.info(
                                         f"skipping {command!r} issued "
                                         f"within {NOOP_TIMEOUT_AFTER_CONNECTION_ESTABLISHED} "
-                                        "after the connection had been established"
+                                        "after the connection had been established",
                                     )
                                     continue
                                 match silent_bool(s):
@@ -143,7 +139,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
                                         dac_s = "OFF"
                                     case None:
                                         continue
-                                telnet_writer.write(";".join((f"{ch} {dac_s}" for ch in (ch0, *chs))) + "\r\n")
+                                telnet_writer.write(";".join(f"{ch} {dac_s}" for ch in (ch0, *chs)) + "\r\n")
                                 response = await telnet_reader.read(maxsize)
                                 logger.debug(f"{command!r}\t->\t{response!r}")
                             case ("output", ch):
@@ -157,13 +153,11 @@ async def main(client: str, server: tuple[str, int]) -> None:
                                 if datetime.now() - connection_established < NOOP_TIMEOUT_AFTER_CONNECTION_ESTABLISHED:
                                     continue
                                 cmd = ";".join(
-                                    (
-                                        f"{ch} {dac_v(float(v)):X}"
-                                        for ch in (ch0, *chs)
-                                        if (
-                                            not (respect_limits and int(ch) in LIMITS)
-                                            or is_within(float(v), LIMITS[int(ch)])
-                                        )
+                                    f"{ch} {dac_v(float(v)):X}"
+                                    for ch in (ch0, *chs)
+                                    if (
+                                        not (respect_limits and int(ch) in LIMITS)
+                                        or is_within(float(v), LIMITS[int(ch)])
                                     )
                                 )
                                 if cmd:
@@ -189,7 +183,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
                                         b = _b
                                 arbitrary_commands_allowed = bool(int(b))
                                 logger.warning(
-                                    "dis" * (not arbitrary_commands_allowed) + "allowed to execute arbitrary commands"
+                                    "dis" * (not arbitrary_commands_allowed) + "allowed to execute arbitrary commands",
                                 )
                             case "respect_limits?":
                                 responses.append(str(int(respect_limits)))
@@ -248,7 +242,7 @@ if __name__ == "__main__":
     arbitrary_commands_allowed <value> allow or disallow passing commands directly to the device {0 | 1 | OFF | ON}
     respect_limits?                    check whether voltage limits for channels are respected {0 | 1}
     respect_limits <value>             respect or disrespect voltage limits for channels {0 | 1 | OFF | ON}
-"""
+""",
     )
 
     loop = asyncio.get_event_loop()

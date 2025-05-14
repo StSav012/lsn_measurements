@@ -1,7 +1,6 @@
-# coding=utf-8
 import sys
 from collections.abc import Hashable, Iterable, Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import ClassVar, SupportsIndex, cast, final
 
 from astropy.units import Quantity
@@ -30,7 +29,7 @@ class OrderedSet:
     def __init__(self, items: Iterable[Hashable] | None = None) -> None:
         self._items: list[Hashable] = []
         if items is not None:
-            self._items = list(item for item in items if item not in self._items)
+            self._items = [item for item in items if item not in self._items]
 
     def __repr__(self) -> str:
         return "{" + ", ".join(repr(item) for item in self._items) + "}"
@@ -38,7 +37,9 @@ class OrderedSet:
     def __bool__(self) -> bool:
         return bool(self._items)
 
-    def __sub__(self, other: "OrderedSet") -> "OrderedSet":
+    def __sub__(self, other: object) -> "OrderedSet":
+        if not isinstance(other, OrderedSet):
+            raise TypeError(f"Incompatible type {type(other)}")
         return OrderedSet(item for item in self._items if item not in other._items)
 
     def __iter__(self) -> Iterator[Hashable]:
@@ -69,7 +70,7 @@ def all_fields(fields_set: OrderedSet) -> list[str]:
         def __repr__(self) -> str:
             return f"{{to the left: {self.to_the_left}, to the right: {self.to_the_right}}}"
 
-    other_fields: dict[str, TwoSides] = dict()
+    other_fields: dict[str, TwoSides] = {}
     index: int
     field: str
     chunk: str
@@ -87,7 +88,7 @@ def all_fields(fields_set: OrderedSet) -> list[str]:
         s -= already_sorted_fields
         if not s:
             return []
-        f: str = cast(str, s.pop())
+        f: str = cast("str", s.pop())
         already_sorted_fields.add(f)
         if not s:
             return [f]
@@ -105,7 +106,7 @@ class Poller(QThread):
     pressuresReceived: ClassVar[Signal] = Signal(dict)
     thermometryReceived: ClassVar[Signal] = Signal(list, dict)
 
-    def run(self):
+    def run(self) -> None:
         ts: TritonScript = TritonScript()
 
         while self.isRunning() and not self.isInterruptionRequested():
@@ -164,7 +165,7 @@ class ListDisplay(QTableWidget):
             for col, key in enumerate(header):
                 value: float | str | bool | datetime = line.get(key, "")
                 if isinstance(value, datetime):
-                    value = value.replace(tzinfo=timezone.utc).astimezone()
+                    value = value.replace(tzinfo=UTC).astimezone()
                 value = str(value)
                 item: QTableWidgetItem | None = self.item(row, col)
                 if item is None:
@@ -218,15 +219,15 @@ class MainWindow(QMainWindow):
 
     def load_settings(self) -> None:
         self.settings.beginGroup("geometry")
-        self.restoreGeometry(cast(QByteArray, self.settings.value("window", QByteArray())))
-        self.sensors_table.restoreGeometry(cast(QByteArray, self.settings.value("sensors", QByteArray())))
+        self.restoreGeometry(cast("QByteArray", self.settings.value("window", QByteArray())))
+        self.sensors_table.restoreGeometry(cast("QByteArray", self.settings.value("sensors", QByteArray())))
         self.sensors_table.horizontalHeader().restoreGeometry(
-            self.settings.value("sensorsHorizontalHeader", QByteArray())
+            self.settings.value("sensorsHorizontalHeader", QByteArray()),
         )
         self.sensors_table.verticalHeader().restoreGeometry(self.settings.value("sensorsVerticalHeader", QByteArray()))
         self.settings.endGroup()
         self.settings.beginGroup("state")
-        self.restoreState(cast(QByteArray, self.settings.value("window", QByteArray())))
+        self.restoreState(cast("QByteArray", self.settings.value("window", QByteArray())))
         self.sensors_table.horizontalHeader().restoreState(self.settings.value("sensorsHorizontalHeader", QByteArray()))
         self.sensors_table.verticalHeader().restoreState(self.settings.value("sensorsVerticalHeader", QByteArray()))
         self.settings.endGroup()
@@ -260,7 +261,7 @@ class MainWindow(QMainWindow):
     def on_pressures_received(self, data: dict[str, bool | None]) -> None:
         self.pressures_panel.display(data)
 
-    @Slot(dict)
+    @Slot(list, dict)
     def on_thermometry_received(
         self,
         sensors: list[dict[str, float | str | bool | datetime]],

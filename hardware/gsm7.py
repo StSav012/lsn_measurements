@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import annotations
-
 from math import nan
 from typing import Final, NamedTuple
 
@@ -151,8 +148,7 @@ class GSM7(SCPIDevice):
             return ""
         if command.rstrip().endswith("?"):
             return self._instr.ask(command)
-        else:
-            self._instr.write(command)
+        return self._instr.write(command)
 
     @property
     def read(self) -> ReadResult:

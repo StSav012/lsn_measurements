@@ -29,6 +29,8 @@ class NoiseMeasurement(Process):
         *channels: PhysicalChannel,
         sample_rate: float,
         measure_offset: bool = False,
+        source_channel: PhysicalChannel | None = None,
+        source_voltage: float = 0.0,
     ) -> None:
         super().__init__()
         self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
@@ -36,6 +38,8 @@ class NoiseMeasurement(Process):
         self.channels: Sequence[PhysicalChannel] = channels
         self.sample_rate: Final[float] = sample_rate
         self.measure_offset: Final[bool] = measure_offset
+        self.source_channel: Final[PhysicalChannel | None] = source_channel
+        self.source_voltage: float = source_voltage
 
         self._done: Event = Event()
 
@@ -49,8 +53,13 @@ class NoiseMeasurement(Process):
             measure_offsets()
 
         task_adc: Task
+        task_dac: Task
+        with Task() as task_adc, Task() as task_dac:
+            if self.source_channel is not None:
+                task_dac.ao_channels.add_ao_voltage_chan(self.source_channel.name)
+                task_dac.write(self.source_voltage)
+                task_dac.wait_until_done()
 
-        with Task() as task_adc:
             for channel in self.channels:
                 task_adc.ai_channels.add_ai_voltage_chan(channel.name)
 
@@ -85,6 +94,10 @@ class NoiseMeasurement(Process):
             self._done.wait()
 
             task_adc.stop()
+
+            if self.source_channel is not None:
+                task_dac.write(0.0)
+                task_dac.wait_until_done()
 
 
 class IVNoiseMeasurement(Process):

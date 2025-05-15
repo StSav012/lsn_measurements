@@ -2,7 +2,7 @@ from collections import defaultdict
 from inspect import getfullargspec
 from pathlib import Path
 from tomllib import loads
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from nidaqmx.constants import ChannelType, FillMode, UsageTypeAI
 from nidaqmx.system.device import Device
@@ -118,6 +118,8 @@ physical_chans: Final[dict[str, dict[str, int]]] = config["physical_chans"]
 
 
 def __getattr__(name: str) -> object:
+    if name in globals():
+        return globals()[name]
     match name:
         case "device_adc":
             o = find_device(product_type=pxi["ADC"])
@@ -126,19 +128,19 @@ def __getattr__(name: str) -> object:
         case "device_dio":
             o = find_device(product_type=pxi["DIO"])
         case "adc_voltage":
-            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["voltage"]]
+            o = cast(Device, __getattr__("device_adc")).ai_physical_chans[physical_chans["AI"]["voltage"]]
         case "adc_current":
-            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["current"]]
+            o = cast(Device, __getattr__("device_adc")).ai_physical_chans[physical_chans["AI"]["current"]]
         case "adc_sync":
-            o = globals().get("device_adc").ai_physical_chans[physical_chans["AI"]["sync"]]
+            o = cast(Device, __getattr__("device_adc")).ai_physical_chans[physical_chans["AI"]["sync"]]
         case "dac_current":
-            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["current"]]
+            o = cast(Device, __getattr__("device_dac")).ao_physical_chans[physical_chans["AO"]["current"]]
         case "dac_aux":
-            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["aux"]]
+            o = cast(Device, __getattr__("device_dac")).ao_physical_chans[physical_chans["AO"]["aux"]]
         case "dac_synth_pulse":
-            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["synth_pulse"]]
+            o = cast(Device, __getattr__("device_dac")).ao_physical_chans[physical_chans["AO"]["synth_pulse"]]
         case "dac_sync":
-            o = globals().get("device_dac").ao_physical_chans[physical_chans["AO"]["sync"]]
+            o = cast(Device, __getattr__("device_dac")).ao_physical_chans[physical_chans["AO"]["sync"]]
         case _:
             raise AttributeError
     globals()[name] = o

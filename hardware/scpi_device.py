@@ -77,13 +77,17 @@ class SCPIDevice:
                 return ""
         return resp.decode().strip()
 
-    def query(self, command: str) -> str:
+    def query(self, command: str, parameter: object | None = None) -> str:
         command = command.strip()
         if not command.endswith("?"):
             command += "?"
+        if parameter is not None:
+            return self.communicate(command + " " + str(parameter))
         return self.communicate(command)
 
-    def issue(self, command: str, value: object) -> None:
+    def issue(self, command: str, value: object | None = None) -> None:
+        if value is None:
+            self.communicate(command.rstrip("?"))
         if isinstance(value, bool):
             value = {False: "OFF", True: "ON"}[value]
         self.communicate(command.rstrip("?") + " " + str(value).rstrip("?"))

@@ -1,5 +1,4 @@
 from socket import AF_INET, SOCK_STREAM, socket
-from typing import Any
 
 from utils import warning
 from utils.port_scanner import port_scanner
@@ -84,7 +83,7 @@ class SCPIDevice:
             command += "?"
         return self.communicate(command)
 
-    def issue(self, command: str, value: Any) -> None:
+    def issue(self, command: str, value: object) -> None:
         if isinstance(value, bool):
             value = {False: "OFF", True: "ON"}[value]
         self.communicate(command.rstrip("?") + " " + str(value).rstrip("?"))

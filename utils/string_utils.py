@@ -9,6 +9,7 @@ __all__ = [
     "nth_occurrence",
     "seconds_to_time",
     "find_single_matching_string",
+    "to_bool",
 ]
 
 
@@ -77,3 +78,13 @@ def find_single_matching_string(s: str, variants: Collection[str]) -> str:
     if matching_variants:
         raise ValueError(f"Ambiguous value: {s!r}. Possible variants: {matching_variants}")
     raise ValueError(f"Ambiguous value: {s!r}. Provided variants: {variants}")
+
+
+def to_bool(s: str) -> bool:
+    match s.casefold():
+        case "0" | "off" | "no":
+            return False
+        case "1" | "on" | "yes":
+            return True
+        case _:
+            raise ValueError(f"Ambiguous value: {s}")

@@ -107,7 +107,9 @@ def find_device(**kwargs: Any) -> Device:
     device: Device
     for device in system.devices:
         if all(getattr(device, key) == value for key, value in kwargs.items()):
-            device.reset_device()
+            # Reset every device only once, even if a device is mentioned multiple times.
+            if not any(isinstance(o, Device) and device.name == o.name for o in globals().values()):
+                device.reset_device()
             return device
     raise LookupError(f"No device matching {kwargs} found")
 

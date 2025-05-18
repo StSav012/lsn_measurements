@@ -89,7 +89,7 @@ class SCPIDevice:
                 else:
                     self.issue(cmd, values(new_value))
 
-        return property(getter, setter, None, doc or f"Query and set {cmd}")
+        return property(getter, setter, None, doc or (f"Query and set {cmd}" if setter is not None else f"Query {cmd}"))
 
     def __del__(self) -> None:
         if self.socket is not None:

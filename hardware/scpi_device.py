@@ -72,7 +72,7 @@ class SCPIDevice:
                 return to_bool(self.query(cmd, parameter=parameter))
             if values is int:
                 return int(float(self.query(cmd, parameter=parameter)))
-            if not isinstance(values, str) and isinstance(values, Collection):
+            if isinstance(values, Collection):
                 return find_single_matching_string(self.query(cmd, parameter=parameter), values)
             return values(self.query(cmd, parameter=parameter))
 
@@ -84,7 +84,7 @@ class SCPIDevice:
             def setter(self: "SCPIDevice", new_value: T) -> None:
                 if self.socket is None:
                     return
-                if not isinstance(values, str) and isinstance(values, Collection):
+                if isinstance(values, Collection):
                     self.issue(cmd, find_single_matching_string(new_value, values))
                 else:
                     self.issue(cmd, values(new_value))
@@ -158,7 +158,7 @@ class SCPIDeviceSubCategory:
                 return to_bool(self.parent.query(subcmd, parameter=parameter))
             if values is int:
                 return int(float(self.parent.query(subcmd, parameter=parameter)))
-            if not isinstance(values, str) and isinstance(values, Collection):
+            if isinstance(values, Collection):
                 return find_single_matching_string(self.parent.query(subcmd, parameter=parameter), values)
             return values(self.parent.query(subcmd, parameter=parameter))
 
@@ -171,7 +171,7 @@ class SCPIDeviceSubCategory:
                 if self.parent.socket is None:
                     return
                 subcmd: str = ":".join((self.__class__.prefix, cmd)) if cmd else self.__class__.prefix
-                if not isinstance(values, str) and isinstance(values, Collection):
+                if isinstance(values, Collection):
                     self.parent.issue(subcmd, find_single_matching_string(new_value, values))
                 else:
                     self.parent.issue(subcmd, values(new_value))

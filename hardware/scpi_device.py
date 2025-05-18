@@ -1,7 +1,7 @@
 from collections.abc import Callable, Collection
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
-from typing import Any, ClassVar, Final
+from typing import Any, ClassVar, Final, Self
 
 from utils import warning
 from utils.port_scanner import port_scanner
@@ -63,7 +63,7 @@ class SCPIDevice:
         read_only: bool = False,
         doc: str = "",
     ) -> property:
-        def getter(self: "SCPIDevice") -> T:
+        def getter(self: Self) -> T:
             if self.socket is None:
                 if values is float:
                     return nan
@@ -95,7 +95,7 @@ class SCPIDevice:
             setter = None
         else:
 
-            def setter(self: "SCPIDevice", new_value: T) -> None:
+            def setter(self: Self, new_value: T) -> None:
                 if self.socket is None:
                     return
                 if isinstance(values, tuple):

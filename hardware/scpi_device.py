@@ -57,7 +57,7 @@ class SCPIDevice:
     @staticmethod
     def property_by_command[T](
         cmd: str,
-        values: type[T] | Collection[str],
+        values: type[T] | Collection[str] | tuple[type[T], str, ...],
         *,
         parameter: T | None = None,
         read_only: bool = False,
@@ -72,7 +72,21 @@ class SCPIDevice:
                 return to_bool(self.query(cmd, parameter=parameter))
             if values is int:
                 return int(float(self.query(cmd, parameter=parameter)))
+            if (
+                isinstance(values, tuple)
+                and isinstance(values[0], type)
+                and all(isinstance(i, str) for i in values[1:])
+            ):
+                ret: str = self.query(cmd, parameter=parameter)
+                try:
+                    return find_single_matching_string(ret, values[1:])
+                except ValueError:
+                    return values[0](ret)
             if isinstance(values, Collection):
+                if not all(isinstance(i, str) for i in values):
+                    raise TypeError(
+                        f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+                    )
                 return find_single_matching_string(self.query(cmd, parameter=parameter), values)
             return values(self.query(cmd, parameter=parameter))
 
@@ -84,7 +98,17 @@ class SCPIDevice:
             def setter(self: "SCPIDevice", new_value: T) -> None:
                 if self.socket is None:
                     return
-                if isinstance(values, Collection):
+                if isinstance(values, tuple):
+                    if isinstance(new_value, str):
+                        try:
+                            self.issue(cmd, find_single_matching_string(new_value, values[1:]))
+                        except ValueError:
+                            self.issue(cmd, values[0](new_value))
+                    else:
+                        self.issue(cmd, values[0](new_value))
+                elif isinstance(values, Collection):
+                    if not (isinstance(new_value, str) and all(isinstance(i, str) for i in values)):
+                        raise TypeError("Incompatible types", type(new_value), [type(i) for i in values])
                     self.issue(cmd, find_single_matching_string(new_value, values))
                 else:
                     self.issue(cmd, values(new_value))
@@ -142,7 +166,7 @@ class SCPIDeviceSubCategory:
     @staticmethod
     def subproperty_by_command[T](
         cmd: str,
-        values: type[T] | Collection[str],
+        values: type[T] | Collection[str] | tuple[type[T], str, ...],
         *,
         parameter: T | None = None,
         read_only: bool = False,
@@ -158,7 +182,21 @@ class SCPIDeviceSubCategory:
                 return to_bool(self.parent.query(subcmd, parameter=parameter))
             if values is int:
                 return int(float(self.parent.query(subcmd, parameter=parameter)))
-            if isinstance(values, Collection):
+            if (
+                isinstance(values, tuple)
+                and isinstance(values[0], type)
+                and all(isinstance(i, str) for i in values[1:])
+            ):
+                ret: str = self.parent.query(subcmd, parameter=parameter)
+                try:
+                    return find_single_matching_string(ret, values[1:])
+                except ValueError:
+                    return values[0](ret)
+            elif isinstance(values, Collection):
+                if not all(isinstance(i, str) for i in values):
+                    raise TypeError(
+                        f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+                    )
                 return find_single_matching_string(self.parent.query(subcmd, parameter=parameter), values)
             return values(self.parent.query(subcmd, parameter=parameter))
 
@@ -171,7 +209,17 @@ class SCPIDeviceSubCategory:
                 if self.parent.socket is None:
                     return
                 subcmd: str = ":".join((self.__class__.prefix, cmd)) if cmd else self.__class__.prefix
-                if isinstance(values, Collection):
+                if isinstance(values, tuple):
+                    if isinstance(new_value, str):
+                        try:
+                            self.parent.issue(subcmd, find_single_matching_string(new_value, values[1:]))
+                        except ValueError:
+                            self.parent.issue(subcmd, values[0](new_value))
+                    else:
+                        self.parent.issue(subcmd, values[0](new_value))
+                elif isinstance(values, Collection):
+                    if not (isinstance(new_value, str) and all(isinstance(i, str) for i in values)):
+                        raise TypeError("Incompatible types", type(new_value), [type(i) for i in values])
                     self.parent.issue(subcmd, find_single_matching_string(new_value, values))
                 else:
                     self.parent.issue(subcmd, values(new_value))

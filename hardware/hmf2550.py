@@ -12,7 +12,11 @@ __all__ = ["HMF2550"]
 class HMF2550(SCPIDevice):
     _PORT: Final[int] = 9111
 
-    frequency: property = SCPIDevice.property_by_command("frequency", float)
+    frequency: property = SCPIDevice.property_by_command(
+        "frequency",
+        (float, "minimum", "maximum"),
+        doc="The output frequency.",
+    )
 
     class _Burst(SCPIDeviceSubCategory):
         prefix: ClassVar[str] = "burst"
@@ -65,12 +69,12 @@ class HMF2550(SCPIDevice):
 
                 high: property = SCPIDeviceSubCategory.subproperty_by_command(
                     "high",
-                    float,
+                    (float, "minimum", "maximum"),
                     doc="The high width of the pulse function depending on the frequency setting.",
                 )
                 low: property = SCPIDeviceSubCategory.subproperty_by_command(
                     "low",
-                    float,
+                    (float, "minimum", "maximum"),
                     doc="The low width of the pulse function depending on the frequency setting.",
                 )
 
@@ -94,7 +98,7 @@ class HMF2550(SCPIDevice):
         )
         load: property = SCPIDeviceSubCategory.subproperty_by_command(
             "load",
-            float,
+            (float, "terminated", "infinity"),
             doc="The instrument output load.",
         )
 
@@ -121,17 +125,17 @@ class HMF2550(SCPIDevice):
 
         high: property = SCPIDeviceSubCategory.subproperty_by_command(
             "high",
-            float,
+            (float, "minimum", "maximum"),
             doc="The high level voltage.",
         )
         low: property = SCPIDeviceSubCategory.subproperty_by_command(
             "low",
-            float,
+            (float, "minimum", "maximum"),
             doc="The low level voltage.",
         )
         offset: property = SCPIDeviceSubCategory.subproperty_by_command(
             "offset",
-            float,
+            (float, "minimum", "maximum"),
             doc="The output offset value.",
         )
 
@@ -162,3 +166,15 @@ if __name__ == "__main__":
     print(f"{g.burst.state = !r}")
     print(f"{g.trigger.source = !r}")
     print(f"{g.trigger.slope = !r}")
+
+    g.frequency = "max"
+    print(f"{g.frequency = !r}")
+    g.frequency = "min"
+    print(f"{g.frequency = !r}")
+    g.frequency = 1e5
+    print(f"{g.frequency = !r}")
+
+    g.voltage.low = "min"
+    print(f"{g.voltage.low = !r}")
+    g.voltage.low = 0.0
+    print(f"{g.voltage.low = !r}")

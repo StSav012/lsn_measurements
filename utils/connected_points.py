@@ -70,7 +70,7 @@ def parabolic_segment(
                     np.linspace(
                         np.sqrt(-start_point),
                         0.0,
-                        round(points_count * abs(start_point / (end_point - start_point))),
+                        int(np.floor(points_count * abs(-start_point / (end_point - start_point)))),
                         endpoint=False,
                     ),
                 ),
@@ -78,7 +78,7 @@ def parabolic_segment(
                     np.linspace(
                         0.0,
                         np.sqrt(end_point),
-                        round(points_count * abs(end_point / (end_point - start_point))),
+                        int(np.ceil(points_count * abs(end_point / (end_point - start_point)))),
                         endpoint=endpoint,
                     ),
                 ),
@@ -91,7 +91,7 @@ def parabolic_segment(
                     np.linspace(
                         np.sqrt(start_point),
                         0.0,
-                        round(points_count * abs(start_point / (end_point - start_point))),
+                        int(np.floor(points_count * abs(start_point / (end_point - start_point)))),
                         endpoint=False,
                     ),
                 ),
@@ -99,7 +99,7 @@ def parabolic_segment(
                     np.linspace(
                         0.0,
                         np.sqrt(-end_point),
-                        round(points_count * abs(end_point / (end_point - start_point))),
+                        int(np.ceil(points_count * abs(end_point / (end_point - start_point)))),
                         endpoint=endpoint,
                     ),
                 ),

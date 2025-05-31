@@ -58,7 +58,10 @@ def silent_alive(process: Process | None) -> bool:
 def drain_queue(queue: QueueType[Any]) -> None:
     if isinstance(queue, QueueType):  # ensure the correct type
         while not queue.empty():
-            with suppress(Empty):
+            with suppress(
+                Empty,
+                ValueError,  # Queue is closed
+            ):
                 queue.get_nowait()
 
 

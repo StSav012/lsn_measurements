@@ -48,8 +48,10 @@ def get_local_ip() -> IPv4Address:
 def silent_alive(process: Process | None) -> bool:
     is_alive: bool | Callable[[], bool] = getattr(process, "is_alive", False)
     if callable(is_alive):
-        with suppress(ValueError):
+        try:
             return process.is_alive()
+        except ValueError:
+            return False
     return bool(is_alive)
 
 

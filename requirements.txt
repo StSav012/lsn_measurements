@@ -18,7 +18,7 @@ python-vxi11
 telnetlib3
 PyMeasure
 
-tomli; python_version < '3.11'
+standard-xdrlib; python_version >= '3.13'
 
 # for basic plotting
 matplotlib

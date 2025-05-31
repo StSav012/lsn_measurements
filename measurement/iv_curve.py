@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
-from multiprocessing import Process, Queue
+from multiprocessing import Process
+from multiprocessing.queues import Queue as QueueType
 from typing import Any, Final, Literal
 
 import numpy as np
@@ -40,7 +41,7 @@ __all__ = [
 class IVCurveMeasurement(Process):
     def __init__(
         self,
-        results_queue: Queue[NDArray[np.float64]],
+        results_queue: QueueType[NDArray[np.float64]],
         min_current: float,
         max_current: float,
         current_rate: float,
@@ -54,7 +55,7 @@ class IVCurveMeasurement(Process):
     ) -> None:
         super().__init__()
 
-        self.results_queue: Queue[NDArray[np.float64]] = results_queue
+        self.results_queue: QueueType[NDArray[np.float64]] = results_queue
 
         self.min_current: float = min_current
         self.max_current: float = max_current

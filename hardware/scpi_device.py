@@ -101,7 +101,7 @@ class SCPIDevice:
                 if isinstance(values, tuple):
                     if isinstance(new_value, str):
                         try:
-                            self.issue(cmd, find_single_matching_string(new_value, values[1:]))
+                            self.issue(cmd, find_single_matching_string(new_value, values))
                         except ValueError:
                             self.issue(cmd, values[0](new_value))
                     else:
@@ -212,7 +212,7 @@ class SCPIDeviceSubCategory:
                 if isinstance(values, tuple):
                     if isinstance(new_value, str):
                         try:
-                            self.parent.issue(subcmd, find_single_matching_string(new_value, values[1:]))
+                            self.parent.issue(subcmd, find_single_matching_string(new_value, values))
                         except ValueError:
                             self.parent.issue(subcmd, values[0](new_value))
                     else:

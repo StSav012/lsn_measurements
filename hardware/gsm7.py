@@ -4,9 +4,9 @@ from typing import Final, NamedTuple
 from vxi11.vxi11 import Instrument
 
 try:
-    from .scpi_device import SCPIDevice
+    from .scpi_device import SCPIDevice, SCPIDeviceSubCategory
 except ImportError:
-    from scpi_device import SCPIDevice
+    from scpi_device import SCPIDevice, SCPIDeviceSubCategory
 
 __all__ = ["GSM7"]
 
@@ -32,87 +32,95 @@ class ReadResult(NamedTuple):
         return cls(*map(float, parts[:length]))
 
 
-class _Calculate:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Calculate(SCPIDeviceSubCategory):
+    prefix = ":calculate"
 
 
-class _Calculate2:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Calculate2(SCPIDeviceSubCategory):
+    prefix = ":calculate2"
 
 
-class _Calculate3:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Calculate3(SCPIDeviceSubCategory):
+    prefix = ":calculate3"
 
 
-class _Display:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Display(SCPIDeviceSubCategory):
+    prefix = ":display"
 
 
-class _Format:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Format(SCPIDeviceSubCategory):
+    prefix = ":format"
 
 
-class _Output:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Output(SCPIDeviceSubCategory):
+    prefix = ":output"
 
     def __bool__(self) -> bool:
         return self.state
 
     @property
     def state(self) -> bool:
-        if getattr(self._parent, "_instr", None) is None:
+        if getattr(self.parent, "_instr", None) is None:
             return False
-        return bool(int(self._parent.query(":output")))
+        return bool(int(self.parent.query(_Output.prefix)))
 
     @state.setter
     def state(self, new_value: bool) -> None:
-        self._parent.issue(":output", bool(new_value))
+        self.parent.issue(_Output.prefix, bool(new_value))
 
 
-class _Route:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Route(SCPIDeviceSubCategory):
+    prefix = ":route"
 
 
-class _Source:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Source(SCPIDeviceSubCategory):
+    prefix = ":source"
 
 
-class _Source2:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Source2(SCPIDeviceSubCategory):
+    prefix = ":source2"
 
 
-class _Status:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Status(SCPIDeviceSubCategory):
+    prefix = ":status"
 
 
-class _System:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _System(SCPIDeviceSubCategory):
+    prefix = ":system"
 
 
-class _Trace:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Trace(SCPIDeviceSubCategory):
+    prefix = ":trace"
 
 
-class _Trigger:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Trigger(SCPIDeviceSubCategory):
+    prefix = ":trigger"
 
 
-class _Arm:
-    def __init__(self, parent: SCPIDevice) -> None:
-        self._parent: Final[SCPIDevice] = parent
+class _Arm(SCPIDeviceSubCategory):
+    prefix = ":arm"
+
+class _Sense(SCPIDeviceSubCategory):
+    prefix = ":sense"
+
+    class _Function(SCPIDeviceSubCategory):
+        prefix = ":function"
+
+
+    class _Current(SCPIDeviceSubCategory):
+        prefix = ":current"
+
+
+    class _Voltage(SCPIDeviceSubCategory):
+        prefix = ":voltage"
+
+
+    class _Resistance(SCPIDeviceSubCategory):
+        prefix = ":resistance"
+
+
+    class _Average(SCPIDeviceSubCategory):
+        prefix = ":average"
 
 
 class GSM7(SCPIDevice):
@@ -122,9 +130,11 @@ class GSM7(SCPIDevice):
         super().__init__(ip, GSM7._PORT, terminator=b"\n", expected=expected, reset=False)
         self._instr: Instrument | None = None
         if self.socket is not None:
+            host: str
+            port: int
+            host, port = self.socket.getpeername()
             self.socket.close()
-            self._instr = Instrument(self.socket.getpeername()[0], term_char=self.terminator)
-            self.socket = None
+            self._instr = Instrument(host, term_char=self.terminator)
 
         self.calculate: Final[_Calculate] = _Calculate(self)
         self.calculate1: Final[_Calculate] = self.calculate
@@ -142,11 +152,15 @@ class GSM7(SCPIDevice):
         self.trace: Final[_Trace] = _Trace(self)
         self.trigger: Final[_Trigger] = _Trigger(self)
         self.arm: Final[_Arm] = _Arm(self)
+        self.sense: Final[_Sense] = _Sense(self)
+
+    def __bool__(self) -> bool:
+        return self._instr is not None
 
     def communicate(self, command: str) -> str | None:
         if self._instr is None:
             return ""
-        if command.rstrip().endswith("?"):
+        if command.split()[0].endswith("?"):
             return self._instr.ask(command)
         return self._instr.write(command)
 

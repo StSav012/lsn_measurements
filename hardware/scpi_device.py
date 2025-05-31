@@ -129,7 +129,7 @@ class SCPIDevice:
         if self.socket is None:
             return ""
         self.socket.send((command.strip()).encode() + self.terminator)
-        if not command.endswith("?"):
+        if not command.split()[0].endswith("?"):
             return None
         resp: bytes = b""
         while not resp.endswith(self.terminator):

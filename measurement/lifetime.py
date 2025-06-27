@@ -390,6 +390,7 @@ class LifetimeMeasurement(Process):
                     print("user aborted")
                 else:
                     print("no switching events detected")
+                    self.c.reset()
                     if not self.ignore_never_switched:
                         i, v = np.nan, np.nan
                         switching_time[cycle_index] = self.max_waiting_time.total_seconds()

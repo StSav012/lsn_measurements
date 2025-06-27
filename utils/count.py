@@ -1,4 +1,3 @@
-
 import numpy as np
 
 __all__ = ["Count"]
@@ -14,7 +13,7 @@ class Count:
         self.loadable: bool = True
 
     def inc(self, step: int = 1) -> None:
-        self._count += step
+        self._count += int(step)
 
     def reset(self) -> None:
         self._last_value = self._count

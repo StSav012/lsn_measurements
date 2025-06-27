@@ -1,6 +1,7 @@
 import time
 from collections.abc import Sequence
-from multiprocessing import Event, Process, Queue
+from multiprocessing import Event, Process
+from multiprocessing.queues import Queue as QueueType
 from typing import Any, Final, Literal
 
 import numpy as np
@@ -18,7 +19,7 @@ __all__ = ["IVNoiseMeasurement", "NoiseMeasurement"]
 class NoiseMeasurement(Process):
     def __init__(
         self,
-        results_queue: Queue,
+        results_queue: QueueType[tuple[float, NDArray[np.float64]]],
         *channels: PhysicalChannel,
         sample_rate: float,
         measure_offset: bool = False,
@@ -26,7 +27,7 @@ class NoiseMeasurement(Process):
         source_voltage: float = 0.0,
     ) -> None:
         super().__init__()
-        self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
+        self.results_queue: QueueType[tuple[float, NDArray[np.float64]]] = results_queue
 
         self.channels: Sequence[PhysicalChannel] = channels
         self.sample_rate: Final[float] = sample_rate
@@ -97,7 +98,7 @@ class NoiseMeasurement(Process):
 class IVNoiseMeasurement(Process):
     def __init__(
         self,
-        results_queue: Queue,
+        results_queue: QueueType[tuple[float, NDArray[np.float64]]],
         sample_rate: float,
         current: float,
         ballast_resistance: float,
@@ -106,7 +107,7 @@ class IVNoiseMeasurement(Process):
         resistance_in_series: float = 0.0,
     ) -> None:
         super().__init__()
-        self.results_queue: Queue[tuple[float, NDArray[np.float64]]] = results_queue
+        self.results_queue: QueueType[tuple[float, NDArray[np.float64]]] = results_queue
 
         self.sample_rate: Final[float] = sample_rate
         self.current: Final[float] = current

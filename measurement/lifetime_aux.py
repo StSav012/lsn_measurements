@@ -1,7 +1,8 @@
 import time
 from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta
-from multiprocessing import Event, Process, Queue, Value
+from multiprocessing import Event, Process, Value
+from multiprocessing.queues import Queue as QueueType
 from pathlib import Path
 from typing import Any, Final, Literal, cast
 
@@ -37,8 +38,8 @@ __all__ = ["LifetimeMeasurement"]
 class LifetimeMeasurement(Process):
     def __init__(
         self,
-        results_queue: Queue[tuple[float, float, float]],
-        state_queue: Queue[tuple[int, timedelta]],
+        results_queue: QueueType[tuple[float, float, float]],
+        state_queue: QueueType[tuple[int, timedelta]],
         good_to_go: Event,
         user_aborted: Event,
         actual_temperature: Value,
@@ -67,8 +68,8 @@ class LifetimeMeasurement(Process):
     ) -> None:
         super().__init__()
 
-        self.results_queue: Queue[tuple[float, float, float]] = results_queue
-        self.state_queue: Queue[tuple[int, timedelta]] = state_queue
+        self.results_queue: QueueType[tuple[float, float, float]] = results_queue
+        self.state_queue: QueueType[tuple[int, timedelta]] = state_queue
         self.good_to_go: Event = good_to_go
         self.user_aborted: Event = user_aborted
         self.actual_temperature: Value = actual_temperature

@@ -1,6 +1,7 @@
 import time
 from collections.abc import Sequence
-from multiprocessing import Event, Process, Queue, Value
+from multiprocessing import Event, Process, Value
+from multiprocessing.queues import Queue as QueueType
 from pathlib import Path
 from typing import Any, Final, Literal
 
@@ -36,8 +37,8 @@ fw.start()
 class DetectMeasurement(Process):
     def __init__(
         self,
-        results_queue: Queue[tuple[float, float]],
-        state_queue: Queue[tuple[int, int, int]],
+        results_queue: QueueType[tuple[float, float]],
+        state_queue: QueueType[tuple[int, int, int]],
         good_to_go: Event,
         user_aborted: Event,
         actual_temperature: Value,
@@ -66,8 +67,8 @@ class DetectMeasurement(Process):
     ) -> None:
         super().__init__()
 
-        self.results_queue: Queue[tuple[float, float]] = results_queue
-        self.state_queue: Queue[tuple[int, int, int]] = state_queue
+        self.results_queue: QueueType[tuple[float, float]] = results_queue
+        self.state_queue: QueueType[tuple[int, int, int]] = state_queue
         self.good_to_go: Event = good_to_go
         self.user_aborted: Event = user_aborted
         self.actual_temperature: Value = actual_temperature

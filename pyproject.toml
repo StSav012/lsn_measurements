@@ -22,6 +22,7 @@ dependencies = [
     "python-vxi11",
     "telnetlib3",
     "PyMeasure",
+    "standard-xdrlib; python_version >= '3.13'",
 ]
 [project.optional-dependencies]
 matplotlib = ['matplotlib']

@@ -137,7 +137,7 @@ class Triton(Thread):
     def ensure_temperature(self, index: int, value: float | Quantity) -> bool:
         if isinstance(value, Quantity):
             value = value.to_value("K")
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET", blocking=True).value:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:TSET").value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:TSET", value)
 
@@ -145,7 +145,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
     def ensure_filter_readings(self, index: int, value: bool) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB", blocking=True):
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:FILT:ENAB"):
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:FILT:ENAB", value)
 
@@ -153,7 +153,7 @@ class Triton(Thread):
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 
     def ensure_heater_range(self, index: int, value: str) -> bool:
-        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE", blocking=True).value:
+        if value == self.query_value(f"READ:DEV:T{index}:TEMP:LOOP:RANGE").value:
             return True
         return self.issue_value(f"SET:DEV:T{index}:TEMP:LOOP:RANGE", value)
 

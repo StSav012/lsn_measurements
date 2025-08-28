@@ -16,22 +16,26 @@ __all__ = ["Triton", "TritonScript"]
 
 class Triton(Thread):
     @staticmethod
-    def heater_range(temperature: float) -> str:
-        if temperature < 0.025:
+    def heater_range(temperature: float | Quantity) -> str:
+        if isinstance(temperature, float):
+            temperature = Quantity(temperature, "K")
+        if temperature < Quantity(0.025, "K"):
             return "0.0316"
-        if temperature < 0.04:
+        if temperature < Quantity(0.04, "K"):
             return "0.1"
-        if temperature < 0.1:
+        if temperature < Quantity(0.1, "K"):
             return "0.316"
-        if temperature < 0.7:
+        if temperature < Quantity(0.7, "K"):
             return "1"
-        if temperature < 0.9:
+        if temperature < Quantity(0.9, "K"):
             return "3.16"
         return "10"
 
     @staticmethod
-    def filter_readings(temperature: float) -> bool:
-        return not temperature < 0.2
+    def filter_readings(temperature: float | Quantity) -> bool:
+        if isinstance(temperature, float):
+            temperature = Quantity(temperature, "K")
+        return not temperature < Quantity(0.2, "K")
 
     def __init__(self, ip: str | None = None, port: int = 33576) -> None:
         self.socket: socket = socket(AF_INET, SOCK_STREAM)

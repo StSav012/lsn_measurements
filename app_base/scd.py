@@ -475,8 +475,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
 
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (
-            self.power_index < len(self.power_dbm_values)
-            and self.frequency_index < len(self.frequency_values)
+            (not self.synthesizer_output or self.power_index < len(self.power_dbm_values))
+            and (not self.synthesizer_output or self.frequency_index < len(self.frequency_values))
             and self.current_speed_index < len(self.current_speed_values)
             and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
             and self.temperature_index < len(self.temperature_values)

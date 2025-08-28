@@ -445,8 +445,8 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (
             self.bias_current_index < len(self.bias_current_values)
-            and self.power_index < len(self.power_dbm_values)
-            and self.frequency_index < len(self.frequency_values)
+            and (not self.synthesizer_output or self.power_index < len(self.power_dbm_values))
+            and (not self.synthesizer_output or self.frequency_index < len(self.frequency_values))
             and self.setting_time_index < len(self.setting_time_values)
             and self.delay_between_cycles_index < len(self.delay_between_cycles_values)
             and self.temperature_index < len(self.temperature_values)

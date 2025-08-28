@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Condition, Lock, Thread
-from typing import Any, AnyStr, ClassVar, Final, assert_type
+from typing import Any, ClassVar, Final, assert_type
 
 from astropy.units import Quantity
 
@@ -194,7 +194,7 @@ class TritonScript(socket):
     def __del__(self) -> None:
         self.close()
 
-    def communicate(self, command: AnyStr) -> list[bytes]:
+    def communicate(self, command: bytes | str) -> list[bytes]:
         if isinstance(command, str):
             command = command.encode()
         assert_type(command, bytes)

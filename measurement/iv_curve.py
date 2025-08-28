@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 from multiprocessing import Process
 from multiprocessing.queues import Queue as QueueType
-from typing import Any, Final, Literal
+from typing import Final, Literal
 
 import numpy as np
 from nidaqmx.constants import WAIT_INFINITELY, AcquisitionType
@@ -129,7 +129,7 @@ class IVCurveMeasurement(Process):
                 _task_idx: int,
                 _event_type: int,
                 num_samples: int,
-                _callback_data: Any,
+                _callback_data: object,
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)
@@ -222,7 +222,7 @@ def iv_curve(limits: tuple[float, float], points: int, two_way: bool = False) ->
 
     adc_voltage_stream: AnalogSingleChannelReader = AnalogSingleChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data: object) -> Literal[0]:
         # It may be wiser to read slightly more than num_samples here, to make sure one does not miss any sample,
         # see: https://documentation.help/NI-DAQmx-Key-Concepts/contCAcqGen.html
         _data = np.empty(num_samples)
@@ -281,7 +281,7 @@ def iv_curve_2(limits: tuple[float, float], points: int, two_way: bool = False) 
 
     adc_voltage_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data: object) -> Literal[0]:
         # It may be wiser to read slightly more than num_samples here, to make sure one does not miss any sample,
         # see: https://documentation.help/NI-DAQmx-Key-Concepts/contCAcqGen.html
         _data = np.empty((2, num_samples))
@@ -354,7 +354,7 @@ def fast_iv_curve(
 
     adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
 
-    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
+    def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data: object) -> Literal[0]:
         _data = np.empty((2, num_samples))
         adc_stream.read_many_sample(_data, num_samples)
         task_adc.i = np.concatenate((task_adc.i, _data[0]))
@@ -457,7 +457,9 @@ def iv_curve_of_rate_bak(
         adc_stream: AnalogMultiChannelReader = AnalogMultiChannelReader(task_adc.in_stream)
         dac_stream: AnalogSingleChannelWriter = AnalogSingleChannelWriter(task_dac.out_stream, auto_start=True)
 
-        def reading_task_callback(_task_idx: int, _event_type: int, num_samples: int, _callback_data) -> Literal[0]:
+        def reading_task_callback(
+            _task_idx: int, _event_type: int, num_samples: int, _callback_data: object
+        ) -> Literal[0]:
             _data = np.empty((2, num_samples))
             adc_stream.read_many_sample(_data, num_samples)
             task_adc.i = np.concatenate((task_adc.i, _data[0]))
@@ -585,7 +587,7 @@ def iv_curve_of_rate(
             _task_idx: int,
             _event_type: int,
             num_samples: int,
-            _callback_data: Any,
+            _callback_data: object,
         ) -> Literal[0]:
             nonlocal no_data, adc_stream, i, v
             data: NDArray[np.float64] = np.empty((3, num_samples))

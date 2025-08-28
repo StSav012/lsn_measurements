@@ -1,5 +1,5 @@
 import math
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator
 from typing import Self
 
 from .si import parse_si_number
@@ -29,8 +29,8 @@ class SliceSequence:
         self,
         text: str | Self = "",
         *,
-        slice_separator: str | Sequence[str] = ("..", ":"),
-        items_separator: str | Sequence[str] = (",", ";"),
+        slice_separator: str | Iterable[str] = ("..", ":"),
+        items_separator: str | Iterable[str] = (",", ";"),
     ) -> None:
         self._slice_separators: tuple[str] = (
             (slice_separator,) if isinstance(slice_separator, str) else tuple(slice_separator)

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Condition, Lock, Thread
-from typing import Any, ClassVar, Final, assert_type
+from typing import ClassVar, Final, assert_type
 
 from astropy.units import Quantity
 
@@ -115,7 +115,7 @@ class Triton(Thread):
     def query_heater_power(self, index: int, blocking: bool = False) -> Quantity:
         return self.query_value(f"READ:DEV:H{index}:HTR:SIG:POWR", blocking=blocking)
 
-    def issue_value(self, command: str, value: Any) -> bool:
+    def issue_value(self, command: str, value: object) -> bool:
         if not command.startswith("SET:"):
             command = "SET:" + command
         if isinstance(value, bool):

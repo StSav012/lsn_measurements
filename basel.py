@@ -68,7 +68,7 @@ async def main(client: str, server: tuple[str, int]) -> None:
     arbitrary_commands_allowed: bool = False
     respect_limits: bool = True
 
-    async def handle_client(server_reader, server_writer) -> None:
+    async def handle_client(server_reader: asyncio.StreamReader, server_writer: asyncio.StreamWriter) -> None:
         nonlocal arbitrary_commands_allowed, respect_limits
 
         connection_established: datetime = datetime.now()

@@ -26,12 +26,12 @@ except ImportError:
 _P = ParamSpec("_P")
 
 
-def _show(method: Callable[_P, _T], title: str, message: str) -> _T | str | None:
+def _show[P, T](method: Callable[P, T], title: str, message: str) -> T | str | None:
     from threading import Semaphore, Thread
 
     s: Semaphore = Semaphore(2)
 
-    res: list[_T | str] = []
+    res: list[T | str] = []
 
     def show_gui_message() -> None:
         _kwargs: dict[str, str]
@@ -110,12 +110,12 @@ def ask_retry_cancel(title: str, message: str) -> bool | str | None:
     return _show(method=askretrycancel, title=title, message=message)
 
 
-def _ask(method: Callable[_P, _T], title: str, prompt: str) -> _T | str | None:
+def _ask[P, T](method: Callable[P, T], title: str, prompt: str) -> T | str | None:
     from threading import Semaphore, Thread
 
     s: Semaphore = Semaphore(2)
 
-    res: list[_T | str] = []
+    res: list[T | str] = []
 
     def show_gui_message() -> None:
         with s:

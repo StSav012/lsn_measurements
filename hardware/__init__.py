@@ -103,7 +103,7 @@ del dac_synth_pulse
 del dac_sync
 
 
-def find_device(**kwargs: Any) -> Device:
+def find_device(**kwargs: object) -> Device:
     device: Device
     for device in system.devices:
         if all(getattr(device, key) == value for key, value in kwargs.items()):

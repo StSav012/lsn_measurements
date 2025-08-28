@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from multiprocessing import Event, Process, Value
 from multiprocessing.queues import Queue as QueueType
 from pathlib import Path
-from typing import Any, Final, Literal, cast
+from typing import Final, Literal, cast
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -176,7 +176,7 @@ class LifetimeMeasurement(Process):
                 _task_idx: int,
                 _event_type: int,
                 num_samples: int,
-                _callback_data: Any,
+                _callback_data: object,
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((3, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)

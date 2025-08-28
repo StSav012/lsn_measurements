@@ -2,7 +2,7 @@ import time
 from collections.abc import Sequence
 from multiprocessing import Event, Process
 from multiprocessing.queues import Queue as QueueType
-from typing import Any, Final, Literal
+from typing import Final, Literal
 
 import numpy as np
 from nidaqmx.constants import AcquisitionType
@@ -71,7 +71,7 @@ class NoiseMeasurement(Process):
                 _task_idx: int,
                 _event_type: int,
                 num_samples: int,
-                _callback_data: Any,
+                _callback_data: object,
             ) -> Literal[0]:
                 data: NDArray[np.float64] = np.empty((number_of_channels, num_samples), dtype=np.float64)
                 adc_stream.read_many_sample(data, num_samples)

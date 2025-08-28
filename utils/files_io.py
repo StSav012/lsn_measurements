@@ -1,7 +1,7 @@
 import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, SupportsFloat, SupportsIndex
+from typing import SupportsFloat, SupportsIndex
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -9,8 +9,8 @@ from numpy.typing import ArrayLike, NDArray
 __all__ = ["load_txt", "read_340_table", "save_txt"]
 
 
-def is_float(val: Any) -> bool:  # noqa: ANN401
-    if not isinstance(val, (SupportsFloat, SupportsIndex, str, bytes, bytearray)):
+def is_float(val: object) -> bool:
+    if not isinstance(val, SupportsFloat | SupportsIndex | str | bytes | bytearray):
         return False
     try:
         float(val)

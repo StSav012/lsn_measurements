@@ -33,11 +33,11 @@ def moving_average(
     )
 
 
-def moving_mean(x: NDArray[_T], n: int) -> NDArray[_T]:
+def moving_mean[T](x: NDArray[T], n: int) -> NDArray[T]:
     return moving_average(x, n, np.mean)
 
 
-def moving_median(x: NDArray[_T], n: int) -> NDArray[_T]:
+def moving_median[T](x: NDArray[T], n: int) -> NDArray[T]:
     return moving_average(x, n, np.median)
 
 

@@ -22,10 +22,12 @@ from utils.config import Config
 from utils.slice_sequence import SliceSequence
 from utils.string_utils import format_float
 
+from . import QWidgetMeta
+
 __all__ = ["DetectLifetimeBase"]
 
 
-class DetectLifetimeBase(DetectLifetimeGUI):
+class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
     def __init__(self) -> None:
         super().__init__()
 

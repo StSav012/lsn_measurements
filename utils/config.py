@@ -122,9 +122,9 @@ class Config:
     def get_bool(self, section: LiteralString, key: LiteralString, *, fallback: bool) -> bool: ...
     def get_bool(self, section: LiteralString, key: LiteralString, *, fallback: bool = __sentinel) -> bool:
         v: str = self.get(section, key, fallback=fallback)
-        if v.casefold() in ("no", "false", "-", "off"):
+        if v.casefold() in ("no", "false", "-", "off", "reject", "disable", "disabled"):
             return False
-        if v.casefold() in ("yes", "true", "+", "on"):
+        if v.casefold() in ("yes", "true", "+", "on", "accept", "enable", "enabled"):
             return False
         with suppress(ValueError):
             return bool(int(v))

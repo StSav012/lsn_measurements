@@ -92,11 +92,11 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         self.check_exists: Final[bool] = self.config.get_bool("measurement", "check whether file exists")
         self.trigger_voltage: Final[float] = self.config.get_float("measurement", "voltage trigger [V]") * self.gain
         self.max_reasonable_bias_error: Final[float] = (
-            abs(self.config.getfloat("detect", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
+            abs(self.config.get_float("detect", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count: Final[int] = self.config.getint("detect", "number of cycles")
-        self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
-        self.minimal_probability_to_measure: Final[float] = self.config.getfloat(
+        self.cycles_count: Final[int] = self.config.get_int("detect", "number of cycles")
+        self.max_switching_events_count: Final[int] = self.config.get_int("detect", "number of switches")
+        self.minimal_probability_to_measure: Final[float] = self.config.get_float(
             "detect",
             "minimal probability to measure [%]",
             fallback=0.0,
@@ -126,7 +126,7 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         self.temperature_tolerance: Final[float] = (
             abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
-        self.change_filtered_readings: Final[bool] = self.config.getboolean(
+        self.change_filtered_readings: Final[bool] = self.config.get_bool(
             "measurement",
             "change filtered readings in Triton",
             fallback=True,

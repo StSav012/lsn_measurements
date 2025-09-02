@@ -56,7 +56,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
 
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.get_bool("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.sample_name
         self.parameters_box.setTitle(self.sample_name)
@@ -86,21 +86,21 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.setting_time_values: Final[SliceSequence] = self.config.get_slice_sequence("current", "setting time [sec]")
         self.stop_key_setting_time.setDisabled(len(self.setting_time_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
+        self.check_exists: Final[bool] = self.config.get_bool("measurement", "check whether file exists")
         self.trigger_voltage: Final[float] = self.config.get_float("measurement", "voltage trigger [V]") * self.gain
         self.max_reasonable_bias_error: Final[float] = (
-            abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
+            abs(self.config.get_float("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count: Final[int] = self.config.getint("lifetime", "number of cycles")
+        self.cycles_count: Final[int] = self.config.get_int("lifetime", "number of cycles")
         self.max_waiting_time: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]"),
+            seconds=self.config.get_float("lifetime", "max time of waiting for switching [sec]"),
         )
-        self.max_mean: Final[float] = self.config.getfloat(
+        self.max_mean: Final[float] = self.config.get_float(
             "lifetime",
             "max mean time to measure [sec]",
             fallback=np.inf,
         )
-        self.ignore_never_switched: Final[bool] = self.config.getboolean("lifetime", "ignore never switched")
+        self.ignore_never_switched: Final[bool] = self.config.get_bool("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
             "measurement",
             "delay between cycles [sec]",
@@ -108,7 +108,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
 
-        self.synthesizer_output: Final[bool] = self.config.getboolean("GHz signal", "on", fallback=False)
+        self.synthesizer_output: Final[bool] = self.config.get_bool("GHz signal", "on", fallback=False)
         self.frequency_values: Final[SliceSequence] = (
             self.config.get_slice_sequence("GHz signal", "frequency [GHz]", fallback=SliceSequence())
             if self.synthesizer_output
@@ -130,7 +130,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.temperature_tolerance: Final[float] = (
             abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
-        self.change_filtered_readings: Final[bool] = self.config.getboolean(
+        self.change_filtered_readings: Final[bool] = self.config.get_bool(
             "measurement",
             "change filtered readings in Triton",
             fallback=True,

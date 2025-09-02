@@ -59,7 +59,7 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
 
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.get_bool("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.sample_name
         self.parameters_box.setTitle(self.sample_name)
@@ -92,25 +92,25 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.check_exists: Final[bool] = self.config.get_bool("measurement", "check whether file exists")
         self.trigger_voltage: Final[float] = self.config.get_float("measurement", "voltage trigger [V]") * self.gain
         self.max_reasonable_bias_error: Final[float] = (
-            abs(self.config.getfloat("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
+            abs(self.config.get_float("lifetime", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count_lifetime: Final[int] = self.config.getint("lifetime", "number of cycles")
-        self.cycles_count_detect: Final[int] = self.config.getint("detect", "number of cycles")
-        self.max_switching_events_count: Final[int] = self.config.getint("detect", "number of switches")
-        self.minimal_probability_to_measure: Final[float] = self.config.getfloat(
+        self.cycles_count_lifetime: Final[int] = self.config.get_int("lifetime", "number of cycles")
+        self.cycles_count_detect: Final[int] = self.config.get_int("detect", "number of cycles")
+        self.max_switching_events_count: Final[int] = self.config.get_int("detect", "number of switches")
+        self.minimal_probability_to_measure: Final[float] = self.config.get_float(
             "detect",
             "minimal probability to measure [%]",
             fallback=0.0,
         )
         self.max_waiting_time: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("lifetime", "max time of waiting for switching [sec]"),
+            seconds=self.config.get_float("lifetime", "max time of waiting for switching [sec]"),
         )
-        self.max_mean: Final[float] = self.config.getfloat(
+        self.max_mean: Final[float] = self.config.get_float(
             "lifetime",
             "max mean time to measure [sec]",
             fallback=np.inf,
         )
-        self.ignore_never_switched: Final[bool] = self.config.getboolean("lifetime", "ignore never switched")
+        self.ignore_never_switched: Final[bool] = self.config.get_bool("lifetime", "ignore never switched")
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
             "measurement",
             "delay between cycles [sec]",
@@ -122,21 +122,21 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.stop_key_frequency.setDisabled(len(self.frequency_values) <= 1)
         self.power_dbm_values: Final[SliceSequence] = self.config.get_slice_sequence("GHz signal", "power [dBm]")
         self.stop_key_power.setDisabled(len(self.power_dbm_values) <= 1)
-        self.pulse_duration: Final[float] = self.config.getfloat("detect", "GHz pulse duration [sec]")
-        self.waiting_after_pulse: Final[float] = self.config.getfloat("detect", "waiting after GHz pulse [sec]")
+        self.pulse_duration: Final[float] = self.config.get_float("detect", "GHz pulse duration [sec]")
+        self.waiting_after_pulse: Final[float] = self.config.get_float("detect", "waiting after GHz pulse [sec]")
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")
         self.temperature_delay: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0,
+            seconds=self.config.get_float("measurement", "time to wait for temperature [minutes]", fallback=0.0) * 60.0,
         )
-        self.change_filtered_readings: Final[bool] = self.config.getboolean(
+        self.change_filtered_readings: Final[bool] = self.config.get_bool(
             "measurement",
             "change filtered readings in Triton",
             fallback=True,
         )
         self.stop_key_temperature.setDisabled(len(self.temperature_values) <= 1)
         self.temperature_tolerance: Final[float] = (
-            abs(self.config.getfloat("measurement", "temperature tolerance [%]", fallback=1.0)) * 0.01
+            abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=1.0)) * 0.01
         )
 
         self.saving_location: Path = Path(self.config.get("output", "location", fallback=r"D:\ttt\detect+lifetime"))

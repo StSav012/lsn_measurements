@@ -59,7 +59,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
 
         self.triton.query_temperature(6, blocking=True)
 
-        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.getboolean("GHz signal", "connect", fallback=True))
+        self.synthesizer: APUASYN20 = APUASYN20(expected=self.config.get_bool("GHz signal", "connect", fallback=True))
 
         self.sample_name: Final[str] = self.config.get("circuitry", "sample name")
         self.parameters_box.setTitle(self.sample_name)
@@ -90,14 +90,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         )
         self.stop_key_current_speed.setDisabled(len(self.current_speed_values) <= 1)
 
-        self.check_exists: Final[bool] = self.config.getboolean("measurement", "check whether file exists")
+        self.check_exists: Final[bool] = self.config.get_bool("measurement", "check whether file exists")
         self.trigger_voltage: Final[float] = self.config.get_float("measurement", "voltage trigger [V]")
         self.max_reasonable_bias_error: Final[float] = (
-            abs(self.config.getfloat("scd", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
+            abs(self.config.get_float("scd", "maximal reasonable bias error [%]", fallback=np.inf)) * 0.01
         )
-        self.cycles_count: Final[int] = self.config.getint("scd", "number of cycles")
+        self.cycles_count: Final[int] = self.config.get_int("scd", "number of cycles")
         self.max_measurement_time: Final[timedelta] = timedelta(
-            seconds=self.config.getfloat("scd", "max cycles measurement time [minutes]") * 60,
+            seconds=self.config.get_float("scd", "max cycles measurement time [minutes]") * 60,
         )
         self.delay_between_cycles_values: Final[SliceSequence] = self.config.get_slice_sequence(
             "measurement",
@@ -106,7 +106,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.stop_key_delay_between_cycles.setDisabled(len(self.delay_between_cycles_values) <= 1)
         self.adc_rate: Final[float] = self.config.get_float("measurement", "adc rate [S/sec]", fallback=np.nan)
 
-        self.synthesizer_output: Final[bool] = self.config.getboolean("GHz signal", "on", fallback=False)
+        self.synthesizer_output: Final[bool] = self.config.get_bool("GHz signal", "on", fallback=False)
         self.frequency_values: Final[SliceSequence] = (
             self.config.get_slice_sequence("GHz signal", "frequency [GHz]", fallback=SliceSequence())
             if self.synthesizer_output
@@ -123,7 +123,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.aux_voltage_values: SliceSequence = self.config.get_slice_sequence("measurement", "aux voltage [V]")
         self.stop_key_aux_voltage.setDisabled(len(self.aux_voltage_values) <= 1)
         self.aux_voltage_delay: timedelta = timedelta(
-            seconds=self.config.getfloat(
+            seconds=self.config.get_float(
                 "measurement",
                 "time to wait after aux voltage changed [minutes]",
                 fallback=0.0,
@@ -139,7 +139,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.temperature_tolerance: Final[float] = (
             abs(self.config.get_float("measurement", "temperature tolerance [%]", fallback=0.5)) * 0.01
         )
-        self.change_filtered_readings: Final[bool] = self.config.getboolean(
+        self.change_filtered_readings: Final[bool] = self.config.get_bool(
             "measurement",
             "change filtered readings in Triton",
             fallback=True,

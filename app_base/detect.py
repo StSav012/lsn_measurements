@@ -118,6 +118,7 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
             "detect",
             "GHz pulse duration [sec]",
         )
+        self.stop_key_pulse_duration.setDisabled(len(self.pulse_duration_values) <= 1)
         self.waiting_after_pulse: Final[float] = self.config.get_float("detect", "waiting after GHz pulse [sec]")
 
         self.temperature_values: Final[SliceSequence] = self.config.get_slice_sequence("measurement", "temperature")

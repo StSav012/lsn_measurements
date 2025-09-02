@@ -1,8 +1,10 @@
 import time
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from multiprocessing import Event, Process, Value
+from multiprocessing import Process
 from multiprocessing.queues import Queue as QueueType
+from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
 from typing import Final, Literal, cast
 
@@ -45,9 +47,9 @@ class SCDMeasurement(Process):
         results_queue: QueueType[tuple[float, float]],
         state_queue: QueueType[tuple[int, timedelta]],
         switching_data_queue: QueueType[tuple[np.float64, np.float64]],
-        good_to_go: Event,
-        user_aborted: Event,
-        actual_temperature: Value,
+        good_to_go: EventType,
+        user_aborted: EventType,
+        actual_temperature: Synchronized[float],
         *,
         voltage_gain: float,
         current_divider: float,
@@ -75,9 +77,9 @@ class SCDMeasurement(Process):
         self.results_queue: QueueType[tuple[float, float]] = results_queue
         self.state_queue: QueueType[tuple[int, timedelta | None]] = state_queue
         self.switching_data_queue: QueueType[tuple[np.float64, np.float64]] = switching_data_queue
-        self.good_to_go: Event = good_to_go
-        self.user_aborted: Event = user_aborted
-        self.actual_temperature: Value = actual_temperature
+        self.good_to_go: EventType = good_to_go
+        self.user_aborted: EventType = user_aborted
+        self.actual_temperature: Synchronized[float] = actual_temperature
 
         self.gain: Final[float] = voltage_gain
         self.divider: Final[float] = current_divider

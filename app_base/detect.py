@@ -1,6 +1,8 @@
 import abc
 from datetime import date, datetime, timedelta
 from multiprocessing import Event, Queue, Value
+from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
 from typing import Final
 
@@ -35,11 +37,11 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
 
         self.results_queue: Queue[tuple[float, float]] = Queue()
         self.state_queue: Queue[tuple[int, int, int]] = Queue()
-        self.good_to_go: Event = Event()
+        self.good_to_go: EventType = Event()
         self.good_to_go.clear()
-        self.user_aborted: Event = Event()
+        self.user_aborted: EventType = Event()
         self.user_aborted.clear()
-        self.actual_temperature: Value = Value("d")
+        self.actual_temperature: Synchronized[float] = Value("d")
         self.measurement: DetectMeasurement | None = None
 
         self.config: Config = Config()

@@ -1,6 +1,8 @@
 import abc
 from datetime import date, datetime, timedelta
 from multiprocessing import Event, Queue, Value
+from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
 from typing import Final, TextIO, cast
 
@@ -38,11 +40,11 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.switching_data_queue: Queue[tuple[np.float64, np.float64]] = Queue()
         self.switching_current: list[np.float64] = []
         self.switching_voltage: list[np.float64] = []
-        self.good_to_go: Event = Event()
+        self.good_to_go: EventType = Event()
         self.good_to_go.clear()
-        self.user_aborted: Event = Event()
+        self.user_aborted: EventType = Event()
         self.user_aborted.clear()
-        self.actual_temperature: Value = Value("d")
+        self.actual_temperature: Synchronized[float] = Value("d")
         self.measurement: SCDMeasurement | None = None
 
         self.config: Config = Config()

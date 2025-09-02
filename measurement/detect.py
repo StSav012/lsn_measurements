@@ -1,7 +1,9 @@
 import time
 from collections.abc import Sequence
-from multiprocessing import Event, Process, Value
+from multiprocessing import Process
 from multiprocessing.queues import Queue as QueueType
+from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
 from typing import Final, Literal
 
@@ -39,9 +41,9 @@ class DetectMeasurement(Process):
         self,
         results_queue: QueueType[tuple[float, float]],
         state_queue: QueueType[tuple[int, int, int]],
-        good_to_go: Event,
-        user_aborted: Event,
-        actual_temperature: Value,
+        good_to_go: EventType,
+        user_aborted: EventType,
+        actual_temperature: Synchronized[float],
         *,
         voltage_gain: float,
         current_divider: float,
@@ -69,9 +71,9 @@ class DetectMeasurement(Process):
 
         self.results_queue: QueueType[tuple[float, float]] = results_queue
         self.state_queue: QueueType[tuple[int, int, int]] = state_queue
-        self.good_to_go: Event = good_to_go
-        self.user_aborted: Event = user_aborted
-        self.actual_temperature: Value = actual_temperature
+        self.good_to_go: EventType = good_to_go
+        self.user_aborted: EventType = user_aborted
+        self.actual_temperature: Synchronized[float] = actual_temperature
 
         self.voltage_gain: Final[float] = voltage_gain
         self.divider: Final[float] = current_divider

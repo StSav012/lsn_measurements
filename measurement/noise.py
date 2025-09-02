@@ -2,6 +2,7 @@ import time
 from collections.abc import Sequence
 from multiprocessing import Event, Process
 from multiprocessing.queues import Queue as QueueType
+from multiprocessing.synchronize import Event as EventType
 from typing import Final, Literal
 
 import numpy as np
@@ -35,7 +36,7 @@ class NoiseMeasurement(Process):
         self.source_channel: Final[PhysicalChannel | None] = source_channel
         self.source_voltage: float = source_voltage
 
-        self._done: Event = Event()
+        self._done: EventType = Event()
 
     def stop(self) -> None:
         self._done.set()
@@ -116,7 +117,7 @@ class IVNoiseMeasurement(Process):
         self.voltage_gain: Final[float] = voltage_gain
         self.current_divider: Final[float] = current_divider
 
-        self._done: Event = Event()
+        self._done: EventType = Event()
 
     def stop(self) -> None:
         self._done.set()

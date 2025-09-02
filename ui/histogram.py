@@ -63,9 +63,6 @@ class Histogram(pg.PlotWidget):
         super().__init__(parent)
 
         self._plot_line: pg.PlotDataItem | None = None
-        self._plot_line_p_err: pg.PlotDataItem | None = None
-        self._plot_line_n_err: pg.PlotDataItem | None = None
-
         self.plotItem.showGrid(x=True, y=True)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
@@ -112,16 +109,10 @@ class Histogram(pg.PlotWidget):
 
         if self._plot_line is not None:
             self.removeItem(self._plot_line)
-        if self._plot_line_p_err is not None:
-            self.removeItem(self._plot_line_p_err)
-        if self._plot_line_n_err is not None:
-            self.removeItem(self._plot_line_n_err)
         if not isinstance(data, np.ndarray):
             data = np.array(data)
         if data.size == 0:
             self._plot_line = None
-            self._plot_line_p_err = None
-            self._plot_line_n_err = None
             return self._plot_line
 
         hist: NDArray[float]
@@ -134,8 +125,6 @@ class Histogram(pg.PlotWidget):
             data = data[data > 0.0]
             if data.size == 0:
                 self._plot_line = None
-                self._plot_line_p_err = None
-                self._plot_line_n_err = None
                 return self._plot_line
             hist, bin_edges = np.histogram(np.log(data), bins=bins, density=False)
             hist = hist.astype(np.float64)
@@ -151,22 +140,15 @@ class Histogram(pg.PlotWidget):
         self._bin_centers = bin_centers
 
         # from https://github.com/veusz/veusz/blob/master/veusz/datasets/histo.py
-        ratio: NDArray[float] = 1.0 / (data.size * (bin_edges[1:] - bin_edges[:-1]))
+        ratio: NDArray[float] = 1.0 / (hist.size * (bin_edges[1:] - bin_edges[:-1]))
         # “Confidence Limits for Small Numbers of Events in Astrophysical Data,” N. Gehrels, ApJ, 303, 336.
-        #  https://adsabs.harvard.edu/full/1986ApJ...303..336G
-        p_err: NDArray[float] = np.multiply(1.0 + np.sqrt(np.abs(hist + 0.75)), ratio)
-        n_err: NDArray[float] = -np.multiply(np.where(hist > 0.25, np.sqrt(np.abs(hist - 0.25)), np.nan), ratio)
-        self._p_err = p_err
-        self._n_err = n_err
+        self._p_err: NDArray[float] = np.multiply(1.0 + np.sqrt(np.abs(hist + 0.75)), ratio)
+        self._n_err: NDArray[float] = -np.multiply(np.where(hist > 0.25, np.sqrt(np.abs(hist - 0.25)), 0.0), ratio)
 
         if self._y_log:
             hist[hist <= 0.0] = np.nan
-            p_err[p_err <= 0.0] = np.nan
-            n_err[n_err <= 0.0] = np.nan
         if np.all(np.isnan(bin_centers)) or np.all(np.isnan(hist)):
             self._plot_line = None
-            self._plot_line_p_err = None
-            self._plot_line_n_err = None
         else:
             self._plot_line = self.plotItem.plot(
                 bin_centers,
@@ -177,34 +159,11 @@ class Histogram(pg.PlotWidget):
                 symbolPen=symbolPen,
                 symbolBrush=symbolBrush,
             )
-            self._plot_line_p_err = self.plotItem.plot(
-                bin_centers,
-                hist + p_err,
-                name=name,
-                symbol=symbol,
-                pen=pen,
-                symbolPen=symbolPen,
-                symbolBrush=symbolBrush,
-            )
-            self._plot_line_n_err = self.plotItem.plot(
-                bin_centers,
-                hist + n_err,
-                name=name,
-                symbol=symbol,
-                pen=pen,
-                symbolPen=symbolPen,
-                symbolBrush=symbolBrush,
-            )
-            # make error lines semi-transparent
-            self._plot_line_p_err.setOpacity(0.5)
-            self._plot_line_n_err.setOpacity(0.5)
         return self._plot_line
 
     def clear(self) -> None:
         self.plotItem.clear()
         self._plot_line = None
-        self._plot_line_p_err = None
-        self._plot_line_n_err = None
 
     def setLogMode(self, x: bool | None = None, y: bool | None = None) -> None:
         recompute_hist: bool = False

@@ -125,7 +125,7 @@ class Config:
         if v.casefold() in ("no", "false", "-", "off", "reject", "disable", "disabled"):
             return False
         if v.casefold() in ("yes", "true", "+", "on", "accept", "enable", "enabled"):
-            return False
+            return True
         with suppress(ValueError):
             return bool(int(v))
         raise ValueError("Not a boolean:", v)

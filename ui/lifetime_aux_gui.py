@@ -186,10 +186,11 @@ class LifetimeGUI(QMainWindow):
         self.settings.setValue("windowState", self.saveState())
         self.settings.sync()
 
-    def closeEvent(self, event: QCloseEvent) -> None:
+    def closeEvent(self, event: QCloseEvent | None) -> None:
         self.on_button_stop_clicked()
         self.save_settings()
-        event.accept()
+        if event is not None:
+            event.accept()
 
     @Slot(bool)
     def on_button_topmost_toggled(self, on: bool) -> None:

@@ -8,11 +8,10 @@ class Count:
         self._count: int = 0
         self._last_value: int = 0
 
-        self.payload: tuple[float, float, float] = (np.nan, np.nan, np.nan)
-        self.loaded: bool = False
+        self.payload: object = None
         self.loadable: bool = True
 
-    def inc(self, step: int = 1) -> None:
+    def inc(self, step: int | np.int64 = 1) -> None:
         self._count += int(step)
 
     def reset(self) -> None:

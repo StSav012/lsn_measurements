@@ -196,14 +196,13 @@ class DetectMeasurement(Process):
                     self.pulse_started = True
                     self.pulse_ended = not waiting[-1]
                     self.c.inc(np.count_nonzero(waiting & not_switched))
-                    if self.c.loadable and not self.c.loaded and np.any(data[1] > self.trigger_voltage):
-                        trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).flat[0]
+                    if self.c.loadable and self.c.payload is None and np.any(data[1] > self.trigger_voltage):
+                        trig_arg: np.int64 = np.argwhere(data[1] > self.trigger_voltage).flat[0]
                         self.c.payload = (
                             data[0, trig_arg],
                             data[1, trig_arg],
                             int(self.c) / self.adc_rate,
                         )
-                        self.c.loaded = True
                         self.c.reset()
                 else:
                     if self.pulse_started:
@@ -384,7 +383,7 @@ class DetectMeasurement(Process):
                 if self.user_aborted.is_set():
                     print("user aborted")
                     break
-                self.c.loaded = False
+                self.c.payload = None
                 self.pulse_started = False
                 self.pulse_ended = False
 
@@ -400,9 +399,9 @@ class DetectMeasurement(Process):
                     break
                 self.pulse_started = False
                 self.pulse_ended = False
-                if self.c.loaded:
+                if self.c.payload is not None:
                     i, v, t = self.c.payload
-                    self.c.loaded = False
+                    self.c.payload = None
 
                     v = (v - offsets[adc_voltage.name]) / self.voltage_gain
                     i = (i - v - offsets[adc_current.name]) / self.r

@@ -186,8 +186,8 @@ class LifetimeMeasurement(Process):
                 data[1] -= self.r_series / self.r * data[0] * self.gain
                 not_switched: NDArray[np.bool_] = data[1, waiting] < self.trigger_voltage
                 if np.any(waiting):
-                    if self.c.loadable and not self.c.loaded:
-                        this_time_not_switched: int = np.count_nonzero(not_switched)
+                    if self.c.loadable and self.c.payload is None:
+                        this_time_not_switched: np.int64 = np.count_nonzero(not_switched)
                         self.c.inc(this_time_not_switched)
                         if not_switched.size > this_time_not_switched:
                             trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).flat[0]
@@ -358,7 +358,7 @@ class LifetimeMeasurement(Process):
                     ...
                 if self.user_aborted.is_set():
                     break
-                self.c.loaded = False
+                self.c.payload = None
 
                 print(
                     datetime.now(),
@@ -374,11 +374,11 @@ class LifetimeMeasurement(Process):
                 t0: datetime = datetime.now()
                 t1: datetime = datetime.now()
 
-                while t1 - t0 <= self.max_waiting_time and not self.c.loaded and not self.user_aborted.wait(0.01):
+                while t1 - t0 <= self.max_waiting_time and self.c.payload is None and not self.user_aborted.wait(0.01):
                     self.state_queue.put((cycle_index, t1 - t0))
                     t1 = datetime.now()
 
-                if self.c.loaded:
+                if self.c.payload is not None:
                     self.c.loadable = False
                     i, v, t = self.c.payload
                     v = (v - offsets[adc_voltage.name]) / self.gain
@@ -402,7 +402,7 @@ class LifetimeMeasurement(Process):
                         ],
                     )
 
-                    self.c.loaded = False
+                    self.c.payload = None
                 elif self.user_aborted.is_set():
                     print("user aborted")
                 else:

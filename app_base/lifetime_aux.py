@@ -10,7 +10,7 @@ import numpy as np
 import pyqtgraph as pg
 from astropy.units import K, Quantity
 from numpy.typing import NDArray
-from qtpy.QtCore import QTimer
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtGui import QCloseEvent, QColor
 from qtpy.QtWidgets import QMessageBox
 
@@ -165,7 +165,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.saved_files: set[Path] = set()
 
         self.loop_data: dict[int, timedelta] = {}
-        self.last_lifetime_0: float = np.nan
+        self.last_lifetime_0: float | np.float64 = np.nan
         self.bad_temperature_time: datetime = datetime.now() - self.temperature_delay
         self.bad_aux_voltage_time: datetime = datetime.now()
         self.temperature_just_set: bool = False
@@ -356,6 +356,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
     @abc.abstractmethod
     def _make_step(self) -> bool: ...
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.button_pause.setChecked(False)
@@ -388,6 +389,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         self.timer.stop()
         self.synthesizer.output = False
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         self.saved_files.add(self.data_file)
         self.histogram.save(self.hist_file)
@@ -416,7 +418,7 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
             self.label_lifetime_std.clear()
             self.label_lifetime_mean_std_ratio.clear()
 
-    def _add_plot_point(self, x: float, lifetime: float) -> None:
+    def _add_plot_point(self, x: float | np.float64, lifetime: float | np.float64) -> None:
         old_x_data: NDArray[np.float64] = (
             np.empty(0, dtype=np.float64) if self.plot_line.xData is None else self.plot_line.xData
         )
@@ -506,4 +508,5 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         ).T
 
     @abc.abstractmethod
+    @Slot()
     def on_timeout(self) -> None: ...

@@ -4,7 +4,7 @@ from multiprocessing import Event, Queue, Value
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
-from typing import Final, TextIO, cast
+from typing import Final, TextIO
 
 import numpy as np
 import pyqtgraph as pg
@@ -362,6 +362,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
     @abc.abstractmethod
     def _make_step(self) -> bool: ...
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         super().on_button_start_clicked()
 
@@ -390,6 +391,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.timer.stop()
         self.synthesizer.output = False
 
+    @Slot()
     def on_button_stop_clicked(self) -> None:
         self.saved_files.add(self.data_file)
         self.histogram.save(self.hist_file)
@@ -412,8 +414,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
             current, voltage = self.switching_data_queue.get(block=True)
             self.switching_current.append(current)
             self.switching_voltage.append(voltage)
-            self.label_mean_current.setValue(np.nanmean(self.switching_current) * 1e9)
-            self.label_std_current.setValue(np.nanstd(self.switching_current) * 1e9)
+            self.label_mean_current.setValue(np.nanmean(self.switching_current, dtype=np.float64) * 1e9)
+            self.label_std_current.setValue(np.nanstd(self.switching_current, dtype=np.float64) * 1e9)
             self.histogram.hist(
                 self.switching_current,
                 pen="white",
@@ -443,14 +445,14 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         measured_data: NDArray[float] = self._get_data_file_content()
         if measured_data.shape[0] == 3:
             current: NDArray[float] = measured_data[0] * 1e9
-            median_bias_current: float = cast("float", np.nanmedian(current))
+            median_bias_current: np.float64 = np.nanmedian(current).astype(np.float64)
             min_reasonable_bias_current: float = median_bias_current * (1.0 - 0.01 * self.max_reasonable_bias_error)
             max_reasonable_bias_current: float = median_bias_current * (1.0 + 0.01 * self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (current >= min_reasonable_bias_current) & (
                 current <= max_reasonable_bias_current
             )
             current = current[reasonable]
-            self._add_plot_point(x, cast("float", np.mean(current)), cast("float", np.std(current)))
+            self._add_plot_point(x, np.mean(current, dtype=np.float64), np.std(current, dtype=np.float64))
             self.saved_files.add(self.data_file)
 
     def _is_temperature_good(self) -> bool:

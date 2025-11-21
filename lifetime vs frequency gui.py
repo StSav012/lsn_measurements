@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import cast, final
+from typing import final
 
 import numpy as np
 from astropy.units import K, Quantity
@@ -123,18 +123,18 @@ class App(LifetimeBase):
         if measured_data.shape[0] == 7:
             bias_current: NDArray[float] = measured_data[3]
             lifetime: NDArray[float] = measured_data[2]
-            median_bias_current: float = cast("float", np.nanmedian(bias_current))
+            median_bias_current: np.float64 = np.nanmedian(bias_current).astype(np.float64)
             min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
             max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)
             reasonable: NDArray[np.bool_] = (bias_current >= min_reasonable_bias_current) & (
                 bias_current <= max_reasonable_bias_current
             )
             lifetime = lifetime[reasonable]
+            self.last_lifetime_0 = np.mean(lifetime[lifetime > 0.0], dtype=np.float64)
             self._add_plot_point(
-                cast("float", np.mean(measured_data[0])),
-                cast("float", np.mean(lifetime[lifetime > 0.0])),
+                np.mean(measured_data[0], dtype=np.float64),
+                self.last_lifetime_0,
             )
-            self.last_lifetime_0 = cast("float", np.mean(lifetime[lifetime > 0.0]))
 
     def _next_indices(self) -> bool:
         while True:

@@ -10,7 +10,7 @@ import numpy as np
 import pyqtgraph as pg
 from astropy.units import K, Quantity
 from numpy.typing import NDArray
-from qtpy.QtCore import QTimer
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtGui import QCloseEvent, QColor
 from qtpy.QtWidgets import QMessageBox
 
@@ -317,6 +317,7 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
     @abc.abstractmethod
     def _make_step(self) -> bool: ...
 
+    @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.button_pause.setChecked(False)
@@ -448,4 +449,5 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         ).T
 
     @abc.abstractmethod
+    @Slot()
     def on_timeout(self) -> None: ...

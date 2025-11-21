@@ -190,13 +190,12 @@ class LifetimeMeasurement(Process):
                         this_time_not_switched: np.int64 = np.count_nonzero(not_switched)
                         self.c.inc(this_time_not_switched)
                         if not_switched.size > this_time_not_switched:
-                            trig_arg: int = np.argwhere(data[1] > self.trigger_voltage).flat[0]
+                            trig_arg: np.int64 = np.argwhere(data[1] > self.trigger_voltage).flat[0]
                             self.c.payload = (
                                 data[0, trig_arg],
                                 data[1, trig_arg],
                                 int(self.c) / self.adc_rate,
                             )
-                            self.c.loaded = True
                             self.c.reset()
                 else:
                     self.c.loadable = np.any(data[1] < 0.5 * self.trigger_voltage)
@@ -451,8 +450,8 @@ class LifetimeMeasurement(Process):
                 mean_set_bias_current_reasonable: float | np.float64 | NDArray[np.float64]
                 set_bias_current_reasonable_std: float | np.float64 | NDArray[np.float64]
                 if set_bias_current_reasonable.size:
-                    mean_set_bias_current_reasonable = np.nanmean(set_bias_current_reasonable)
-                    set_bias_current_reasonable_std = np.nanstd(set_bias_current_reasonable)
+                    mean_set_bias_current_reasonable = np.nanmean(set_bias_current_reasonable, dtype=np.float64)
+                    set_bias_current_reasonable_std = np.nanstd(set_bias_current_reasonable, dtype=np.float64)
                 else:
                     mean_set_bias_current_reasonable = np.nan
                     set_bias_current_reasonable_std = np.nan
@@ -461,8 +460,8 @@ class LifetimeMeasurement(Process):
                 mean_switching_time_reasonable: float | np.float64 | NDArray[np.float64]
                 switching_time_reasonable_std: float | np.float64 | NDArray[np.float64]
                 if switching_time_reasonable.size:
-                    mean_switching_time_reasonable = np.nanmean(switching_time_reasonable)
-                    switching_time_reasonable_std = np.nanstd(switching_time_reasonable)
+                    mean_switching_time_reasonable = np.nanmean(switching_time_reasonable, dtype=np.float64)
+                    switching_time_reasonable_std = np.nanstd(switching_time_reasonable, dtype=np.float64)
                 else:
                     mean_switching_time_reasonable = np.nan
                     switching_time_reasonable_std = np.nan
@@ -472,8 +471,8 @@ class LifetimeMeasurement(Process):
                 mean_switching_time_rnz: float | np.float64 | NDArray[np.float64]
                 switching_time_rnz_std: float | np.float64 | NDArray[np.float64]
                 if switching_time_rnz.size:
-                    mean_switching_time_rnz = np.nanmean(switching_time_rnz)
-                    switching_time_rnz_std = np.nanstd(switching_time_rnz)
+                    mean_switching_time_rnz = np.nanmean(switching_time_rnz, dtype=np.float64)
+                    switching_time_rnz_std = np.nanstd(switching_time_rnz, dtype=np.float64)
                 else:
                     mean_switching_time_rnz = np.nan
                     switching_time_rnz_std = np.nan

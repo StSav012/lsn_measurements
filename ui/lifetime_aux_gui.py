@@ -40,7 +40,10 @@ class LifetimeGUI(QMainWindow):
 
         self.figure: pg.PlotWidget = pg.PlotWidget(self.central_widget)
         self.plot_lines: dict[int, pg.PlotDataItem] = {}
-        self.figure.addLegend(offset=(30, -30))
+
+        func = self.figure.plotItem.addLegend
+        offset: tuple[int, int] = abs(func.__defaults__[0][0]), -abs(func.__defaults__[0][1])
+        func(offset=offset)
 
         self.label_spent_time: pg.ValueLabel = pg.ValueLabel(self.central_widget)
         self.label_bias: pg.ValueLabel = pg.ValueLabel(self.central_widget)

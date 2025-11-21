@@ -90,8 +90,13 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
         self.canvas_std.showGrid(x=True, y=True)
         self.canvas_std.vb.setXLink(self.canvas_mean)
 
-        self.canvas_mean.addLegend()
-        self.canvas_std.addLegend()
+        offset: tuple[int, int]
+        func = self.canvas_mean.addLegend
+        offset = abs(func.__defaults__[0][0]), abs(func.__defaults__[0][1])
+        func(offset=offset)
+        func = self.canvas_std.addLegend
+        offset = abs(func.__defaults__[0][0]), abs(func.__defaults__[0][1])
+        func(offset=offset)
 
         self.label_loop_number.formatStr = "{value:.0f}"
         self.label_mean_current.suffix = self.tr("nA")

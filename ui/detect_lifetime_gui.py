@@ -91,8 +91,13 @@ class DetectLifetimeGUI(QMainWindow):
         self.canvas_lifetime.ctrl.setLogMode(x=True, y=True)
         self.canvas_lifetime.showGrid(x=True, y=True)
 
-        self.canvas_detect.addLegend(offset=(-30, -30))
-        self.canvas_lifetime.addLegend(offset=(30, -30))
+        offset: tuple[int, int]
+        func = self.canvas_detect.addLegend
+        offset = -abs(func.__defaults__[0][0]), -abs(func.__defaults__[0][1])
+        func(offset=offset)
+        func = self.canvas_lifetime.addLegend
+        offset = abs(func.__defaults__[0][0]), -abs(func.__defaults__[0][1])
+        func(offset=offset)
 
         self.label_spent_time.suffix = self.tr("s")
         self.label_spent_time.formatStr = "{value:0.5f} {suffix}"

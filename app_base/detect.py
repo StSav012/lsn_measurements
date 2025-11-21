@@ -269,6 +269,13 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
 
         self.button_drop_measurement.reset()
 
+        prior_cycles_count: int = 0
+        prior_switches_count: int = 0
+        if self.data_file.exists():
+            measured_data: NDArray[float] = self._get_data_file_content()
+            prior_cycles_count = measured_data.shape[1]
+            prior_switches_count = int(np.count_nonzero(~np.isnan(measured_data[0])))
+
         self.measurement = DetectMeasurement(
             results_queue=self.results_queue,
             state_queue=self.state_queue,
@@ -285,6 +292,8 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
             frequency=self.frequency,
             power_dbm=self.power_dbm,
             max_switching_events_count=self.max_switching_events_count,
+            prior_cycles_count=prior_cycles_count,
+            prior_switches_count=prior_switches_count,
             pulse_duration=self.pulse_duration,
             setting_time=self.setting_time,
             trigger_voltage=self.trigger_voltage,
@@ -404,7 +413,7 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         return good_to_go
 
     @abc.abstractmethod
-    def _add_plot_point_from_file(self) -> None: ...
+    def _add_plot_point_from_file(self) -> bool: ...
 
     def _data_file_exists(self, verbose: bool = True) -> bool:
         exists: bool = (

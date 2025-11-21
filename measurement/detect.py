@@ -56,6 +56,8 @@ class DetectMeasurement(Process):
         trigger_voltage: float,
         cycles_count: int,
         max_switching_events_count: int,
+        prior_switches_count: int = 0,
+        prior_cycles_count: int = 0,
         stat_file: Path,
         data_file: Path,
         power_dbm: float = np.nan,
@@ -100,6 +102,9 @@ class DetectMeasurement(Process):
 
         self.adc_rate: float = adc_rate
 
+        self.prior_switches_count: int = prior_switches_count
+        self.prior_cycles_count: int = prior_cycles_count
+
         self.stat_file: Path = stat_file
         self.data_file: Path = data_file
 
@@ -108,6 +113,20 @@ class DetectMeasurement(Process):
         self.pulse_ended: bool = False
 
     def run(self) -> None:
+        if self.max_switching_events_count <= 0 or self.prior_cycles_count >= self.cycles_count:
+            return
+
+        estimated_cycles_count: int
+        if self.prior_cycles_count > 0 or self.prior_switches_count > 0:
+            if self.prior_switches_count == 0:
+                estimated_cycles_count = self.cycles_count
+            else:
+                estimated_cycles_count = min(
+                    self.cycles_count,
+                    round(self.max_switching_events_count * self.prior_cycles_count / self.prior_switches_count),
+                )
+            self.state_queue.put((self.prior_cycles_count, estimated_cycles_count, self.prior_switches_count))
+
         measure_offsets()
         self.trigger_voltage += offsets[adc_voltage.name]
 
@@ -354,10 +373,10 @@ class DetectMeasurement(Process):
             task_dac.wait_until_done()
             task_dac.stop()
 
-            switches_count: int = 0
-            actual_cycles_count: int = 0
+            switches_count: int = self.prior_switches_count
+            actual_cycles_count: int = self.prior_cycles_count
 
-            for cycle_index in range(self.cycles_count):
+            for cycle_index in range(self.prior_cycles_count, self.cycles_count):
                 while not self.good_to_go.wait(0.1) and not self.user_aborted.wait(0.1):
                     ...
                 if self.user_aborted.is_set():

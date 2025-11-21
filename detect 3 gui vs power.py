@@ -102,24 +102,25 @@ class App(DetectBase):
             hues *= len(self.temperature_values) or 1
         return intColor(index, hues=hues)
 
-    def _add_plot_point_from_file(self) -> None:
+    def _add_plot_point_from_file(self) -> bool:
         if self.data_file in self.saved_files:
-            return
-        self.saved_files.add(self.data_file)
+            return True
         measured_data: NDArray[float] = self._get_data_file_content()
-        if measured_data.shape[0] == 4 and measured_data.shape[1]:
-            switches_count: int = measured_data.shape[1]
-            actual_cycles_count: int = measured_data[0, -1].item()
+        if measured_data.shape[0] == 3 and measured_data.shape[1] >= self.max_switching_events_count:
+            switches_count: int = int(np.count_nonzero(~np.isnan(measured_data[0])))
+            actual_cycles_count: int = measured_data.shape[1]
             prob: float = 100.0 * switches_count / actual_cycles_count if actual_cycles_count > 0 else np.nan
             err: float = np.sqrt(prob * (100.0 - prob) / actual_cycles_count) if actual_cycles_count > 0 else np.nan
             self._add_plot_point(self.power_dbm, prob, err)
+            self.saved_files.add(self.data_file)
+            return True
+        return False
 
     def _next_indices(self) -> bool:
         while True:
             if self.stop_key_power.isChecked():
                 return False
-            while self.check_exists and self._data_file_exists():
-                self._add_plot_point_from_file()
+            while self.check_exists and self._data_file_exists() and self._add_plot_point_from_file():
                 self.power_index += 1
             if (
                 np.isnan(self.last_prob) or self.last_prob > self.minimal_probability_to_measure

@@ -411,6 +411,7 @@ class DetectMeasurement(Process):
                     fw.write(self.data_file, "at", (i * 1e9, v * 1e3, t))
                 else:
                     print("no switching events detected")
+                    fw.write(self.data_file, "at", (np.nan, np.nan, np.nan))
                     self.c.reset()
 
                 self.state_queue.put((cycle_index, estimated_cycles_count, switches_count))

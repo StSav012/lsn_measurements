@@ -376,7 +376,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
                 f_out.write("\n")
         self.start_measurement()
 
-    def on_button_stop_clicked(self) -> None:
+    def stop_measurement(self) -> None:
         self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
@@ -389,9 +389,13 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
                 self.measurement.join()
         self.timer.stop()
         self.synthesizer.output = False
+
+    def on_button_stop_clicked(self) -> None:
         self.saved_files.add(self.data_file)
         self.histogram.save(self.hist_file)
-        super().on_button_stop_clicked()
+        self.stop_measurement()
+        self.button_stop.setDisabled(True)
+        self.button_start.setEnabled(True)
 
     def _read_state_queue(self) -> None:
         cycle_index: int
@@ -436,7 +440,6 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
     def _add_plot_point_from_file(self, x: float) -> None:
         if self.data_file in self.saved_files:
             return
-        self.saved_files.add(self.data_file)
         measured_data: NDArray[float] = self._get_data_file_content()
         if measured_data.shape[0] == 3:
             current: NDArray[float] = measured_data[0] * 1e9
@@ -448,6 +451,7 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
             )
             current = current[reasonable]
             self._add_plot_point(x, cast("float", np.mean(current)), cast("float", np.std(current)))
+            self.saved_files.add(self.data_file)
 
     def _is_temperature_good(self) -> bool:
         td: timedelta

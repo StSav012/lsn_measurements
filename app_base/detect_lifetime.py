@@ -429,21 +429,27 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super().on_button_start_clicked()
+        self.button_start.setDisabled(True)
+        self.button_pause.setChecked(False)
+        self.button_stop.setEnabled(True)
 
         if self.mode == "detect":
             while self.check_exists and self.stat_file.exists():
                 warning(f"{self.stat_file} already exists")
                 if not self._next_indices():
                     error("nothing left to measure")
-                    self.on_button_stop_clicked()
+                    self.stop_measurement()
+                    self.button_stop.setDisabled(True)
+                    self.button_start.setEnabled(True)
                     return
         elif self.mode == "lifetime":
             while self.check_exists and self.data_file_lifetime.exists():
                 warning(f"{self.data_file_lifetime} already exists")
                 if not self._next_indices():
                     error("nothing left to measure")
-                    self.on_button_stop_clicked()
+                    self.stop_measurement()
+                    self.button_stop.setDisabled(True)
+                    self.button_start.setEnabled(True)
                     return
 
         if self.stat_file.exists():
@@ -452,7 +458,7 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
                 f_out.write("\n")
         self.start_measurement()
 
-    def on_button_stop_clicked(self) -> None:
+    def stop_measurement(self) -> None:
         self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
@@ -465,7 +471,12 @@ class DetectLifetimeBase(DetectLifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
                 self.measurement.join()
         self.timer.stop()
         self.synthesizer.output = False
-        super().on_button_stop_clicked()
+
+    @Slot()
+    def on_button_stop_clicked(self) -> None:
+        self.stop_measurement()
+        self.button_stop.setDisabled(True)
+        self.button_start.setEnabled(True)
 
     def _read_state_queue_detect(self) -> None:
         cycle_index: int

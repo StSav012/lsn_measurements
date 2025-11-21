@@ -357,19 +357,24 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super().on_button_start_clicked()
+        self.button_start.setDisabled(True)
+        self.button_pause.setChecked(False)
+        self.button_stop.setEnabled(True)
+
         if self.check_exists and not self._next_indices():
             error("nothing left to measure")
-            self.on_button_stop_clicked()
+            self.button_stop.setDisabled(True)
+            self.button_start.setEnabled(True)
             return
 
         if self.stat_file.exists():
             f_out: TextIO
             with self.stat_file.open("at", encoding="utf-8") as f_out:
                 f_out.write("\n")
+
         self.start_measurement()
 
-    def on_button_stop_clicked(self) -> None:
+    def stop_measurement(self) -> None:
         self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
@@ -382,9 +387,13 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
                 self.measurement.join()
         self.timer.stop()
         self.synthesizer.output = False
+
+    def on_button_stop_clicked(self) -> None:
         self.saved_files.add(self.data_file)
         self.histogram.save(self.hist_file)
-        super().on_button_stop_clicked()
+        self.stop_measurement()
+        self.button_stop.setDisabled(True)
+        self.button_start.setEnabled(True)
 
     def _read_state_queue(self) -> None:
         cycle_index: int

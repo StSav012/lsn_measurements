@@ -263,13 +263,17 @@ class App(DetectLifetimeBase):
                 self.mode = "detect"
 
             if self.stop_key_power.isChecked():
-                self.on_button_stop_clicked()
+                self.stop_measurement()
+                self.button_stop.setDisabled(True)
+                self.button_start.setEnabled(True)
                 return
             self.power_index += 1
             if prob < self.minimal_probability_to_measure or self.power_index >= len(self.power_dbm_values):
                 self.power_index = 0
                 if not self._make_step():
-                    self.on_button_stop_clicked()
+                    self.stop_measurement()
+                    self.button_stop.setDisabled(True)
+                    self.button_start.setEnabled(True)
                     return
 
             self.start_measurement()

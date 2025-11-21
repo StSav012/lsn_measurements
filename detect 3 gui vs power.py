@@ -203,8 +203,11 @@ class App(DetectBase):
         if not self.measurement.is_alive():
             self.button_drop_measurement.reset()
             self.timer.stop()
+            self.saved_files.add(self.data_file)
             if not self._make_step():
-                self.on_button_stop_clicked()
+                self.stop_measurement()
+                self.button_stop.setDisabled(True)
+                self.button_start.setEnabled(True)
                 return
 
             try:
@@ -214,7 +217,9 @@ class App(DetectBase):
 
                 traceback.print_exc()
 
-                self.on_button_stop_clicked()
+                self.stop_measurement()
+                self.button_stop.setDisabled(True)
+                self.button_start.setEnabled(True)
                 return
 
         else:

@@ -318,16 +318,19 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
     def _make_step(self) -> bool: ...
 
     def on_button_start_clicked(self) -> None:
-        super().on_button_start_clicked()
+        self.button_start.setDisabled(True)
+        self.button_pause.setChecked(False)
+        self.button_stop.setEnabled(True)
 
         if self.check_exists and not self._next_indices():
             error("nothing left to measure")
-            self.on_button_stop_clicked()
+            self.button_stop.setDisabled(True)
+            self.button_start.setEnabled(True)
             return
 
         self.start_measurement()
 
-    def on_button_stop_clicked(self) -> None:
+    def stop_measurement(self) -> None:
         self.user_aborted.set()  # tell the process to finish gracefully
         if self.measurement is not None:
             if self.measurement.is_alive():
@@ -341,8 +344,13 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         self.timer.stop()
         self.synthesizer.pulse_modulation.state = False
         self.synthesizer.output = False
+
+    @Slot()
+    def on_button_stop_clicked(self) -> None:
         self.saved_files.add(self.data_file)
-        super().on_button_stop_clicked()
+        self.stop_measurement()
+        self.button_stop.setDisabled(True)
+        self.button_start.setEnabled(True)
 
     def _read_state_queue(self) -> None:
         cycle_index: int

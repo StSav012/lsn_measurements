@@ -205,13 +205,21 @@ class SwitchingCurrentDistributionGUI(QMainWindow):
             )
             self.show()
 
+    def start_measurement(self) -> None:
+        pass
+
+    def stop_measurement(self) -> None:
+        pass
+
     @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
         self.button_pause.setChecked(False)
         self.button_stop.setEnabled(True)
+        self.start_measurement()
 
     @Slot()
     def on_button_stop_clicked(self) -> None:
+        self.stop_measurement()
         self.button_stop.setDisabled(True)
         self.button_start.setEnabled(True)

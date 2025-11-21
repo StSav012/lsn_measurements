@@ -223,9 +223,12 @@ class App(LifetimeBase):
         if not self.measurement.is_alive():
             self.button_drop_measurement.reset()
             self.timer.stop()
+            self.saved_files.add(self.data_file)
             self.histogram.save(self.hist_file)
             if not self._make_step():
-                self.on_button_stop_clicked()
+                self.stop_measurement()
+                self.button_stop.setDisabled(True)
+                self.button_start.setEnabled(True)
                 return
 
             self.start_measurement()

@@ -1,3 +1,4 @@
+import sys
 from collections.abc import Callable, Collection
 from math import nan
 from socket import AF_INET, SOCK_STREAM, socket
@@ -60,38 +61,47 @@ class SCPIDevice:
         values: type[T] | Collection[str] | tuple[type[T], str, ...],
         *,
         parameter: T | None = None,
-        read_only: bool = False,
+        read: bool = True,
+        write: bool = True,
+        first_matching: bool = False,
         doc: str = "",
     ) -> property:
-        def getter(self: Self) -> T:
-            if self.socket is None:
-                if values is float:
-                    return nan
-                return values()
-            if values is bool:
-                return to_bool(self.query(cmd, parameter=parameter))
-            if values is int:
-                return int(float(self.query(cmd, parameter=parameter)))
-            if (
-                isinstance(values, tuple)
-                and isinstance(values[0], type)
-                and all(isinstance(i, str) for i in values[1:])
-            ):
-                ret: str = self.query(cmd, parameter=parameter)
-                try:
-                    return find_single_matching_string(ret, values[1:])
-                except ValueError:
-                    return values[0](ret)
-            if isinstance(values, Collection):
-                if not all(isinstance(i, str) for i in values):
-                    raise TypeError(
-                        f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+        getter: Callable[[Any], None] | None
+        if not read:
+            getter = None
+        else:
+
+            def getter(self: Self) -> T:
+                if self.socket is None:
+                    if values is float:
+                        return nan
+                    return values()
+                if values is bool:
+                    return to_bool(self.query(cmd, parameter=parameter))
+                if values is int:
+                    return int(float(self.query(cmd, parameter=parameter)))
+                if (
+                    isinstance(values, tuple)
+                    and (isinstance(values[0], type) or callable(values[0]))
+                    and all(isinstance(i, str) for i in values[1:])
+                ):
+                    ret: str = self.query(cmd, parameter=parameter)
+                    try:
+                        return find_single_matching_string(ret, values[1:], first_matching=first_matching)
+                    except ValueError:
+                        return values[0](ret)
+                if isinstance(values, Collection):
+                    if not all(isinstance(i, str) for i in values):
+                        raise TypeError(
+                            f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+                        )
+                    return find_single_matching_string(
+                        self.query(cmd, parameter=parameter), values, first_matching=first_matching
                     )
-                return find_single_matching_string(self.query(cmd, parameter=parameter), values)
-            return values(self.query(cmd, parameter=parameter))
+                return values(self.query(cmd, parameter=parameter))
 
         setter: Callable[[Any, Any], None] | None
-        if read_only:
+        if not write:
             setter = None
         else:
 
@@ -101,7 +111,10 @@ class SCPIDevice:
                 if isinstance(values, tuple):
                     if isinstance(new_value, str):
                         try:
-                            self.issue(cmd, find_single_matching_string(new_value, values))
+                            self.issue(
+                                cmd,
+                                find_single_matching_string(new_value, values, first_matching=first_matching),
+                            )
                         except ValueError:
                             self.issue(cmd, values[0](new_value))
                     else:
@@ -109,7 +122,7 @@ class SCPIDevice:
                 elif isinstance(values, Collection):
                     if not (isinstance(new_value, str) and all(isinstance(i, str) for i in values)):
                         raise TypeError("Incompatible types", type(new_value), [type(i) for i in values])
-                    self.issue(cmd, find_single_matching_string(new_value, values))
+                    self.issue(cmd, find_single_matching_string(new_value, values, first_matching=first_matching))
                 else:
                     self.issue(cmd, values(new_value))
 
@@ -119,8 +132,8 @@ class SCPIDevice:
         if self.socket is not None:
             self.socket.close()
 
-    idn: property = property_by_command("*idn?", str, read_only=True)
-    opc: property = property_by_command("*opc?", bool, read_only=True)
+    idn: property = property_by_command("*idn?", str, write=False)
+    opc: property = property_by_command("*opc?", bool, write=False)
 
     def reset(self) -> None:
         self.communicate("*rst")
@@ -155,13 +168,29 @@ class SCPIDevice:
 
 
 class SCPIDeviceSubCategory:
-    prefix: ClassVar[str] = ...
+    prefix: ClassVar[str] = ""
+    sub_prefix: ClassVar[str] = ""
 
-    def __init__(self, parent: SCPIDevice) -> None:
-        if self.__class__.prefix is ...:
+    def __init__(self, parent: SCPIDevice, prefix: str = prefix) -> None:
+        if not prefix:
             raise ValueError("Specify the sub-category prefix")
 
         self.parent: Final[SCPIDevice] = parent
+        if self.__class__.sub_prefix:
+            if (
+                ":" not in self.__class__.sub_prefix.lstrip(":")
+                and self.__class__.sub_prefix.casefold() != self.__class__.__name__.strip("_").casefold()
+            ):
+                print(
+                    f"WARNING: Class name {self.__class__.__name__} doesn't match the sub-category prefix {self.__class__.sub_prefix}",
+                    file=sys.stderr,
+                )
+            prefix = ":".join((prefix, self.__class__.sub_prefix.lstrip(":")))
+        self._prefix: Final[str] = prefix
+
+    def _make_command(self, cmd: str) -> str:
+        cmd = cmd.lstrip(":")
+        return ":".join((self._prefix, cmd)) if cmd else self._prefix
 
     @staticmethod
     def subproperty_by_command[T](
@@ -169,59 +198,94 @@ class SCPIDeviceSubCategory:
         values: type[T] | Collection[str] | tuple[type[T], str, ...],
         *,
         parameter: T | None = None,
-        read_only: bool = False,
+        read: bool = True,
+        write: bool = True,
+        first_matching: bool = False,
         doc: str = "",
     ) -> property:
-        def getter(self: SCPIDeviceSubCategory) -> T:
-            if self.parent.socket is None:
-                if values is float:
-                    return nan
-                return values()
-            subcmd: str = ":".join((self.__class__.prefix, cmd)) if cmd else self.__class__.prefix
-            if values is bool:
-                return to_bool(self.parent.query(subcmd, parameter=parameter))
-            if values is int:
-                return int(float(self.parent.query(subcmd, parameter=parameter)))
-            if (
-                isinstance(values, tuple)
-                and isinstance(values[0], type)
-                and all(isinstance(i, str) for i in values[1:])
-            ):
-                ret: str = self.parent.query(subcmd, parameter=parameter)
-                try:
-                    return find_single_matching_string(ret, values[1:])
-                except ValueError:
-                    return values[0](ret)
-            elif isinstance(values, Collection):
-                if not all(isinstance(i, str) for i in values):
-                    raise TypeError(
-                        f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+        getter: Callable[[Any], None] | None
+        if not read:
+            getter = None
+        else:
+
+            def getter(self: SCPIDeviceSubCategory) -> T:
+                if self.parent.socket is None:
+                    if values is float:
+                        return nan
+                    return values()
+                subcmd: str = self._make_command(cmd)
+                if values is bool:
+                    return to_bool(self.parent.query(subcmd, parameter=parameter))
+                if values is int:
+                    return int(float(self.parent.query(subcmd, parameter=parameter)))
+                if (
+                    isinstance(values, tuple)
+                    and (isinstance(values[0], type) or callable(values[0]))
+                    and all(isinstance(i, str) for i in values[1:])
+                ):
+                    ret: str = self.parent.query(subcmd, parameter=parameter)
+                    try:
+                        return find_single_matching_string(ret, values[1:], first_matching=first_matching)
+                    except ValueError:
+                        return values[0](ret)
+                elif isinstance(values, Collection):
+                    if not all(isinstance(i, str) for i in values):
+                        raise TypeError(
+                            f"Expected a collection of strings, got {type(values)}({[type(i) for i in values]})"
+                        )
+                    return find_single_matching_string(
+                        self.parent.query(subcmd, parameter=parameter), values, first_matching=first_matching
                     )
-                return find_single_matching_string(self.parent.query(subcmd, parameter=parameter), values)
-            return values(self.parent.query(subcmd, parameter=parameter))
+                return values(self.parent.query(subcmd, parameter=parameter))
 
         setter: Callable[[Any, Any], None] | None
-        if read_only:
+        if not write:
             setter = None
         else:
 
             def setter(self: SCPIDeviceSubCategory, new_value: T) -> None:
                 if self.parent.socket is None:
                     return
-                subcmd: str = ":".join((self.__class__.prefix, cmd)) if cmd else self.__class__.prefix
+                subcmd: str = self._make_command(cmd)
                 if isinstance(values, tuple):
                     if isinstance(new_value, str):
                         try:
-                            self.parent.issue(subcmd, find_single_matching_string(new_value, values))
+                            self.parent.issue(
+                                subcmd,
+                                find_single_matching_string(new_value, values, first_matching=first_matching),
+                            )
                         except ValueError:
-                            self.parent.issue(subcmd, values[0](new_value))
+                            if callable(values[0]):
+                                self.parent.issue(subcmd, values[0](new_value))
+                            else:
+                                raise
                     else:
                         self.parent.issue(subcmd, values[0](new_value))
                 elif isinstance(values, Collection):
                     if not (isinstance(new_value, str) and all(isinstance(i, str) for i in values)):
                         raise TypeError("Incompatible types", type(new_value), [type(i) for i in values])
-                    self.parent.issue(subcmd, find_single_matching_string(new_value, values))
+                    self.parent.issue(
+                        subcmd, find_single_matching_string(new_value, values, first_matching=first_matching)
+                    )
                 else:
                     self.parent.issue(subcmd, values(new_value))
 
         return property(getter, setter, None, doc or (f"Query and set {cmd}" if setter is not None else f"Query {cmd}"))
+
+    def communicate(self, command: str) -> str | None:
+        self.parent.communicate(self._make_command(command))
+
+    def query(self, command: str, parameter: object | None = None) -> str:
+        command = command.strip()
+        if not command.endswith("?"):
+            command += "?"
+        if parameter is not None:
+            return self.communicate(command + " " + str(parameter))
+        return self.communicate(command)
+
+    def issue(self, command: str, value: object | None = None) -> None:
+        if value is None:
+            self.communicate(command.rstrip("?"))
+        if isinstance(value, bool):
+            value = {False: "OFF", True: "ON"}[value]
+        self.communicate(command.rstrip("?") + " " + str(value).rstrip("?"))

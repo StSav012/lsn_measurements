@@ -449,6 +449,23 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
             dtype=np.float64,
         ).T
 
+    def _get_stat_file_content(self) -> NDArray[np.float64]:
+        return np.array(
+            [
+                [float(cell) for cell in row.split("\t")]
+                for row in self.stat_file.read_text(encoding="utf-8").splitlines()
+                if row and (row.startswith("nan") or not row[0].isalpha())
+            ],
+            dtype=np.float64,
+        ).T
+
+    def _get_stat_file_content_str(self) -> list[list[str]]:
+        return [
+            [cell for cell in row.split("\t")]
+            for row in self.stat_file.read_text(encoding="utf-8").splitlines()
+            if row and (row.startswith("nan") or not row[0].isalpha())
+        ]
+
     @abc.abstractmethod
     @Slot()
     def on_timeout(self) -> None: ...

@@ -474,13 +474,14 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
             warning(f"{self.data_file} already exists")
         return exists
 
-    def _get_data_file_content(self) -> NDArray[float]:
+    def _get_data_file_content(self) -> NDArray[np.float64]:
         return np.array(
             [
                 [float(cell) for cell in row.split("\t")]
                 for row in self.data_file.read_text(encoding="utf-8").splitlines()
                 if row and (row.startswith("nan") or not row[0].isalpha())
             ],
+            dtype=np.float64,
         ).T
 
     @abc.abstractmethod

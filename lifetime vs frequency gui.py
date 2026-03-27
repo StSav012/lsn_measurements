@@ -119,10 +119,10 @@ class App(LifetimeBase):
         if self.data_file in self.saved_files:
             return
         self.saved_files.add(self.data_file)
-        measured_data: NDArray[float] = self._get_data_file_content()
+        measured_data: NDArray[np.float64] = self._get_data_file_content()
         if measured_data.shape[0] == 7:
-            bias_current: NDArray[float] = measured_data[3]
-            lifetime: NDArray[float] = measured_data[2]
+            bias_current: NDArray[np.float64] = measured_data[3]
+            lifetime: NDArray[np.float64] = measured_data[2]
             median_bias_current: np.float64 = np.nanmedian(bias_current).astype(np.float64)
             min_reasonable_bias_current: float = median_bias_current * (1.0 - self.max_reasonable_bias_error)
             max_reasonable_bias_current: float = median_bias_current * (1.0 + self.max_reasonable_bias_error)

@@ -20,6 +20,7 @@ from measurement.scd_aux import SCDMeasurement
 from ui.scd_aux_gui import SwitchingCurrentDistributionGUI
 from utils import error, warning
 from utils.config import Config
+from utils.ni import zero_sources
 from utils.slice_sequence import SliceSequence
 from utils.string_utils import format_float
 
@@ -166,6 +167,8 @@ class SwitchingCurrentDistributionBase(SwitchingCurrentDistributionGUI, abc.ABC,
         self.temperature_just_set: bool = False
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        if QMessageBox.question(self, self.tr("Closing"), self.tr("Zero sources?")) == QMessageBox.StandardButton.Yes:
+            zero_sources()
         self.synthesizer.reset()
         super().closeEvent(event)
 

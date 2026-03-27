@@ -272,7 +272,7 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
         prior_cycles_count: int = 0
         prior_switches_count: int = 0
         if self.data_file.exists():
-            measured_data: NDArray[float] = self._get_data_file_content()
+            measured_data: NDArray[np.float64] = self._get_data_file_content()
             prior_cycles_count = measured_data.shape[1]
             prior_switches_count = int(np.count_nonzero(~np.isnan(measured_data[0])))
 
@@ -439,13 +439,14 @@ class DetectBase(DetectGUI, abc.ABC, metaclass=QWidgetMeta):
             warning(f"{self.data_file} already exists")
         return exists
 
-    def _get_data_file_content(self) -> NDArray[float]:
+    def _get_data_file_content(self) -> NDArray[np.float64]:
         return np.array(
             [
                 [float(cell) for cell in row.split("\t")]
                 for row in self.data_file.read_text(encoding="utf-8").splitlines()
                 if row and (row.startswith("nan") or not row[0].isalpha())
             ],
+            dtype=np.float64,
         ).T
 
     @abc.abstractmethod

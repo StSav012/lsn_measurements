@@ -105,7 +105,7 @@ class App(DetectBase):
     def _add_plot_point_from_file(self) -> bool:
         if self.data_file in self.saved_files:
             return True
-        measured_data: NDArray[float] = self._get_data_file_content()
+        measured_data: NDArray[np.float64] = self._get_data_file_content()
         if measured_data.shape[0] == 3 and measured_data.shape[1] >= self.max_switching_events_count:
             switches_count: int = int(np.count_nonzero(~np.isnan(measured_data[0])))
             actual_cycles_count: int = measured_data.shape[1]

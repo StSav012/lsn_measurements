@@ -391,8 +391,12 @@ class LifetimeBase(LifetimeGUI, abc.ABC, metaclass=QWidgetMeta):
         else:
             self.label_mean_lifetime.clear()
         if finished_data.size > 2:
-            self.label_lifetime_std.setValue(np.std(finished_data))
-            self.label_lifetime_mean_std_ratio.setValue(np.mean(finished_data) / np.std(finished_data))
+            _std = np.std(finished_data)
+            self.label_lifetime_std.setValue(_std)
+            if _std > 0.0:
+                self.label_lifetime_mean_std_ratio.setValue(np.mean(finished_data) / _std)
+            else:
+                self.label_lifetime_mean_std_ratio.clear()
         else:
             self.label_lifetime_std.clear()
             self.label_lifetime_mean_std_ratio.clear()

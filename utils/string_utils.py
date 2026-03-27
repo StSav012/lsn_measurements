@@ -61,7 +61,7 @@ def nth_occurrence(text: str, substrings: str | Sequence[str], n: int) -> int:
     return -1
 
 
-def find_single_matching_string(s: str, variants: Collection[str]) -> str:
+def find_single_matching_string(s: str, variants: Collection[str], *, first_matching: bool = False) -> str:
     if s in variants:
         return s
 
@@ -76,6 +76,14 @@ def find_single_matching_string(s: str, variants: Collection[str]) -> str:
     if len(matching_variants) == 1:
         return matching_variants[0]
     if matching_variants:
+        if not numeric_suffix:
+            suffixless_matching_variants: list[str] = [v for v in matching_variants if not v[-1].isnumeric()]
+            if len(suffixless_matching_variants) == 1:
+                return suffixless_matching_variants[0]
+            if suffixless_matching_variants and first_matching:
+                return suffixless_matching_variants[0]
+        if first_matching:
+            return matching_variants[0]
         raise ValueError(f"Ambiguous value: {s!r}. Possible variants: {matching_variants}")
     raise ValueError(f"Ambiguous value: {s!r}. Provided variants: {variants}")
 

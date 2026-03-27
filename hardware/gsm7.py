@@ -100,24 +100,21 @@ class _Trigger(SCPIDeviceSubCategory):
 class _Arm(SCPIDeviceSubCategory):
     prefix = ":arm"
 
+
 class _Sense(SCPIDeviceSubCategory):
     prefix = ":sense"
 
     class _Function(SCPIDeviceSubCategory):
         prefix = ":function"
 
-
     class _Current(SCPIDeviceSubCategory):
         prefix = ":current"
-
 
     class _Voltage(SCPIDeviceSubCategory):
         prefix = ":voltage"
 
-
     class _Resistance(SCPIDeviceSubCategory):
         prefix = ":resistance"
-
 
     class _Average(SCPIDeviceSubCategory):
         prefix = ":average"

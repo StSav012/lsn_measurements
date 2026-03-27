@@ -222,6 +222,12 @@ class App(GUI):
         self.combo_welch_window.currentTextChanged.connect(self.on_combo_welch_window_current_text_changed)
         self.spin_display_time_span.valueChanged.connect(self.on_spin_display_time_span_value_changed)
 
+    def closeEvent(self, event: QCloseEvent) -> None:
+        if silent_alive(self.measurement):
+            self.measurement.stop()
+        clear_queue_after_process(self.measurement, self.results_queue)
+        return super().closeEvent(event)
+
     @Slot(bool)
     def on_check_power_or_magnitude_toggled(self, checked: bool) -> None:
         if checked:

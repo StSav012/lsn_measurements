@@ -70,6 +70,8 @@ class NoiseMeasurement(Thread):
         sample_rate: float,
         source_channel: PhysicalChannel | None = None,
         source_voltage: float = 0.0,
+        aux_channel: PhysicalChannel | None = None,
+        aux_voltage: float = 0.0,
         delay_after_source_set: float = 0.0,
     ) -> None:
         super().__init__()
@@ -79,6 +81,8 @@ class NoiseMeasurement(Thread):
         self.sample_rate: Final[float] = sample_rate
         self.source_channel: Final[PhysicalChannel | None] = source_channel
         self.source_voltage: float = source_voltage
+        self.aux_channel: Final[PhysicalChannel | None] = aux_channel
+        self.aux_voltage: float = aux_voltage
         self.delay_after_source_set: float = delay_after_source_set
 
         self._done: Event = Event()
@@ -92,12 +96,21 @@ class NoiseMeasurement(Thread):
         task_adc: Task
         task_dac: Task
         with Task() as task_adc, Task() as task_dac:
-            if self.source_channel is not None:
-                task_dac.ao_channels.add_ao_voltage_chan(self.source_channel.name)
-                task_dac.write(self.source_voltage)
-                task_dac.wait_until_done()
-                task_dac.stop()
-                self._done.wait(self.delay_after_source_set)
+            if self.source_channel is not None or self.aux_channel is not None:
+                outs = {}
+                vs = []
+                if self.source_channel is not None:
+                    outs[self.source_channel.name] = self.source_voltage
+                if self.aux_channel is not None:
+                    outs[self.aux_channel.name] = self.aux_voltage
+                if outs:
+                    for ch in sorted(outs):
+                        task_dac.ao_channels.add_ao_voltage_chan(ch)
+                        vs.append(outs[ch])
+                    task_dac.write(vs)
+                    task_dac.wait_until_done()
+                    task_dac.stop()
+                    self._done.wait(self.delay_after_source_set)
 
             for channel in self.channels:
                 task_adc.ai_channels.add_ai_voltage_chan(channel.name)
@@ -136,8 +149,8 @@ class NoiseMeasurement(Thread):
 
             task_adc.stop()
 
-            if self.source_channel is not None:
-                task_dac.write(0.0)
+            if outs:
+                task_dac.write([0.0] * len(outs))
                 task_dac.wait_until_done()
                 task_dac.stop()
 
@@ -173,11 +186,13 @@ class GUI(QMainWindow):
 
         self.source_box: QDockWidget = QDockWidget(self)
         self.combo_source_channel: pg.ComboBox = pg.ComboBox(self.source_box)
+        self.combo_aux_channel: pg.ComboBox = pg.ComboBox(self.source_box)
         self.spin_source_voltage: pg.SpinBox = pg.SpinBox(self.source_box)
         self.spin_source_ballast_resistance: pg.SpinBox = pg.SpinBox(self.source_box)
         self.spin_source_divider_resistance: pg.SpinBox = pg.SpinBox(self.source_box)
         self.spin_source_current_divider: QDoubleSpinBox = QDoubleSpinBox(self.source_box)
         self.spin_source_current: pg.SpinBox = pg.SpinBox(self.source_box)
+        self.spin_aux_voltage: pg.SpinBox = pg.SpinBox(self.source_box)
         self.check_source_current_step: QCheckBox = QCheckBox(self.tr("Auto increase by"), self.source_box)
         self.spin_source_current_step: pg.SpinBox = pg.SpinBox(self.source_box)
         self.spin_source_delay: pg.SpinBox = pg.SpinBox(self.source_box)
@@ -224,6 +239,7 @@ class GUI(QMainWindow):
         self.canvas_ac.vb.menu.addAction(self.tr("Copy &Data"), self.copy_data)
 
         self.combo_source_channel.setItems({ch.name: ch for ch in device_dac.ao_physical_chans})
+        self.combo_aux_channel.setItems({ch.name: ch for ch in device_dac.ao_physical_chans})
         ch_data: dict[str, PhysicalChannel] = {ch.name: ch for ch in device_adc.ai_physical_chans}
         self.combo_data_channel.setItems(ch_data)
         self.combo_trigger_channel.setItems(ch_data)
@@ -292,6 +308,14 @@ class GUI(QMainWindow):
         )
         self.spin_source_current.setOpts(**opts)
         self.spin_source_current_step.setOpts(**opts)
+        opts.update(
+            dict(
+                suffix=self.tr("V"),
+                format="{scaledValue:.{decimals}f}{suffixGap}{siPrefix}{suffix}",
+                scaleAtZero=1.0,
+            )
+        )
+        self.spin_aux_voltage.setOpts(**opts)
 
         self.spin_time_span.setMinimum(2.0 / _MAX_ADC_SAMPLE_RATE)
         self.spin_time_span.setMaximum(np.inf)
@@ -351,12 +375,14 @@ class GUI(QMainWindow):
         self.setMenuBar(self.menu_bar)
 
         source_layout: QFormLayout = QFormLayout()
-        source_layout.addRow(self.tr("Channel:"), self.combo_source_channel)
+        source_layout.addRow(self.tr("Bias source:"), self.combo_source_channel)
+        source_layout.addRow(self.tr("Aux source:"), self.combo_aux_channel)
         source_layout.addRow(self.tr("Voltage:"), self.spin_source_voltage)
         source_layout.addRow(self.tr("Ballast resistance:"), self.spin_source_ballast_resistance)
         source_layout.addRow(self.tr("Divider resistance:"), self.spin_source_divider_resistance)
         source_layout.addRow(self.tr("Current divider:"), self.spin_source_current_divider)
         source_layout.addRow(self.tr("Current:"), self.spin_source_current)
+        source_layout.addRow(self.tr("Aux voltage:"), self.spin_aux_voltage)
         source_layout.addRow(self.check_source_current_step, self.spin_source_current_step)
         source_layout.addRow(self.tr("Delay after source set:"), self.spin_source_delay)
         source_box_widget: QWidget = QWidget(self.source_box)
@@ -441,6 +467,7 @@ $time""")
         self.spin_source_divider_resistance.valueChanged.connect(self.on_spin_source_divider_resistance_value_changed)
         self.spin_source_ballast_resistance.valueChanged.connect(self.on_spin_source_ballast_resistance_value_changed)
         self.spin_source_current.valueChanged.connect(self.on_spin_source_current_value_changed)
+        self.spin_aux_voltage.valueChanged.connect(self.on_spin_aux_voltage_value_changed)
         self.button_start.clicked.connect(self.on_button_start_clicked)
         self.button_stop.clicked.connect(self.on_button_stop_clicked)
         self.button_copy_saving_path.clicked.connect(self.on_button_copy_saving_path_clicked)
@@ -475,6 +502,11 @@ $time""")
             self.combo_source_channel.setText(
                 self.settings.value("sourceChannel", self.combo_source_channel.currentText(), str),
             )
+        with suppress(ValueError):
+            # `ValueError` might occur when there is no such channel present
+            self.combo_aux_channel.setText(
+                self.settings.value("auxChannel", self.combo_aux_channel.currentText(), str),
+            )
         self.spin_source_voltage.setValue(self.settings.value("sourceVoltage", 0.0, float))
         self.spin_source_ballast_resistance.setValue(self.settings.value("sourceBallastResistance", R, float))
         self.spin_source_divider_resistance.setValue(
@@ -492,6 +524,7 @@ $time""")
             ),
         )
         self.spin_source_current.blockSignals(False)
+        self.spin_aux_voltage.setValue(self.settings.value("auxVoltage", 0.0, float))
         self.spin_g_voltage.setValue(self.settings.value("genVoltage", 3.0, float))
         self.spin_g_pulse_width.setValue(self.settings.value("genPulseWidth", 1e-6, float))
 
@@ -526,7 +559,9 @@ $time""")
         self.settings.setValue("timeSpan", self.spin_time_span.value())
         self.settings.setValue("averaging", self.spin_averaging.value())
         self.settings.setValue("sourceChannel", self.combo_source_channel.currentText())
+        self.settings.setValue("auxChannel", self.combo_aux_channel.currentText())
         self.settings.setValue("sourceVoltage", self.spin_source_voltage.value())
+        self.settings.setValue("auxVoltage", self.spin_aux_voltage.value())
         self.settings.setValue("sourceBallastResistance", self.spin_source_ballast_resistance.value())
         self.settings.setValue("sourceDividerResistance", self.spin_source_divider_resistance.value())
         self.settings.setValue("sourceCurrentDivider", self.spin_source_current_divider.value())
@@ -598,8 +633,7 @@ $time""")
                 os.path.join(
                     self.settings.value("saveDirectory", "", str),
                     f"bias = {self.spin_source_current.text()}, "
-                    f"bias = {self.spin_source_voltage.text()}, "
-                    * (not all_lines)
+                    f"bias = {self.spin_source_voltage.text()}, " * (not all_lines)
                     + f"pulse width = {self.spin_g_pulse_width.text()}, "
                     f"pulse height = {self.spin_g_voltage.text()}, "
                     f"averaging = {self.spin_averaging.text()}"
@@ -729,6 +763,10 @@ $time""")
         )
         self.spin_source_voltage.blockSignals(False)
 
+    @Slot(object)
+    def on_spin_aux_voltage_value_changed(self, value: float) -> None:
+        pass
+
     @Slot()
     def on_button_start_clicked(self) -> None:
         self.button_start.setDisabled(True)
@@ -757,6 +795,7 @@ $time""")
         QApplication.clipboard().setText(
             Template(self.path_saving.text()).safe_substitute(
                 source_current=self.spin_source_current.text(),
+                aux_voltage=self.spin_aux_voltage.text(),
                 source_voltage=self.spin_source_voltage.text(),
                 pulse_width=self.spin_g_pulse_width.text(),
                 pulse_voltage=self.spin_g_voltage.text(),
@@ -875,6 +914,8 @@ class App(GUI):
             sample_rate=self.spin_sample_rate.value(),
             source_channel=self.combo_source_channel.value(),
             source_voltage=self.spin_source_voltage.value(),
+            aux_channel=self.combo_aux_channel.value(),
+            aux_voltage=self.spin_aux_voltage.value(),
             delay_after_source_set=self.spin_source_delay.value(),
         )
         self.measurement.start()
@@ -928,6 +969,7 @@ class App(GUI):
                         Path(
                             Template(self.path_saving.text()).safe_substitute(
                                 source_current=self.spin_source_current.text(),
+                                aux_voltage=self.spin_aux_voltage.text(),
                                 source_voltage=self.spin_source_voltage.text(),
                                 pulse_width=self.spin_g_pulse_width.text(),
                                 pulse_voltage=self.spin_g_voltage.text(),
